@@ -1,0 +1,60 @@
+import { type NextRequest } from "next/server";
+
+import { getCatalogRepository } from "@/modules/catalog/queries";
+import { buildGoogleShoppingFeed } from "@/modules/feed/google-shopping";
+
+/**
+ * Google Shopping product feed — RSS 2.0 / Google Base XML.
+ *
+ * GET /api/feed/google-shopping
+ *   – Returns application/xml; charset=utf-8
+ *   – If FEED_TOKEN env var is set, the request must include ?token=<FEED_TOKEN>
+ *
+ * Setup: see docs/14_GOOGLE_MERCHANT_CENTER.md
+ *
+ * Scalability note: builds the full XML in memory (fine for < 10 000 products).
+ * For larger catalogues, switch to streaming: replace `buildGoogleShoppingFeed`
+ * with an async generator and return `new Response(ReadableStream, { headers })`.
+ */
+
+export const dynamic = "force-dynamic"; // always fetch fresh product data
+
+export async function GET(request: NextRequest): Promise<Response> {
+  // ── Token gate (optional) ────────────────────────────────────────────────
+  const feedToken = process.env.FEED_TOKEN;
+  if (feedToken) {
+    const token = request.nextUrl.searchParams.get("token");
+    if (!token || token !== feedToken) {
+      return new Response("Unauthorized — include ?token=<FEED_TOKEN> in the URL", {
+        status: 401,
+        headers: { "Content-Type": "text/plain; charset=utf-8" },
+      });
+    }
+  }
+
+  // ── Data ─────────────────────────────────────────────────────────────────
+  const repo = getCatalogRepository();
+  const [products, categories] = await Promise.all([
+    repo.getAllActiveProducts(),
+    repo.getCategories(),
+  ]);
+
+  const shippingPaise = Number(process.env.SHIPPING_STANDARD_PAISE ?? 5900); // ₹59 default
+  const returnPolicyLabel = process.env.GOOGLE_RETURN_POLICY_LABEL ?? undefined;
+
+  const xml = buildGoogleShoppingFeed(products, categories, {
+    shippingPricePaise: shippingPaise,
+    returnPolicyLabel,
+  });
+
+  return new Response(xml, {
+    status: 200,
+    headers: {
+      "Content-Type": "application/xml; charset=utf-8",
+      // GMC typically fetches once per day; 1 h CDN cache + 24 h stale window
+      "Cache-Control": "public, max-age=3600, stale-while-revalidate=86400",
+      // Prevent the feed itself from appearing in search results
+      "X-Robots-Tag": "noindex, nofollow",
+    },
+  });
+}

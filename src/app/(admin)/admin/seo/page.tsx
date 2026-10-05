@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { PageHeader } from "@/components/admin/page-header";
 import { requireAdmin } from "@/modules/admin/guard";
 import { getCatalogRepository } from "@/modules/catalog/queries";
@@ -5,12 +7,20 @@ import { getCatalogRepository } from "@/modules/catalog/queries";
 export default async function SeoPage() {
   await requireAdmin("seo:read");
 
-  const [categories, collections] = await Promise.all([
-    getCatalogRepository().getCategories(),
-    getCatalogRepository().getCollections(),
+  const repo = getCatalogRepository();
+  const [categories, collections, products] = await Promise.all([
+    repo.getCategories(),
+    repo.getCollections(),
+    repo.getAllActiveProducts(),
   ]);
 
   const withSeoTitle = categories.filter((c) => c.seoTitle).length;
+  const totalVariants = products.reduce((sum, p) => sum + p.variants.length, 0);
+  const hasFeedToken = !!process.env.FEED_TOKEN;
+  const feedUrl = `/api/feed/google-shopping${hasFeedToken ? "?token=••••••••" : ""}`;
+  const feedUrlFull = process.env.NEXT_PUBLIC_SITE_URL
+    ? `${process.env.NEXT_PUBLIC_SITE_URL}/api/feed/google-shopping${hasFeedToken ? "?token=<FEED_TOKEN>" : ""}`
+    : null;
 
   return (
     <div className="space-y-6">
@@ -44,6 +54,82 @@ export default async function SeoPage() {
           <a href="/sitemap.xml" target="_blank" rel="noopener" className="mt-2 inline-block text-sm text-brand hover:underline">View sitemap.xml ↗</a>
         </div>
       </div>
+
+      {/* Product Feed */}
+      <section>
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-base font-medium text-ink">Product feed — Google Merchant Center</h2>
+          <Link
+            href="/api/feed/google-shopping"
+            target="_blank"
+            rel="noopener"
+            className="text-sm text-brand hover:underline"
+          >
+            Preview feed ↗
+          </Link>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-3">
+          {/* Feed stats */}
+          {[
+            { label: "Products in feed", value: products.length, note: "active, published" },
+            { label: "Feed items (offers)", value: totalVariants, note: "one per variant" },
+            { label: "Token security", value: hasFeedToken ? "Enabled" : "Disabled", note: hasFeedToken ? "FEED_TOKEN set" : "Set FEED_TOKEN env var" },
+          ].map((s) => (
+            <div key={s.label} className="rounded-md border border-line bg-surface p-4">
+              <p className="text-xs font-medium uppercase tracking-wider text-ink-subtle">{s.label}</p>
+              <p className="mt-1 text-2xl font-medium text-ink">{s.value}</p>
+              <p className={`mt-0.5 text-xs ${s.label === "Token security" && !hasFeedToken ? "text-warning" : "text-ink-muted"}`}>{s.note}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Feed URL */}
+        <div className="mt-4 rounded-md border border-line bg-surface p-4">
+          <p className="text-xs font-medium uppercase tracking-wider text-ink-subtle">Feed URL (for GMC scheduled fetch)</p>
+          {feedUrlFull ? (
+            <p className="mt-2 break-all font-mono text-sm text-ink">{feedUrlFull}</p>
+          ) : (
+            <p className="mt-2 break-all font-mono text-sm text-ink">
+              {`<NEXT_PUBLIC_SITE_URL>${feedUrl}`}
+            </p>
+          )}
+          <p className="mt-2 text-xs text-ink-muted">
+            Set <code className="rounded bg-surface-muted px-1 font-mono">NEXT_PUBLIC_SITE_URL</code> to your production HTTPS domain.
+            {!hasFeedToken && (
+              <> Set <code className="rounded bg-surface-muted px-1 font-mono">FEED_TOKEN</code> to a secret and append <code className="rounded bg-surface-muted px-1 font-mono">?token=&lt;value&gt;</code> to the URL above.</>
+            )}
+          </p>
+        </div>
+
+        {/* GMC setup checklist */}
+        <div className="mt-4 rounded-md border border-line bg-surface p-5">
+          <p className="text-sm font-medium text-ink">GMC setup checklist</p>
+          <ul className="mt-3 space-y-2 text-sm text-ink-muted">
+            {[
+              { done: !!feedUrlFull, label: "NEXT_PUBLIC_SITE_URL set to production HTTPS domain" },
+              { done: hasFeedToken, label: "FEED_TOKEN set (feed is public without it)" },
+              { done: false, label: "Google Merchant Center account created at merchants.google.com" },
+              { done: false, label: "Website domain verified and claimed in GMC" },
+              { done: false, label: "Business information completed (name, address, email)" },
+              { done: false, label: "Shipping service created for India (₹59 flat / free ≥ ₹999)" },
+              { done: false, label: "Return policy created in GMC → set GOOGLE_RETURN_POLICY_LABEL" },
+              { done: false, label: "Feed registered as scheduled fetch with URL above (daily, 2 AM IST)" },
+              { done: false, label: "First fetch triggered and products approved" },
+            ].map((item) => (
+              <li key={item.label} className="flex items-start gap-2">
+                <span className={`mt-0.5 shrink-0 text-xs ${item.done ? "text-success" : "text-ink-subtle"}`}>
+                  {item.done ? "✓" : "○"}
+                </span>
+                <span className={item.done ? "text-ink" : undefined}>{item.label}</span>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-4 text-xs text-ink-muted">
+            Full setup guide: <code className="rounded bg-surface-muted px-1 font-mono">docs/14_GOOGLE_MERCHANT_CENTER.md</code>
+          </p>
+        </div>
+      </section>
 
       {/* Category SEO */}
       <section>
