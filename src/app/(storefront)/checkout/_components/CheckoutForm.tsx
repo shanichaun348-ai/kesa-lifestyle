@@ -10,14 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { formatPaise } from "@/lib/money";
 
-// ── Razorpay global type ──────────────────────────────────────────────────────
-
-declare global {
-  interface Window {
-    Razorpay: new (options: Record<string, unknown>) => { open(): void };
-  }
-}
-
 // ── Cart types (mirrors cart/store.ts CartLine) ───────────────────────────────
 
 type CartLine = {
@@ -220,7 +212,13 @@ export function CheckoutForm() {
       },
     };
 
-    new window.Razorpay(options).open();
+    if (!window.Razorpay) {
+      toast.error("Payment gateway unavailable. Please try again.");
+      setCheckoutState("idle");
+      return;
+    }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    new window.Razorpay(options as any).open();
   }
 
   if (!cartLoaded) {

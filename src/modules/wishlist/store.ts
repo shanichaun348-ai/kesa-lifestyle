@@ -17,6 +17,7 @@ export interface WishlistStore {
   getSnapshot(): WishlistSnapshot;
   toggle(slug: string): void;
   has(slug: string): boolean;
+  replace(slugs: readonly string[]): void;
 }
 
 const STORAGE_KEY = "kesa:wishlist:v1";
@@ -77,6 +78,11 @@ export const localWishlistStore: WishlistStore = {
   },
   has(slug) {
     return localWishlistStore.getSnapshot().includes(slug);
+  },
+  replace(slugs) {
+    cache = Object.freeze([...slugs]);
+    write(cache);
+    emit();
   },
 };
 

@@ -5,7 +5,7 @@ import "server-only";
  * No Razorpay npm package required.
  *
  * Env vars:
- *   RAZORPAY_KEY_ID      — public key (rzp_live_... / rzp_test_...)
+ *   RAZORPAY_KEY_ID      — public key id from the Razorpay dashboard
  *   RAZORPAY_KEY_SECRET  — private key (never sent to the client)
  */
 
