@@ -9,7 +9,7 @@ import { countInScope, getCollections } from "@/modules/catalog/queries";
 import { breadcrumbListJsonLd } from "@/modules/seo/structured-data";
 
 export const metadata: Metadata = {
-  title: "Collections",
+  title: { absolute: "Collections | Kesa Lifestyle" },
   description: "Curated jewellery edits by occasion and mood: new arrivals, bestsellers, wedding, party, daily, office and gifting.",
   alternates: { canonical: "/collections/" },
 };

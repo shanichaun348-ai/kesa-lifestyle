@@ -145,12 +145,14 @@ export type ArticleJsonLdInput = {
   dateModified?: string | undefined;
   imageUrl?: string | undefined;
   authorName?: string | undefined;
+  /** Schema.org article subtype. Use "BlogPosting" for editorial blog articles, "Article" (default) for guides. */
+  articleType?: string | undefined;
 };
 
 export function articleJsonLd(input: ArticleJsonLdInput): JsonLdObject {
   return {
     "@context": "https://schema.org",
-    "@type": "Article",
+    "@type": input.articleType ?? "Article",
     headline: input.headline,
     description: input.description,
     url: absoluteUrl(input.path),
@@ -230,7 +232,7 @@ export function productJsonLd(product: Product, path: string, opts: { reviews?: 
     description: product.shortDescription,
     image: images,
     brand: { "@type": "Brand", name: site.name },
-    category: product.primaryCategoryPath.replace("/", " > "),
+    category: product.primaryCategoryPath.replace(/\//g, " > "),
     url: absoluteUrl(path),
     ...(material ? { material } : {}),
     ...(color ? { color } : {}),
@@ -254,7 +256,7 @@ export function productJsonLd(product: Product, path: string, opts: { reviews?: 
     ...base,
     "@type": "ProductGroup",
     productGroupID: product.slug,
-    variesBy: "https://schema.org/size",
+    variesBy: "size",
     offers: {
       "@type": "AggregateOffer",
       priceCurrency: "INR",

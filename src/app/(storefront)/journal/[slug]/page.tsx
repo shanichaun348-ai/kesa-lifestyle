@@ -72,6 +72,7 @@ export default async function JournalArticlePage({ params }: Props) {
       dateModified: article.updatedAt,
       imageUrl: absoluteUrl(article.image.src),
       authorName: article.author.name,
+      articleType: "BlogPosting",
     }),
   ];
 
