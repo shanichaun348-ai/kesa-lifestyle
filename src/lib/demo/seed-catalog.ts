@@ -322,6 +322,8 @@ type Row = {
   sales: number;
   family?: [string, string];
   images: Array<1 | 2 | 3 | 4>;
+  /** Real product images; when set, used in place of generated placeholder URLs. */
+  imageRefs?: ImageRef[];
   stock?: number;
   weight?: number;
   featured?: number;
@@ -386,9 +388,19 @@ const rows: Row[] = [
   { slug: "black-band-ring", name: "Matte Black Band", cat: "men/rings", material: "stainless-steel", finish: "oxidised", colors: ["black"], occasions: ["daily-wear"], styles: ["minimal"], price: 649, variants: ["Size", ["18", "20", "22"]], daysAgo: 35, sales: 28, images: [4, 3], weight: 7 },
   { slug: "gold-tone-chain-ring", name: "Chain Ring in Gold Tone", cat: "men/rings", material: "brass", finish: "gold-tone", colors: ["gold"], occasions: ["party-wear"], styles: ["statement", "contemporary"], price: 599, variants: ["Size", ["18", "20", "22"]], daysAgo: 2, sales: 3, images: [1, 3], weight: 6 },
 
-  // men/pendants (2)
+  // men/pendants (2 + 2 with real images)
   { slug: "steel-bar-pendant", name: "Steel Bar Pendant with Chain", cat: "men/pendants", material: "stainless-steel", finish: "silver-tone", colors: ["silver"], occasions: ["daily-wear", "gifting"], styles: ["minimal"], price: 749, variants: "single", daysAgo: 65, sales: 26, images: [1, 3], weight: 10 },
   { slug: "om-pendant-gold-tone", name: "Om Pendant in Gold Tone", cat: "men/pendants", material: "brass", finish: "gold-tone", colors: ["gold"], occasions: ["gifting", "daily-wear"], styles: ["traditional"], price: 699, variants: "single", daysAgo: 140, sales: 32, images: [1, 2], weight: 6 },
+  { slug: "shiv-trishul-pendant-set", name: "Shiv Trishul CZ Pendant Set", cat: "men/pendants", material: "brass", finish: "gold-tone", colors: ["gold"], occasions: ["daily-wear", "gifting"], styles: ["traditional"], price: 1299, compareAt: 1799, variants: "single", daysAgo: 7, sales: 18, images: [1, 2], weight: 14, featured: 6, imageRefs: [{ src: "/products/shiv-trishul-pendant-set/shiv-trishul-pendant-set-1.jpg", alt: "Shiv Trishul CZ pendant in gold tone, close-up view showing stone detail" }, { src: "/products/shiv-trishul-pendant-set/shiv-trishul-pendant-set-2.jpg", alt: "Shiv Trishul CZ pendant set with gold mesh chain, full view" }] },
+  { slug: "om-mandala-pendant-set", name: "Om Mandala CZ Pendant Set", cat: "men/pendants", material: "brass", finish: "gold-tone", colors: ["gold"], occasions: ["daily-wear", "gifting"], styles: ["traditional"], price: 1299, compareAt: 1799, variants: "single", daysAgo: 7, sales: 14, images: [1, 2], weight: 12, featured: 5, imageRefs: [{ src: "/products/om-mandala-pendant-set/om-mandala-pendant-set-1.jpg", alt: "Om mandala pendant in gold tone, close-up view showing CZ stone surround" }, { src: "/products/om-mandala-pendant-set/om-mandala-pendant-set-2.jpg", alt: "Om mandala pendant set with gold mesh chain, full view" }] },
+
+  // women/bracelets — real image
+  { slug: "triple-cz-adjustable-bracelet", name: "Triple CZ Adjustable Bracelet", cat: "women/bracelets", material: "brass", finish: "gold-tone", colors: ["gold", "white"], occasions: ["daily-wear", "gifting", "party-wear"], styles: ["contemporary", "minimal"], price: 799, compareAt: 1099, variants: "single", daysAgo: 5, sales: 22, images: [1], weight: 8, featured: 7, imageRefs: [{ src: "/products/triple-cz-adjustable-bracelet/triple-cz-adjustable-bracelet-1.jpg", alt: "Triple CZ adjustable bracelet in gold tone, worn view showing slider clasp" }] },
+
+  // women/necklaces — real images
+  { slug: "cz-solitaire-lariat-necklace", name: "CZ Solitaire Lariat Necklace", cat: "women/necklaces", material: "brass", finish: "gold-tone", colors: ["gold", "white"], occasions: ["party-wear", "daily-wear", "gifting"], styles: ["contemporary", "minimal"], price: 1199, compareAt: 1599, variants: "single", daysAgo: 4, sales: 19, images: [1], weight: 9, featured: 8, imageRefs: [{ src: "/products/cz-solitaire-lariat-necklace/cz-solitaire-lariat-necklace-1.jpg", alt: "CZ solitaire lariat necklace in gold tone, flat lay showing box chain and tassel drop" }] },
+  { slug: "cz-snowflake-lariat-necklace", name: "CZ Snowflake Lariat Necklace", cat: "women/necklaces", material: "brass", finish: "gold-tone", colors: ["gold", "white"], occasions: ["party-wear", "gifting"], styles: ["contemporary", "statement"], price: 1099, compareAt: 1499, variants: "single", daysAgo: 4, sales: 11, images: [1], weight: 9, imageRefs: [{ src: "/products/cz-snowflake-lariat-necklace/cz-snowflake-lariat-necklace-1.jpg", alt: "CZ snowflake lariat necklace in gold tone, flat lay showing starburst pendant and tassel drop" }] },
+  { slug: "antique-mangalsutra", name: "Antique Mangalsutra with Stone Pendant", cat: "women/necklaces", material: "alloy", finish: "oxidised", colors: ["gold", "multicolour", "black"], occasions: ["wedding", "daily-wear"], styles: ["traditional", "statement"], price: 1999, compareAt: 2699, variants: "single", daysAgo: 6, sales: 27, images: [1, 2], weight: 28, featured: 9, imageRefs: [{ src: "/products/antique-mangalsutra/antique-mangalsutra-1.jpg", alt: "Antique mangalsutra with black bead chain and multicolour stone floral pendant, full view" }, { src: "/products/antique-mangalsutra/antique-mangalsutra-2.jpg", alt: "Antique mangalsutra pendant close-up showing floral design with multicolour stone detail" }] },
 ];
 
 const attributeLabel = (key: AttributeKey, slug: string) =>
@@ -451,11 +463,13 @@ export const seedProducts: Product[] = rows.map((row, index) => {
     },
     optionName,
     variants,
-    images: row.images.map((_, i) => ({
-      src: productImageUrl(row.slug, i),
-      alt: `${row.name} in ${finishLabel.toLowerCase()}, ${VIEW_LABELS[i] ?? "view"} (placeholder image)`,
-      unoptimized: true,
-    })),
+    images: row.imageRefs
+      ? row.imageRefs.map((ref) => ({ ...ref, unoptimized: true }))
+      : row.images.map((_, i) => ({
+          src: productImageUrl(row.slug, i),
+          alt: `${row.name} in ${finishLabel.toLowerCase()}, ${VIEW_LABELS[i] ?? "view"} (placeholder image)`,
+          unoptimized: true,
+        })),
     shortDescription: `${row.name} in ${finishLabel.toLowerCase()} ${materialLabel.toLowerCase()}, made for ${occasionLabels}.`,
     description: [
       `Demo copy. The ${row.name.toLowerCase()} is plated in ${finishLabel.toLowerCase()} over a ${materialLabel.toLowerCase()} base and finished by hand.`,

@@ -79,8 +79,8 @@ type CheckoutState = "idle" | "submitting" | "success";
 type OrderSuccess = { orderId: string };
 
 export function CheckoutForm() {
-  const [cart, setCart] = React.useState<CartLine[]>([]);
-  const [cartLoaded, setCartLoaded] = React.useState(false);
+  const [cart, setCart] = React.useState<CartLine[]>(() => readCart());
+  const [cartLoaded, setCartLoaded] = React.useState(() => true);
 
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -96,11 +96,6 @@ export function CheckoutForm() {
 
   const [checkoutState, setCheckoutState] = React.useState<CheckoutState>("idle");
   const [orderSuccess, setOrderSuccess] = React.useState<OrderSuccess | null>(null);
-
-  React.useEffect(() => {
-    setCart(readCart());
-    setCartLoaded(true);
-  }, []);
 
   const clientSubtotal = cart.reduce((s, l) => s + l.unitPricePaise * l.quantity, 0);
 
