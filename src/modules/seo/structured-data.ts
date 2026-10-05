@@ -136,6 +136,84 @@ function reviewNodes(summary: ReviewSummary | undefined): JsonLdObject {
  * entries; colour/finish siblings are separate products linked by
  * `isVariantOf` → family ProductGroup (ADR-29).
  */
+export type ArticleJsonLdInput = {
+  headline: string;
+  description: string;
+  path: string;
+  /** ISO-8601 date string, e.g. "2026-08-12". */
+  datePublished: string;
+  imageUrl?: string | undefined;
+};
+
+export function articleJsonLd(input: ArticleJsonLdInput): JsonLdObject {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    headline: input.headline,
+    description: input.description,
+    url: absoluteUrl(input.path),
+    datePublished: input.datePublished,
+    publisher: { "@id": `${site.url}/#organization` },
+    isPartOf: { "@id": `${site.url}/#website` },
+    inLanguage: "en-IN",
+    ...(input.imageUrl ? { image: input.imageUrl } : {}),
+  };
+}
+
+/**
+ * Defines the MerchantReturnPolicy node that product offers reference via
+ * `hasMerchantReturnPolicy: { "@id": RETURN_POLICY_ID }`.
+ * This must appear on the `/returns-policy/` page to close the reference.
+ */
+export function merchantReturnPolicyJsonLd(): JsonLdObject {
+  return {
+    "@context": "https://schema.org",
+    "@type": "MerchantReturnPolicy",
+    "@id": RETURN_POLICY_ID,
+    name: "Kesa Lifestyle Return Policy",
+    url: absoluteUrl("/returns-policy/"),
+    applicableCountry: "IN",
+    returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+    merchantReturnDays: 7,
+    returnMethod: "https://schema.org/ReturnByMail",
+    itemCondition: "https://schema.org/NewCondition",
+  };
+}
+
+/**
+ * Defines the OfferShippingDetails node that product offers reference via
+ * `shippingDetails: { "@id": SHIPPING_ID }`.
+ * This must appear on the `/shipping-policy/` page to close the reference.
+ */
+export function shippingDetailsJsonLd(): JsonLdObject {
+  return {
+    "@context": "https://schema.org",
+    "@type": "OfferShippingDetails",
+    "@id": SHIPPING_ID,
+    name: "Standard Shipping to India",
+    shippingSettingsLink: absoluteUrl("/shipping-policy/"),
+    shippingDestination: {
+      "@type": "DefinedRegion",
+      addressCountry: "IN",
+    },
+    deliveryTime: {
+      "@type": "ShippingDeliveryTime",
+      handlingTime: {
+        "@type": "QuantitativeValue",
+        minValue: 1,
+        maxValue: 2,
+        unitCode: "d",
+      },
+      transitTime: {
+        "@type": "QuantitativeValue",
+        minValue: 3,
+        maxValue: 5,
+        unitCode: "d",
+      },
+    },
+  };
+}
+
 export function productJsonLd(product: Product, path: string, opts: { reviews?: ReviewSummary | undefined } = {}): JsonLdObject {
   const images = product.images.map((i) => absoluteUrl(i.src));
   const material = product.attributes.material?.[0]?.replace(/-/g, " ");

@@ -53,6 +53,60 @@ export function listingMetadata(input: ListingMetadataInput): Metadata {
   };
 }
 
+export type ArticleMetadataInput = {
+  title: string;
+  excerpt: string;
+  path: string;
+  imageUrl?: string | undefined;
+  publishedAt: string;
+};
+
+export function articleMetadata(input: ArticleMetadataInput): Metadata {
+  const title = clampTitle(`${input.title} | Kesa Lifestyle`);
+  const description = clampDescription(input.excerpt);
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: input.path },
+    robots: { index: true, follow: true },
+    openGraph: {
+      type: "article",
+      url: input.path,
+      title,
+      description,
+      siteName: site.name,
+      locale: site.locale,
+      publishedTime: input.publishedAt,
+      ...(input.imageUrl ? { images: [{ url: input.imageUrl, alt: input.title }] } : {}),
+    },
+  };
+}
+
+export type OccasionMetadataInput = {
+  seoTitle: string;
+  seoDescription: string;
+  path: string;
+};
+
+export function occasionMetadata(input: OccasionMetadataInput): Metadata {
+  const title = clampTitle(input.seoTitle);
+  const description = clampDescription(input.seoDescription);
+  return {
+    title: { absolute: title },
+    description,
+    alternates: { canonical: input.path },
+    robots: { index: true, follow: true },
+    openGraph: {
+      type: "website",
+      url: input.path,
+      title,
+      description,
+      siteName: site.name,
+      locale: site.locale,
+    },
+  };
+}
+
 export type ProductMetadataInput = {
   name: string;
   shortDescription: string;

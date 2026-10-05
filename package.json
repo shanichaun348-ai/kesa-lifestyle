@@ -9,6 +9,7 @@
     "lint": "eslint src",
     "typecheck": "next typegen && tsc --noEmit -p tsconfig.json",
     "check": "pnpm typecheck && pnpm lint && pnpm test",
+    "seo-check": "node scripts/seo-check.mjs",
     "test": "vitest run"
   },
   "dependencies": {
