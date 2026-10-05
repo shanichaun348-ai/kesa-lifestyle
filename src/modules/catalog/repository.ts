@@ -6,6 +6,7 @@ import type {
   ListingResult,
   ListingScope,
   Product,
+  ProductVariant,
 } from "./types";
 
 /**
@@ -30,4 +31,10 @@ export interface CatalogRepository {
   getFamilySiblings(product: Product): Promise<Product[]>;
   getRelatedProducts(product: Product, limit: number): Promise<Product[]>;
   getAllActiveProducts(): Promise<Product[]>;
+  /**
+   * Look up active products and their matching variant by SKU.
+   * Returns a map keyed by SKU. SKUs not found are absent from the map.
+   * Phase 2: replace the demo scan with a DB index on variant.sku.
+   */
+  getProductsBySku(skus: string[]): Promise<Map<string, { product: Product; variant: ProductVariant }>>;
 }

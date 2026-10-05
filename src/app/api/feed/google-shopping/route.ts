@@ -22,8 +22,30 @@ import { buildGoogleShoppingFeed } from "@/modules/feed/google-shopping";
 export const dynamic = "force-dynamic"; // always fetch fresh product data
 
 export async function GET(request: NextRequest): Promise<Response> {
-  // ── Token gate (optional) ────────────────────────────────────────────────
+  // ── Token gate ────────────────────────────────────────────────────────────
+  // In production, FEED_TOKEN is REQUIRED. A missing token means the feed
+  // would be publicly readable — fail safe and log a config error instead.
   const feedToken = process.env.FEED_TOKEN;
+  const isProduction = process.env.NODE_ENV === "production";
+
+  if (isProduction && !feedToken) {
+    console.error(
+      JSON.stringify({
+        level: "error",
+        event: "feed_config",
+        message:
+          "FEED_TOKEN is not configured in production. " +
+          "The Google Shopping feed is blocked to prevent unauthorized data exposure. " +
+          "Set the FEED_TOKEN environment variable and restart.",
+        ts: new Date().toISOString(),
+      }),
+    );
+    return new Response("Feed not available — configuration error.", {
+      status: 503,
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+    });
+  }
+
   if (feedToken) {
     const token = request.nextUrl.searchParams.get("token") ?? "";
     // Timing-safe comparison: pad both sides to the same byte length so

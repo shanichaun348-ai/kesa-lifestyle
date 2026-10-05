@@ -15,6 +15,7 @@ import type {
   ListingResult,
   ListingScope,
   Product,
+  ProductVariant,
   SortKey,
 } from "./types";
 
@@ -123,5 +124,19 @@ export class DemoCatalogRepository implements CatalogRepository {
 
   async getAllActiveProducts(): Promise<Product[]> {
     return activeProducts();
+  }
+
+  async getProductsBySku(skus: string[]): Promise<Map<string, { product: Product; variant: ProductVariant }>> {
+    const wanted = new Set(skus);
+    const result = new Map<string, { product: Product; variant: ProductVariant }>();
+    for (const product of activeProducts()) {
+      for (const variant of product.variants) {
+        if (wanted.has(variant.sku)) {
+          result.set(variant.sku, { product, variant });
+          if (result.size === wanted.size) return result;
+        }
+      }
+    }
+    return result;
   }
 }
