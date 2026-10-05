@@ -7,17 +7,25 @@ import { Container } from "@/components/storefront/container";
 import { ARTICLE_TYPES } from "@/modules/journal/types";
 import { getAllArticles, getArticlesByType } from "@/modules/journal/repository";
 
-export const metadata: Metadata = {
+const BASE_META = {
   title: { absolute: "Journal | Kesa Lifestyle" },
   description:
     "Jewellery styling guides, care advice, buying guides and gift ideas from the Kesa Lifestyle team.",
   alternates: { canonical: "/journal/" },
-  robots: { index: true, follow: true },
-};
+} as const satisfies Omit<Metadata, "robots">;
 
 type Props = {
   searchParams: Promise<{ type?: string }>;
 };
+
+export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
+  const { type } = await searchParams;
+  const filtered = type !== undefined && ARTICLE_TYPES.some((t) => t === type);
+  return {
+    ...BASE_META,
+    robots: filtered ? { index: false, follow: true } : { index: true, follow: true },
+  };
+}
 
 export default async function JournalIndexPage({ searchParams }: Props) {
   const { type } = await searchParams;

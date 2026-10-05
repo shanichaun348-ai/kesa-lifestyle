@@ -118,28 +118,20 @@ export const sampleFooterColumns: FooterColumn[] = [
       { label: "New arrivals", href: "/collections/new-arrivals/" },
       { label: "Bestsellers", href: "/collections/bestsellers/" },
       { label: "Collections", href: "/collections/" },
-      { label: "Gift guides", href: "/gift-guides/" },
     ],
   },
   {
     heading: "Help",
     links: [
-      { label: "Contact", href: "/contact/" },
-      { label: "FAQ", href: "/faq/" },
       { label: "Shipping", href: "/shipping-policy/" },
       { label: "Returns", href: "/returns-policy/" },
-      { label: "Track order", href: "/track-order/" },
-      { label: "Jewellery care", href: "/jewellery-care/" },
     ],
   },
   {
     heading: "Kesa",
     links: [
-      { label: "About", href: "/about/" },
       { label: "Journal", href: "/journal/" },
       { label: "Style guides", href: "/style-guides/" },
-      { label: "Size guide", href: "/size-guide/" },
-      { label: "Grievance officer", href: "/grievance-officer/" },
     ],
   },
 ];

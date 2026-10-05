@@ -1,5 +1,56 @@
 import type { NextConfig } from "next";
 
+const securityHeaders = [
+  // Prevent clickjacking. CSP frame-ancestors is preferred but this covers older browsers.
+  { key: "X-Frame-Options", value: "SAMEORIGIN" },
+  // Stop browsers from MIME-sniffing away from the declared content type.
+  { key: "X-Content-Type-Options", value: "nosniff" },
+  // Control referrer on cross-origin navigations.
+  { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+  // Restrict powerful browser features we don't use.
+  {
+    key: "Permissions-Policy",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+  },
+  // HSTS: enforce HTTPS for 1 year, include subdomains. Preload-ready.
+  // Only sent over HTTPS (Vercel strips it on plain HTTP).
+  {
+    key: "Strict-Transport-Security",
+    value: "max-age=31536000; includeSubDomains; preload",
+  },
+  // CSP: locked-down baseline. Adjust if new script/style/connect sources are added.
+  // unsafe-inline is required for Next.js inline scripts (e.g. __NEXT_DATA__); nonces
+  // (ADR-32) will remove this once available.
+  {
+    key: "Content-Security-Policy",
+    value: [
+      "default-src 'self'",
+      // Next.js inline scripts (hydration, analytics init) need unsafe-inline for now.
+      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
+      // Google Fonts CSS + Next.js styled components.
+      "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+      // Google Fonts font files + self.
+      "font-src 'self' https://fonts.gstatic.com",
+      // Images: self, data URIs, and any HTTPS source for product images / OG.
+      "img-src 'self' data: https:",
+      // XHR/fetch: self only (no external API calls from the browser today).
+      "connect-src 'self' https://www.google-analytics.com https://analytics.google.com",
+      // Embedded media (audio/video).
+      "media-src 'self'",
+      // Frames: none required; SAMEORIGIN covers the admin frame case.
+      "frame-src 'none'",
+      // Objects (Flash, plugins) — none.
+      "object-src 'none'",
+      // Base URI lockdown.
+      "base-uri 'self'",
+      // Form submissions must go to same origin.
+      "form-action 'self'",
+      // Block all framing (stronger than X-Frame-Options).
+      "frame-ancestors 'self'",
+    ].join("; "),
+  },
+];
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   // Canonical URLs end with a slash (decision D18, ADR-22).
@@ -10,6 +61,14 @@ const nextConfig: NextConfig = {
     deviceSizes: [360, 640, 828, 1080, 1440],
     imageSizes: [80, 160, 288],
     minimumCacheTTL: 60 * 60 * 24 * 30,
+  },
+  async headers() {
+    return [
+      {
+        source: "/(.*)",
+        headers: securityHeaders,
+      },
+    ];
   },
   async redirects() {
     return [

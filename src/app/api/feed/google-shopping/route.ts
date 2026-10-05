@@ -1,3 +1,5 @@
+import { timingSafeEqual } from "node:crypto";
+
 import { type NextRequest } from "next/server";
 
 import { getCatalogRepository } from "@/modules/catalog/queries";
@@ -23,8 +25,18 @@ export async function GET(request: NextRequest): Promise<Response> {
   // ── Token gate (optional) ────────────────────────────────────────────────
   const feedToken = process.env.FEED_TOKEN;
   if (feedToken) {
-    const token = request.nextUrl.searchParams.get("token");
-    if (!token || token !== feedToken) {
+    const token = request.nextUrl.searchParams.get("token") ?? "";
+    // Timing-safe comparison: pad both sides to the same byte length so
+    // timingSafeEqual never throws and doesn't reveal the expected length.
+    const aBytes = Buffer.from(token, "utf-8");
+    const bBytes = Buffer.from(feedToken, "utf-8");
+    const maxLen = Math.max(aBytes.length, bBytes.length);
+    const a = Buffer.alloc(maxLen, 0);
+    const b = Buffer.alloc(maxLen, 0);
+    aBytes.copy(a);
+    bBytes.copy(b);
+    const match = aBytes.length === bBytes.length && timingSafeEqual(a, b);
+    if (!match) {
       return new Response("Unauthorized — include ?token=<FEED_TOKEN> in the URL", {
         status: 401,
         headers: { "Content-Type": "text/plain; charset=utf-8" },

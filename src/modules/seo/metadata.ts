@@ -35,7 +35,7 @@ export function listingMetadata(input: ListingMetadataInput): Metadata {
   const indexable = isIndexableListing(input.params);
   const pageSuffix = input.params.page > 1 ? ` – Page ${input.params.page}` : "";
   const filteredSuffix = hasActiveFilters(input.params) ? " (filtered)" : "";
-  const title = input.seoTitle ? clampTitle(`${input.seoTitle}${pageSuffix}`) : clampTitle(`${input.baseTitle}${pageSuffix}${filteredSuffix} | Kesa`);
+  const title = input.seoTitle ? clampTitle(`${input.seoTitle}${pageSuffix}`) : clampTitle(`${input.baseTitle}${pageSuffix}${filteredSuffix} | Kesa Lifestyle`);
 
   return {
     title: { absolute: title },

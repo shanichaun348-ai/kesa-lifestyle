@@ -5,7 +5,13 @@
  */
 import type { AdminSession } from "./types";
 
-export const ADMIN_COOKIE = "kesa_admin_session";
+// __Secure- prefix requires the Secure flag (HTTPS), so we only apply it in
+// production. In development (HTTP) the unprefixed name is used instead.
+// (Cannot use __Host- because path is /admin, not /.)
+export const ADMIN_COOKIE =
+  process.env.NODE_ENV === "production"
+    ? "__Secure-kesa_admin_session"
+    : "kesa_admin_session";
 export const SESSION_TTL = 8 * 60 * 60; // 8 hours
 
 const enc = new TextEncoder();

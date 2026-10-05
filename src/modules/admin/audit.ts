@@ -4,6 +4,7 @@ import type { AdminSession } from "./types";
 
 export type AuditAction =
   | "admin.login"
+  | "admin.login_failed"
   | "admin.logout"
   | "product.create"
   | "product.update"
