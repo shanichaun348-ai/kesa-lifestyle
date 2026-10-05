@@ -17,7 +17,7 @@ export type NavColumn = {
 export type NavFeature = {
   title: string;
   href: string;
-  image: { src: string; alt: string };
+  image: { src: string; alt: string; unoptimized?: boolean | undefined };
 };
 
 export type NavMenu = NavLink & {
@@ -60,7 +60,7 @@ export const sampleHeaderMenus: NavMenu[] = [
     feature: {
       title: "The pearl edit",
       href: "/collections/pearl-edit/",
-      image: { src: "/placeholders/editorial-1.svg", alt: "Layered pearl necklaces on a linen backdrop" },
+      image: { src: "/placeholders/editorial-1.svg", alt: "Layered pearl necklaces on a linen backdrop", unoptimized: true },
     },
   },
   {
@@ -87,7 +87,7 @@ export const sampleHeaderMenus: NavMenu[] = [
     feature: {
       title: "Minimal chains",
       href: "/collections/layering-chains/",
-      image: { src: "/placeholders/editorial-2.svg", alt: "Fine steel chains arranged on stone" },
+      image: { src: "/placeholders/editorial-2.svg", alt: "Fine steel chains arranged on stone", unoptimized: true },
     },
   },
   {

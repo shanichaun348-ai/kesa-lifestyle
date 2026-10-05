@@ -67,6 +67,7 @@ export default function HomePage() {
           title="New arrivals"
           viewAll={{ label: "View all new arrivals", href: "/collections/new-arrivals/" }}
           products={demoNewArrivals}
+          priorityCount={4}
         />
 
         <ShopTheLook {...demoLook} />

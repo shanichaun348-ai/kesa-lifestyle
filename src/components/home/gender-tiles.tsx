@@ -30,6 +30,8 @@ export function GenderTiles({ tiles }: { tiles: readonly GenderTile[] }) {
                   src={tile.image.src}
                   alt={tile.image.alt}
                   fill
+                  priority
+                  fetchPriority="high"
                   sizes="(min-width: 640px) 50vw, 100vw"
                   unoptimized={tile.image.unoptimized ?? false}
                   className="object-cover transition-transform duration-400 ease-(--ease-standard) motion-safe:group-hover/tile:scale-[1.02]"

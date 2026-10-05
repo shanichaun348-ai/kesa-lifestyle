@@ -9,10 +9,12 @@ type ProductSectionProps = {
   description?: string | undefined;
   viewAll: { label: string; href: string };
   products: ProductCardData[];
+  /** Eagerly load the first N product images (pass 4 for above-the-fold rails). */
+  priorityCount?: number | undefined;
 };
 
 /** New Arrivals, Best Sellers and any merchandised product row. */
-export function ProductSection({ id, eyebrow, title, description, viewAll, products }: ProductSectionProps) {
+export function ProductSection({ id, eyebrow, title, description, viewAll, products, priorityCount }: ProductSectionProps) {
   return (
     <section aria-labelledby={`${id}-title`} className="container-page">
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
@@ -30,7 +32,7 @@ export function ProductSection({ id, eyebrow, title, description, viewAll, produ
           {viewAll.label}
         </a>
       </div>
-      <ProductRail products={products} label={title} />
+      <ProductRail products={products} label={title} {...(priorityCount !== undefined ? { priorityCount } : {})} />
     </section>
   );
 }

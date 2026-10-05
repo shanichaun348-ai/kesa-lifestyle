@@ -30,8 +30,11 @@ export default async function CollectionPage(props: PageProps<"/collections/[slu
   if (!collection) notFound();
 
   const basePath = `/collections/${collection.slug}/`;
-  const { params, result } = await resolveListing({ kind: "collection", slug: collection.slug }, basePath, searchParams, collection.defaultSort);
-  const others = (await getCollections()).filter((c) => c.slug !== collection.slug).slice(0, 6);
+  const [{ params, result }, allCollections] = await Promise.all([
+    resolveListing({ kind: "collection", slug: collection.slug }, basePath, searchParams, collection.defaultSort),
+    getCollections(),
+  ]);
+  const others = allCollections.filter((c) => c.slug !== collection.slug).slice(0, 6);
 
   return (
     <ListingPage

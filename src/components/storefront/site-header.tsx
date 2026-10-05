@@ -68,7 +68,7 @@ export function SiteHeader({ menus, secondaryLinks }: SiteHeaderProps) {
                               alt={menu.feature.image.alt}
                               fill
                               sizes="288px"
-                              unoptimized
+                              unoptimized={menu.feature.image.unoptimized ?? false}
                               className="object-cover"
                             />
                           </div>
