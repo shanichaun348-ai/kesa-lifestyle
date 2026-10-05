@@ -1,5 +1,7 @@
 import type { NextConfig } from "next";
 
+const isDev = process.env.NODE_ENV === "development";
+
 const securityHeaders = [
   // Prevent clickjacking. CSP frame-ancestors is preferred but this covers older browsers.
   { key: "X-Frame-Options", value: "SAMEORIGIN" },
@@ -25,16 +27,17 @@ const securityHeaders = [
     key: "Content-Security-Policy",
     value: [
       "default-src 'self'",
-      // Next.js inline scripts (hydration, analytics init) need unsafe-inline for now.
-      "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com",
+      // unsafe-eval required by React/Turbopack in dev for callstack reconstruction.
+      // Production stays strict (no unsafe-eval).
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com`,
       // Google Fonts CSS + Next.js styled components.
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Google Fonts font files + self.
       "font-src 'self' https://fonts.gstatic.com",
       // Images: self, data URIs, and any HTTPS source for product images / OG.
       "img-src 'self' data: https:",
-      // XHR/fetch: self only (no external API calls from the browser today).
-      "connect-src 'self' https://www.google-analytics.com https://analytics.google.com",
+      // XHR/fetch: self + GA. Dev adds ws://* for Turbopack HMR websocket.
+      `connect-src 'self' https://www.google-analytics.com https://analytics.google.com${isDev ? " ws://localhost:* wss://localhost:*" : ""}`,
       // Embedded media (audio/video).
       "media-src 'self'",
       // Frames: none required; SAMEORIGIN covers the admin frame case.
