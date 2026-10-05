@@ -23,6 +23,10 @@ const serverSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(20).optional(),
   /** Shared secret for cron-invoked job routes. */
   CRON_SECRET: z.string().min(16).optional(),
+  /** Razorpay API key secret (pairs with NEXT_PUBLIC_RAZORPAY_KEY_ID). Server only. */
+  RAZORPAY_KEY_SECRET: z.string().min(10).optional(),
+  /** Razorpay webhook signing secret, set in the Razorpay dashboard. Server only. */
+  RAZORPAY_WEBHOOK_SECRET: z.string().min(10).optional(),
   /** Allows the seed script to run against a non-local database. Never set in production. */
   ALLOW_SEED: z.enum(["1"]).optional(),
 });
@@ -31,6 +35,8 @@ const publicSchema = z.object({
   NEXT_PUBLIC_SITE_URL: z.url().default("http://localhost:3000"),
   NEXT_PUBLIC_SUPABASE_URL: z.url().optional(),
   NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(20).optional(),
+  /** Razorpay key id (public; used by the hosted checkout in the browser). */
+  NEXT_PUBLIC_RAZORPAY_KEY_ID: z.string().min(10).optional(),
 });
 
 export type ServerEnv = z.infer<typeof serverSchema>;
@@ -52,6 +58,7 @@ export const publicEnv: PublicEnv = parse(
     NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL,
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    NEXT_PUBLIC_RAZORPAY_KEY_ID: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
   },
   "public",
 );

@@ -173,6 +173,10 @@ All sends go through the outbox; each template has a plain-text version; marketi
 - **Search management:** synonyms, query redirects, zero-result and top-query reports.
 - **Size guides:** editable tables linked to products.
 
+## 15a. Implementation status (built 2026-10-05)
+
+Sections 4, 5, 6 (except refunds, OTP and settlement reconciliation) and the pricing rules of §2 and §10 are implemented: server-side cart with merge-on-login, server pricing engine (`src/modules/pricing/engine.ts`), checkout with row-locked reservations and idempotency, Razorpay orders, verified callback and webhook, reconciliation and expiry jobs, COD confirmation, order confirmation page with payment polling. Outbox events are written for emails but no sender is configured yet. Not yet built: refunds, COD OTP, invoices/credit notes, shipments, returns, accounts UI.
+
 ## 16. Settings catalogue (editable in admin, non-secret)
 
 Store name, legal name, address, GSTIN, support email/phone/WhatsApp, grievance officer, currency, order number prefix, invoice series, free shipping threshold, flat shipping rate, express surcharge, COD enabled, COD cap, COD fee, COD max outstanding, return window days, review auto-approve rules, low-stock threshold default, announcement bar, social links, feed token, feature flags.

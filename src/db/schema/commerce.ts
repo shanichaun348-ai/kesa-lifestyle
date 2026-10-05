@@ -19,6 +19,7 @@ import { categories, collections, productVariants, products } from "./catalog";
 import { profiles } from "./customers";
 import {
   actorTypeEnum,
+  cartStatusEnum,
   couponAppliesToEnum,
   couponCombinableEnum,
   couponEligibilityEnum,
@@ -33,6 +34,7 @@ import {
   paymentStatusEnum,
   paymentTxStatusEnum,
   reservationStatusEnum,
+  shippingMethodEnum,
   returnPolicyEnum,
 } from "./enums";
 import { locations } from "./inventory";
@@ -141,7 +143,7 @@ export const orders = pgTable(
     currency: text("currency").notNull().default("INR"),
     couponCodeId: uuid("coupon_code_id").references(() => couponCodes.id, { onDelete: "set null" }),
     discountSnapshot: jsonb("discount_snapshot"),
-    shippingMethod: text("shipping_method"),
+    shippingMethod: shippingMethodEnum("shipping_method"),
     shippingEstimateMin: date("shipping_estimate_min"),
     shippingEstimateMax: date("shipping_estimate_max"),
     cartToken: uuid("cart_token"),
@@ -311,6 +313,54 @@ export const couponRedemptions = pgTable(
     createdAt: timestamps.createdAt,
   },
   (t) => [uniqueIndex("coupon_redemptions_order_coupon_idx").on(t.orderId, t.couponId), index("coupon_redemptions_profile_idx").on(t.profileId), appAll()],
+).enableRLS();
+
+/* ------------------------------------------------------------------ carts */
+
+/** Server-side cart (docs/05 §5). Guest carts are keyed by an HttpOnly cookie token. */
+export const carts = pgTable(
+  "carts",
+  {
+    id: id(),
+    token: uuid("token").notNull().defaultRandom(),
+    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    couponCodeId: uuid("coupon_code_id").references(() => couponCodes.id, { onDelete: "set null" }),
+    status: cartStatusEnum("status").notNull().default("active"),
+    note: text("note"),
+    expiresAt: timestamp("expires_at", { withTimezone: true, mode: "string" }),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("carts_token_idx").on(t.token),
+    uniqueIndex("carts_active_profile_idx")
+      .on(t.profileId)
+      .where(sql`${t.profileId} is not null and ${t.status} = 'active'`),
+    index("carts_status_updated_idx").on(t.status, t.updatedAt),
+    appAll(),
+    ownSelect(t.profileId),
+  ],
+).enableRLS();
+
+export const cartItems = pgTable(
+  "cart_items",
+  {
+    id: id(),
+    cartId: uuid("cart_id")
+      .notNull()
+      .references(() => carts.id, { onDelete: "cascade" }),
+    variantId: uuid("variant_id")
+      .notNull()
+      .references(() => productVariants.id, { onDelete: "cascade" }),
+    quantity: integer("quantity").notNull(),
+    /** Only for "price changed since you added it" notices; never used for totals. */
+    pricePaiseAtAdd: integer("price_paise_at_add").notNull(),
+    ...timestamps,
+  },
+  (t) => [
+    uniqueIndex("cart_items_cart_variant_idx").on(t.cartId, t.variantId),
+    check("cart_items_quantity_range", sql`${t.quantity} between 1 and 10`),
+    appAll(),
+  ],
 ).enableRLS();
 
 /* ------------------------------------------------------------ reservations */

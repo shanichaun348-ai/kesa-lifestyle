@@ -1,41 +1,84 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { CheckoutForm, type RetryPayment } from "@/components/checkout/checkout-form";
 import { Container } from "@/components/storefront/container";
+import { publicEnv } from "@/lib/env";
+import { getSessionUserId } from "@/lib/auth/session";
+import { getAccessibleOrderNumbers } from "@/modules/cart/cookies";
+import { getCartContext } from "@/modules/cart/server";
+import { getCheckoutService } from "@/modules/checkout/server";
+import { getDb } from "@/db/client";
+import { loadStoreSettings } from "@/modules/settings/store-settings";
 
 export const metadata: Metadata = {
   title: "Checkout",
   robots: { index: false, follow: false },
 };
 
+export const dynamic = "force-dynamic";
+
 /**
- * Honest placeholder: checkout, payments and order creation are Phase 2
- * (docs/13 §4). Buy now and the bag's Checkout button land here so the
- * flow can be exercised without pretending an order was placed.
+ * Checkout. Server-rendered with the live bag; the form re-quotes totals on
+ * the server as choices change. `?retry=KL-…` reopens payment for an order
+ * placed in this browser that is still awaiting payment.
  */
-export default function CheckoutPage() {
-  return (
-    <Container className="pt-10 pb-24">
-      <div className="mx-auto max-w-xl">
-        <p className="type-eyebrow text-ink-subtle">Checkout</p>
-        <h1 className="type-h1 mt-2">Almost there</h1>
-        <Alert variant="info" className="mt-6">
-          <AlertTitle>Checkout is not live yet</AlertTitle>
-          <AlertDescription>
-            Payments (UPI, cards, net banking, cash on delivery), address entry and order confirmation are being built in the next phase. Your bag is saved on this device in the meantime.
-          </AlertDescription>
-        </Alert>
-        <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-          <Button variant="secondary" asChild>
+export default async function CheckoutPage(props: PageProps<"/checkout">) {
+  const searchParams = await props.searchParams;
+  const ctx = await getCartContext();
+
+  if (!ctx.configured) {
+    return (
+      <Container className="pt-10 pb-24">
+        <div className="mx-auto max-w-xl">
+          <h1 className="type-h1">Checkout</h1>
+          <Alert variant="warning" className="mt-6">
+            <AlertTitle>Checkout is unavailable on this environment</AlertTitle>
+            <AlertDescription>The store database is not configured. See the README to run Supabase locally and seed it.</AlertDescription>
+          </Alert>
+          <Button variant="secondary" className="mt-6" asChild>
             <Link href="/cart/">Back to bag</Link>
           </Button>
-          <Button variant="ghost" asChild>
-            <Link href="/collections/new-arrivals/">Keep browsing</Link>
-          </Button>
         </div>
+      </Container>
+    );
+  }
+
+  const retryNumber = typeof searchParams.retry === "string" ? searchParams.retry : null;
+  let retry: RetryPayment | undefined;
+  if (retryNumber && /^KL-\d+$/.test(retryNumber)) {
+    const service = getCheckoutService();
+    const [found, profileId, accessible] = await Promise.all([service?.getOrderByNumber(retryNumber) ?? null, getSessionUserId(), getAccessibleOrderNumbers()]);
+    const allowed = found && ((profileId && found.order.profileId === profileId) || accessible.includes(retryNumber));
+    if (found && allowed && ["pending_payment", "payment_failed"].includes(found.order.status) && found.payment?.providerOrderId) {
+      retry = {
+        orderNumber: found.order.orderNumber,
+        providerOrderId: found.payment.providerOrderId,
+        amountPaise: found.order.totalPaise,
+        email: found.order.guestEmail ?? "",
+        phone: found.order.guestPhone ?? "",
+      };
+    }
+  }
+
+  const cartRow = await ctx.service.resolve({ token: ctx.token, profileId: ctx.profileId, create: false });
+  const cart = await ctx.service.getView(cartRow?.id ?? null, { profileId: ctx.profileId });
+  if (cart.lines.length === 0 && !retry) redirect("/cart/");
+
+  const settings = await loadStoreSettings(getDb());
+
+  return (
+    <Container className="pt-6 pb-16 lg:pb-24">
+      <div className="mb-8 flex items-end justify-between">
+        <h1 className="type-h1">Checkout</h1>
+        <Link href="/cart/" className="type-small text-brand underline underline-offset-4">
+          Edit bag
+        </Link>
       </div>
+      <CheckoutForm initialCart={cart} razorpayKeyId={publicEnv.NEXT_PUBLIC_RAZORPAY_KEY_ID ?? null} codEnabled={settings.cod.enabled} retry={retry} />
     </Container>
   );
 }

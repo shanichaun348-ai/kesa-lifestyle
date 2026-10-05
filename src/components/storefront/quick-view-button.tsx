@@ -6,6 +6,8 @@ import Link from "next/link";
 import { EyeIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { useCart } from "@/components/cart/cart-provider";
+
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Price } from "@/components/storefront/price";
@@ -24,12 +26,15 @@ type QuickViewButtonProps = {
  * on a phone the product page is one tap away and a dialog adds nothing.
  */
 export function QuickViewButton({ product, className }: QuickViewButtonProps) {
+  const cart = useCart();
   const [selected, setSelected] = React.useState<string | null>(product.options.find((o) => o.inStock)?.sku ?? null);
   const needsOption = product.optionName !== undefined && product.options.length > 1;
 
-  function addToBag() {
-    if (needsOption && !selected) return;
-    toast.success("Added to bag", { description: product.name });
+  async function addToBag() {
+    const sku = needsOption ? selected : (product.options[0]?.sku ?? null);
+    if (!sku) return;
+    const ok = await cart.add(sku, 1);
+    if (ok) toast.success("Added to bag", { description: product.name });
   }
 
   return (
@@ -96,7 +101,7 @@ export function QuickViewButton({ product, className }: QuickViewButtonProps) {
             ) : null}
 
             <div className="mt-auto flex flex-col gap-3">
-              <Button size="lg" fullWidth disabled={!product.inStock || (needsOption && !selected)} onClick={addToBag}>
+              <Button size="lg" fullWidth disabled={!product.inStock || (needsOption && !selected)} onClick={() => void addToBag()}>
                 {product.inStock ? "Add to bag" : "Sold out"}
               </Button>
               <Button variant="link" className="self-center" asChild>

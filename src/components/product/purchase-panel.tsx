@@ -7,9 +7,9 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
+import { useCart } from "@/components/cart/cart-provider";
 import { Price } from "@/components/storefront/price";
 import { WishlistButton } from "@/components/storefront/wishlist-button";
-import { useCart } from "@/modules/cart/use-cart";
 import { availabilityOf, maxQuantity, type Availability } from "@/modules/catalog/variants";
 import { cn } from "@/lib/utils";
 
@@ -43,6 +43,7 @@ const AVAILABILITY_COPY: Record<Availability, string> = {
  * Price, variant selection, quantity, Add to bag, Buy now, wishlist and
  * availability. Variant choice updates `?variant=` via replaceState so the
  * link is shareable without a navigation; the canonical stays the base URL.
+ * Adding to the bag is a server action; the server re-checks stock and price.
  */
 export function PurchasePanel(props: PurchasePanelProps) {
   const router = useRouter();
@@ -51,15 +52,12 @@ export function PurchasePanel(props: PurchasePanelProps) {
   const [sku, setSku] = React.useState<string | null>(props.initialSku);
   const [quantity, setQuantity] = React.useState(1);
   const [error, setError] = React.useState<string | null>(null);
+  const [busy, setBusy] = React.useState<"add" | "buy" | null>(null);
 
   const selected = props.options.find((o) => o.sku === sku) ?? null;
   const display = selected ?? props.options[0] ?? null;
   const anyStock = props.options.some((o) => o.stock > 0);
-  const availability: Availability = selected
-    ? availabilityOf(selected.stock, props.lowStockThreshold)
-    : anyStock
-      ? "in_stock"
-      : "out_of_stock";
+  const availability: Availability = selected ? availabilityOf(selected.stock, props.lowStockThreshold) : anyStock ? "in_stock" : "out_of_stock";
   const max = maxQuantity(selected ? { sku: selected.sku, pricePaise: selected.pricePaise, stock: selected.stock } : null);
 
   function choose(option: PurchaseOption) {
@@ -84,35 +82,22 @@ export function PurchasePanel(props: PurchasePanelProps) {
     return selected;
   }
 
-  function addToBag(): boolean {
+  async function onAdd() {
     const option = ensureSelection();
-    if (!option) return false;
-    cart.add(
-      {
-        sku: option.sku,
-        productSlug: props.productSlug,
-        name: props.productName,
-        optionLabel: hasOptions ? `${props.optionName}: ${option.label}` : undefined,
-        unitPricePaise: option.pricePaise,
-        image: props.image,
-      },
-      quantity,
-      maxQuantity({ sku: option.sku, pricePaise: option.pricePaise, stock: option.stock }),
-    );
-    return true;
+    if (!option) return;
+    setBusy("add");
+    const ok = await cart.add(option.sku, quantity);
+    setBusy(null);
+    if (ok) toast.success("Added to bag", { description: props.productName, action: { label: "View bag", onClick: () => router.push("/cart/") } });
   }
 
-  function onAdd() {
-    if (!addToBag()) return;
-    toast.success("Added to bag", {
-      description: props.productName,
-      action: { label: "View bag", onClick: () => router.push("/cart/") },
-    });
-  }
-
-  function onBuyNow() {
-    if (!addToBag()) return;
-    router.push("/checkout/");
+  async function onBuyNow() {
+    const option = ensureSelection();
+    if (!option) return;
+    setBusy("buy");
+    const ok = await cart.add(option.sku, quantity);
+    setBusy(null);
+    if (ok) router.push("/checkout/");
   }
 
   return (
@@ -160,10 +145,7 @@ export function PurchasePanel(props: PurchasePanelProps) {
         </fieldset>
       ) : null}
 
-      <p
-        className={cn("type-small", availability === "out_of_stock" ? "text-danger" : availability === "low_stock" ? "text-warning" : "text-success")}
-        role="status"
-      >
+      <p className={cn("type-small", availability === "out_of_stock" ? "text-danger" : availability === "low_stock" ? "text-warning" : "text-success")} role="status">
         {availability === "low_stock" && selected ? `Only ${selected.stock} left.` : AVAILABILITY_COPY[availability]}
       </p>
 
@@ -177,14 +159,15 @@ export function PurchasePanel(props: PurchasePanelProps) {
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <QuantityStepper value={quantity} max={Math.max(1, max || 1)} onChange={setQuantity} />
-            <Button size="lg" className="flex-1" onClick={onAdd}>
+            <Button size="lg" className="flex-1" onClick={() => void onAdd()} loading={busy === "add"} disabled={busy !== null}>
               Add to bag
             </Button>
             <WishlistButton productSlug={props.productSlug} productName={props.productName} className="border border-line" />
           </div>
-          <Button size="lg" variant="secondary" fullWidth onClick={onBuyNow}>
+          <Button size="lg" variant="secondary" fullWidth onClick={() => void onBuyNow()} loading={busy === "buy"} disabled={busy !== null}>
             Buy now
           </Button>
+          {cart.notConfigured ? <p className="type-small text-ink-subtle">The bag is unavailable on this environment because the store database is not configured.</p> : null}
         </div>
       ) : (
         <div className="flex flex-col gap-3">
@@ -194,9 +177,7 @@ export function PurchasePanel(props: PurchasePanelProps) {
             </Button>
             <WishlistButton productSlug={props.productSlug} productName={props.productName} className="border border-line" />
           </div>
-          <p className="type-small text-ink-muted">
-            Save it to your wishlist. Back-in-stock alerts arrive with customer accounts; until then the wishlist is the way to keep track.
-          </p>
+          <p className="type-small text-ink-muted">Save it to your wishlist. Back-in-stock alerts arrive with customer accounts; until then the wishlist is the way to keep track.</p>
         </div>
       )}
     </div>

@@ -3,26 +3,27 @@
 import { PlusIcon } from "lucide-react";
 import { toast } from "sonner";
 
+import { useCart } from "@/components/cart/cart-provider";
 import { cn } from "@/lib/utils";
 
 type QuickAddButtonProps = {
+  sku: string;
   productName: string;
   className?: string;
 };
 
-/**
- * Quick add for single-variant products. The cart action is wired in Phase 2;
- * for now it only reports the intent so the interaction can be reviewed.
- */
-export function QuickAddButton({ productName, className }: QuickAddButtonProps) {
+/** Quick add for single-variant products; writes to the server bag. */
+export function QuickAddButton({ sku, productName, className }: QuickAddButtonProps) {
+  const cart = useCart();
   return (
     <button
       type="button"
       aria-label={`Add ${productName} to bag`}
-      onClick={() => toast.success("Added to bag", { description: productName })}
+      disabled={cart.pending}
+      onClick={() => void cart.add(sku, 1).then((ok) => ok && toast.success("Added to bag", { description: productName }))}
       className={cn(
         "inline-flex h-10 items-center gap-1.5 rounded-full bg-ink px-4 text-sm font-medium text-bg shadow-(--shadow-float)",
-        "transition-[opacity,transform] duration-250 ease-(--ease-standard)",
+        "transition-[opacity,transform] duration-250 ease-(--ease-standard) disabled:opacity-60",
         "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
         className,
       )}

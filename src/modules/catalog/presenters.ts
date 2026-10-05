@@ -92,7 +92,7 @@ export function toCardData(product: Product, opts: ToCardOptions): ProductCardDa
     badge,
     rating: product.rating,
     siblings: siblings.length > 0 ? siblings : undefined,
-    quickAdd: product.variants.length === 1 && inStock,
+    quickAddSku: product.variants.length === 1 && inStock ? product.variants[0]?.sku : undefined,
     soldOut: !inStock,
   };
   if (opts.quickView) card.quickView = toQuickView(product);

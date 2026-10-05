@@ -104,3 +104,5 @@ export const navTargetTypeEnum = pgEnum("nav_target_type", ["category", "collect
 export const redirectSourceEnum = pgEnum("redirect_source", ["manual", "slug_change", "import"]);
 
 export const outboxStatusEnum = pgEnum("outbox_status", ["pending", "processing", "done", "failed", "dead"]);
+export const cartStatusEnum = pgEnum("cart_status", ["active", "merged", "converted", "abandoned"]);
+export const shippingMethodEnum = pgEnum("shipping_method", ["standard", "express"]);

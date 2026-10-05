@@ -1,3 +1,4 @@
+import { CartProvider } from "@/components/cart/cart-provider";
 import { AnnouncementBar } from "@/components/storefront/announcement-bar";
 import { SiteFooter } from "@/components/storefront/site-footer";
 import { SiteHeader } from "@/components/storefront/site-header";
@@ -17,7 +18,7 @@ const secondaryLinks = [
  */
 export default function StorefrontLayout({ children }: LayoutProps<"/">) {
   return (
-    <>
+    <CartProvider>
       <AnnouncementBar
         id="launch-shipping"
         message="Free shipping across India on orders over ₹999."
@@ -29,6 +30,6 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
         {children}
       </main>
       <SiteFooter columns={sampleFooterColumns} />
-    </>
+    </CartProvider>
   );
 }

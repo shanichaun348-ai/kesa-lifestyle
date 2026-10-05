@@ -8,14 +8,13 @@ import { ShoppingBagIcon, XIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { useCart } from "@/components/cart/cart-provider";
 import { EmptyState } from "@/components/storefront/empty-state";
 import { Price } from "@/components/storefront/price";
-import { cartTotals, type CartLine } from "@/modules/cart/store";
-import { useCart } from "@/modules/cart/use-cart";
 import { MAX_QUANTITY_PER_LINE } from "@/modules/catalog/variants";
 import { formatPaise } from "@/lib/money";
 
-/** Showcase-only shape; the drawer reads the bag store by default. */
+/** Showcase-only shape for the design-system page. */
 export type CartDrawerLine = {
   id: string;
   name: string;
@@ -28,31 +27,45 @@ export type CartDrawerLine = {
 type CartDrawerProps = {
   /** Static lines for the design-system showcase; omit to use the live bag. */
   lines?: CartDrawerLine[] | undefined;
-  /** Custom trigger; defaults to the header bag button. */
   trigger?: React.ReactNode;
 };
 
-function toStoreLines(lines: CartDrawerLine[]): CartLine[] {
-  return lines.map((l) => ({
-    sku: l.id,
-    productSlug: "",
-    name: l.name,
-    optionLabel: l.variant,
-    unitPricePaise: l.pricePaise,
-    quantity: l.quantity,
-    image: l.image,
-  }));
-}
+type DrawerLine = {
+  key: string;
+  sku: string | null;
+  name: string;
+  href: string | null;
+  optionLabel: string | null;
+  quantity: number;
+  unitPricePaise: number;
+  image: { src: string; alt: string; unoptimized?: boolean | undefined };
+  issue: string | null;
+};
 
 /**
- * Right-hand drawer over the bag store with quantity and remove controls.
- * On phones it takes 92% of the viewport width so the page peeks through.
+ * Right-hand drawer over the server bag. On phones it takes 92% of the
+ * viewport so the page peeks through.
  */
 export function CartDrawer({ lines: staticLines, trigger }: CartDrawerProps) {
   const cart = useCart();
   const live = staticLines === undefined;
-  const lines: readonly CartLine[] = live ? cart.lines : toStoreLines(staticLines);
-  const { count, subtotalPaise } = cartTotals(lines);
+
+  const lines: DrawerLine[] = live
+    ? (cart.cart?.lines ?? []).map((l) => ({
+        key: l.sku,
+        sku: l.sku,
+        name: l.productName,
+        href: `/products/${l.productSlug}/`,
+        optionLabel: l.optionLabel,
+        quantity: l.quantity,
+        unitPricePaise: l.unitPricePaise,
+        image: l.image,
+        issue: l.issue === "out_of_stock" ? "Sold out" : l.issue === "reduced_stock" ? `Only ${l.available} left` : l.issue === "unavailable" ? "No longer available" : null,
+      }))
+    : staticLines.map((l) => ({ key: l.id, sku: null, name: l.name, href: null, optionLabel: l.variant ?? null, quantity: l.quantity, unitPricePaise: l.pricePaise, image: l.image, issue: null }));
+
+  const count = live ? cart.itemCount : lines.reduce((n, l) => n + l.quantity, 0);
+  const subtotal = live ? (cart.cart?.pricing.subtotalPaise ?? 0) : lines.reduce((n, l) => n + l.unitPricePaise * l.quantity, 0);
 
   return (
     <Sheet>
@@ -74,6 +87,10 @@ export function CartDrawer({ lines: staticLines, trigger }: CartDrawerProps) {
           <SheetDescription>{count === 0 ? "Nothing here yet." : `${count} ${count === 1 ? "item" : "items"}`}</SheetDescription>
         </SheetHeader>
 
+        {live && cart.notConfigured ? (
+          <p className="type-small px-5 py-4 text-ink-muted">The store database is not configured on this environment, so the bag cannot be saved yet.</p>
+        ) : null}
+
         {lines.length === 0 ? (
           <div className="flex flex-1 items-center px-5">
             <EmptyState
@@ -88,30 +105,25 @@ export function CartDrawer({ lines: staticLines, trigger }: CartDrawerProps) {
             />
           </div>
         ) : (
-          <ul className="flex-1 divide-y divide-line overflow-y-auto px-5">
+          <ul className="flex-1 divide-y divide-line overflow-y-auto px-5" aria-busy={live && cart.pending}>
             {lines.map((line) => (
-              <li key={line.sku} className="flex gap-4 py-4">
+              <li key={line.key} className="flex gap-4 py-4">
                 <div className="relative aspect-[3/4] w-20 shrink-0 overflow-hidden rounded-sm bg-surface-muted">
-                  <Image src={line.image.src} alt={line.image.alt} fill sizes="80px" unoptimized={line.image.unoptimized ?? false} className="object-cover" />
+                  {line.image.src ? <Image src={line.image.src} alt={line.image.alt} fill sizes="80px" unoptimized={line.image.unoptimized ?? false} className="object-cover" /> : null}
                 </div>
                 <div className="flex min-w-0 flex-1 flex-col gap-1">
-                  {line.productSlug ? (
-                    <Link href={`/products/${line.productSlug}/`} className="line-clamp-2 text-sm text-ink hover:underline hover:underline-offset-4">
+                  {line.href ? (
+                    <Link href={line.href} className="line-clamp-2 text-sm text-ink hover:underline hover:underline-offset-4">
                       {line.name}
                     </Link>
                   ) : (
                     <p className="line-clamp-2 text-sm text-ink">{line.name}</p>
                   )}
                   {line.optionLabel ? <p className="type-small text-ink-muted">{line.optionLabel}</p> : null}
+                  {line.issue ? <p className="type-small text-danger">{line.issue}</p> : null}
                   <div className="mt-auto flex items-center justify-between gap-3">
-                    {live ? (
-                      <QuantityStepper
-                        size="sm"
-                        value={line.quantity}
-                        max={MAX_QUANTITY_PER_LINE}
-                        onChange={(q) => cart.setQuantity(line.sku, q, MAX_QUANTITY_PER_LINE)}
-                        label={`Quantity for ${line.name}`}
-                      />
+                    {live && line.sku ? (
+                      <QuantityStepper size="sm" value={line.quantity} max={MAX_QUANTITY_PER_LINE} onChange={(q) => void cart.setQuantity(line.sku ?? "", q)} label={`Quantity for ${line.name}`} />
                     ) : (
                       <p className="type-small text-ink-muted">Qty {line.quantity}</p>
                     )}
@@ -121,7 +133,7 @@ export function CartDrawer({ lines: staticLines, trigger }: CartDrawerProps) {
                 <button
                   type="button"
                   aria-label={`Remove ${line.name}`}
-                  onClick={() => live && cart.remove(line.sku)}
+                  onClick={() => line.sku && void cart.remove(line.sku)}
                   className="-mr-2 inline-flex size-9 shrink-0 items-center justify-center self-start rounded-full text-ink-muted hover:bg-surface-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 >
                   <XIcon className="size-4" aria-hidden="true" />
@@ -135,7 +147,7 @@ export function CartDrawer({ lines: staticLines, trigger }: CartDrawerProps) {
           <SheetFooter>
             <div className="flex items-baseline justify-between">
               <span className="text-sm text-ink-muted">Subtotal</span>
-              <span className="type-price text-lg">{formatPaise(subtotalPaise)}</span>
+              <span className="type-price text-lg">{formatPaise(subtotal)}</span>
             </div>
             <p className="type-small text-ink-subtle">Shipping and offers are calculated at checkout.</p>
             <Button size="lg" fullWidth asChild>

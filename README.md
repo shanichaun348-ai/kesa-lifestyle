@@ -51,6 +51,23 @@ alter role kesa_app with password '<generate-a-long-random-password>';
 
 and uses it in `DATABASE_URL` through the pooler (port 6543 hosted, transaction mode). Also disable the Data API for the `public` schema in the Supabase dashboard (docs/11 §6).
 
+### Cart, checkout and payments
+
+The bag is server-side (`carts`/`cart_items`, keyed by an HttpOnly cookie, merged into the account cart on login). Every amount is computed on the server by `src/modules/pricing/engine.ts` (subtotal, coupon, shipping, GST split, COD fee, gift wrap, total); the browser only sends SKUs, quantities and choices.
+
+| Piece | Where |
+|---|---|
+| Cart service and server actions | `src/modules/cart/` |
+| Checkout service (place order, mark paid, cancel, webhook, reconciliation) | `src/modules/checkout/service.ts` |
+| Razorpay gateway and signature verification | `src/modules/payments/` |
+| Routes | `/api/cart/`, `/api/webhooks/razorpay/`, `/api/jobs/release-stale-reservations/`, `/api/jobs/reconcile-payments/`, `/api/orders/[n]/status/` |
+| Pages | `/cart/`, `/checkout/`, `/checkout/confirmation/[n]/`, `/login/` (placeholder) |
+| Cron schedule | `vercel.json` (every 5 min release, every 15 min reconcile; needs `CRON_SECRET`) |
+
+Payment rules: placing an order reserves stock with a conditional update inside one transaction and is idempotent per attempt; an order becomes paid only through a verified webhook, a verified callback that is then confirmed against Razorpay's API, or the reconciliation job. Late captures after a timeout are reinstated when stock allows, otherwise queued for refund. `tests/db/checkout-flow.test.ts` exercises the whole lifecycle against embedded Postgres with a fake gateway that uses the real signature code.
+
+Razorpay setup: create the webhook in the Razorpay dashboard pointing at `https://<domain>/api/webhooks/razorpay/` with events `payment.captured`, `payment.failed`, `order.paid`, and paste the webhook secret into `RAZORPAY_WEBHOOK_SECRET`. Use test-mode keys on preview environments.
+
 ### Environment variables
 
 All variables are documented in `.env.example` and validated by `src/lib/env.ts`. Server secrets (`DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`) are read only there and in the CLI scripts; a test fails if a client component imports a privileged module.

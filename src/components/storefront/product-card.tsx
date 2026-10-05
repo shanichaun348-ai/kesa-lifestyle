@@ -33,8 +33,8 @@ export type ProductCardData = {
   badge?: { label: string; variant?: "outline" | "solid" | "muted" | "success" | "warning" | "danger" } | undefined;
   rating?: { value: number; count: number } | undefined;
   siblings?: ProductCardSibling[] | undefined;
-  /** Single-variant products can be added straight from the card. */
-  quickAdd?: boolean | undefined;
+  /** SKU for single-variant products that can be added straight from the card. */
+  quickAddSku?: string | undefined;
   soldOut?: boolean | undefined;
   /** When present, a quick-view control is rendered on pointer devices. */
   quickView?: QuickViewProduct | undefined;
@@ -109,8 +109,9 @@ export function ProductCard({ product, priority = false, className }: ProductCar
           />
         ) : null}
 
-        {product.quickAdd && !product.soldOut ? (
+        {product.quickAddSku && !product.soldOut ? (
           <QuickAddButton
+            sku={product.quickAddSku}
             productName={product.name}
             className={cn(
               "absolute right-2 bottom-2 z-10",
