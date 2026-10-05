@@ -347,6 +347,27 @@ Principles (details in `11_SECURITY_REQUIREMENTS.md §6`):
 
 ---
 
+## 12a. Implementation (built 2026-10-05)
+
+| Concern | Where |
+|---|---|
+| Drizzle schema, one file per domain | `src/db/schema/{enums,catalog,inventory,customers,commerce,engagement,content,system}.ts` |
+| Generated DDL (56 tables, 44 enums, 71 policies, RLS on every table, `kesa_app` role, order-number sequence) | `drizzle/0000_initial_schema.sql` |
+| Hand-written functions, triggers, extension, grants | `drizzle/0001_functions_triggers_grants.sql` |
+| Connections | `src/db/create.ts` (postgres.js, `prepare: false`), `src/db/client.ts` (server-only app handle) |
+| Supabase clients | `src/lib/supabase/server.ts` (anon key + request cookies, auth flows only), `src/lib/supabase/admin.ts` (service role, server-only, Storage/Auth admin only) |
+| Environment | `src/lib/env.ts` (Zod; server and public schemas), `.env.example` |
+| Development seed | `src/db/seed/seed.ts` (pure), `src/db/seed/run.ts` (refuses non-local hosts) |
+| Validation | `tests/db/migrations.test.ts`, `tests/db/seed.test.ts` run every migration and the seed inside embedded Postgres (PGlite) with a Supabase prelude (`auth.users`, `auth.uid()`, platform roles); `tests/unit/secrets-boundary.test.ts` guards the server/browser boundary |
+
+Naming follows the requested table list where it differs from the earlier draft: `profiles` (was `customers`), `product_images` (was `product_media`), `inventory` / `inventory_transactions` (were `inventory_levels` / `inventory_movements`), `product_collections` (was `collection_products`), `coupons` + `coupon_codes` + `coupon_targets` (were `discounts` / `discount_codes` / `discount_targets`), `blog_*` (was `journal_*`), `seo_settings` (single row). `users` is Supabase `auth.users`; `profiles.id` references it and a trigger creates the profile on sign-up.
+
+Triggers maintain: `updated_at` on every table that has it; `products.search_vector`; `products.attribute_value_ids`; primary-category membership (and protection against removing it); `inventory.on_hand` from the ledger (negative stock fails atomically); `loyalty_accounts` from the ledger; `coupon_codes.usage_count`; `products.rating_avg/rating_count` from approved reviews only.
+
+Not yet created (Phase 2, per roadmap): carts, shipments, return requests, invoices, credit notes, pages, search synonyms, size guides, locations beyond the default.
+
+Operator steps after `pnpm db:migrate` on a new environment: set the `kesa_app` password (`alter role kesa_app with password '…'`), put it in `DATABASE_URL` via the pooler, and disable the Data API for `public` in the Supabase dashboard.
+
 ## 13. Entity relationship diagram (condensed)
 
 ```

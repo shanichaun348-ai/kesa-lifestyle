@@ -21,7 +21,39 @@ Category, collection and product routes are live over an in-memory demo reposito
 
 Switching to Postgres means implementing `CatalogRepository` with Drizzle and changing `getCatalogRepository()`; routes and components stay as they are.
 
-`pnpm test` runs the Vitest suite (`tests/unit/`).
+`pnpm test` runs the Vitest suite (`tests/unit/`, `tests/db/`).
+
+### Database (Supabase Postgres + Drizzle)
+
+Schema: `src/db/schema/*` (one file per domain) → migrations in `drizzle/`. Row Level Security is on for every table; the server connects as the `kesa_app` role, `anon` has no policies, and `authenticated` only gets narrow self-read policies (ADR-26).
+
+| Command | What it does |
+|---|---|
+| `pnpm db:generate` | Diff the schema and write a new migration into `drizzle/` |
+| `pnpm db:migrate` | Apply migrations using `DATABASE_DIRECT_URL` from `.env.local` |
+| `pnpm db:seed` | Load the development seed (refuses non-local hosts unless `ALLOW_SEED=1`) |
+| `pnpm db:studio` | Open Drizzle Studio |
+| `pnpm test` | Includes `tests/db/`, which runs all migrations and the seed inside embedded Postgres (PGlite) and checks RLS, policies, triggers and constraints |
+
+Local Supabase (Docker required):
+
+```bash
+supabase start                       # prints DB URL, anon key, service-role key
+# .env.local → DATABASE_DIRECT_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres
+pnpm db:migrate && pnpm db:seed
+```
+
+After migrating, the operator sets the application role's password once (never in source):
+
+```sql
+alter role kesa_app with password '<generate-a-long-random-password>';
+```
+
+and uses it in `DATABASE_URL` through the pooler (port 6543 hosted, transaction mode). Also disable the Data API for the `public` schema in the Supabase dashboard (docs/11 §6).
+
+### Environment variables
+
+All variables are documented in `.env.example` and validated by `src/lib/env.ts`. Server secrets (`DATABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `CRON_SECRET`) are read only there and in the CLI scripts; a test fails if a client component imports a privileged module.
 
 ## Getting started (any machine)
 
