@@ -59,11 +59,16 @@ export type ArticleMetadataInput = {
   path: string;
   imageUrl?: string | undefined;
   publishedAt: string;
+  updatedAt?: string | undefined;
+  seoTitle?: string | undefined;
+  seoDescription?: string | undefined;
 };
 
 export function articleMetadata(input: ArticleMetadataInput): Metadata {
-  const title = clampTitle(`${input.title} | Kesa Lifestyle`);
-  const description = clampDescription(input.excerpt);
+  const title = clampTitle(
+    input.seoTitle ?? `${input.title} | Kesa Lifestyle`,
+  );
+  const description = clampDescription(input.seoDescription ?? input.excerpt);
   return {
     title: { absolute: title },
     description,
@@ -77,6 +82,7 @@ export function articleMetadata(input: ArticleMetadataInput): Metadata {
       siteName: site.name,
       locale: site.locale,
       publishedTime: input.publishedAt,
+      ...(input.updatedAt ? { modifiedTime: input.updatedAt } : {}),
       ...(input.imageUrl ? { images: [{ url: input.imageUrl, alt: input.title }] } : {}),
     },
   };

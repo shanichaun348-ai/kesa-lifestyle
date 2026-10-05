@@ -142,7 +142,9 @@ export type ArticleJsonLdInput = {
   path: string;
   /** ISO-8601 date string, e.g. "2026-08-12". */
   datePublished: string;
+  dateModified?: string | undefined;
   imageUrl?: string | undefined;
+  authorName?: string | undefined;
 };
 
 export function articleJsonLd(input: ArticleJsonLdInput): JsonLdObject {
@@ -153,7 +155,11 @@ export function articleJsonLd(input: ArticleJsonLdInput): JsonLdObject {
     description: input.description,
     url: absoluteUrl(input.path),
     datePublished: input.datePublished,
+    ...(input.dateModified ? { dateModified: input.dateModified } : {}),
     publisher: { "@id": `${site.url}/#organization` },
+    author: input.authorName
+      ? { "@type": "Person", name: input.authorName }
+      : { "@id": `${site.url}/#organization` },
     isPartOf: { "@id": `${site.url}/#website` },
     inLanguage: "en-IN",
     ...(input.imageUrl ? { image: input.imageUrl } : {}),

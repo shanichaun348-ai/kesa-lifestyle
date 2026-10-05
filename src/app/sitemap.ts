@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { countInScope, getCatalogRepository, getCollections } from "@/modules/catalog/queries";
 import { absoluteUrl } from "@/lib/site";
-import { seedJournalArticles } from "@/lib/demo/seed-journal";
+import { getAllArticles } from "@/modules/journal/repository";
 import { seedStyleGuides } from "@/lib/demo/seed-style-guides";
 import { seedOccasionPages } from "@/lib/demo/seed-occasion";
 
@@ -49,11 +49,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.65,
     })),
-    ...seedJournalArticles.map((a) => ({
+    ...getAllArticles().map((a) => ({
       url: absoluteUrl(`/journal/${a.slug}/`),
-      lastModified: new Date(a.publishedAt),
-      changeFrequency: "never" as const,
-      priority: 0.6,
+      lastModified: new Date(a.updatedAt ?? a.publishedAt),
+      changeFrequency: "monthly" as const,
+      priority: 0.7,
     })),
     ...products.map((p) => ({
       url: absoluteUrl(`/products/${p.slug}/`),
