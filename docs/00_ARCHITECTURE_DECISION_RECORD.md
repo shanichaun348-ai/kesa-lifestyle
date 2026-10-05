@@ -52,6 +52,7 @@ Decisions that require the business owner's input (D1–D18) are listed in `01_P
 **Why:** Managed, secure, supports Indian phone-first login later, integrates with RLS identities.
 **Alternatives:** Auth.js (self-managed sessions and adapters, no built-in OTP/SMS); Clerk (excellent DX, per-MAU cost at scale, data outside India); custom auth (never).
 **Why better:** Lowest cost and complexity for the needed features with a credible upgrade path.
+**Amendment (2026-10-05):** The owner's account brief asked for register, login, forgot and reset password, so email + password is enabled as the launch method; OTP and Google stay planned (D8). Passwords are 12–128 characters, login is limited to 5 attempts per email per 15 minutes and 20 per IP per hour, and every auth response is enumeration-safe.
 
 ## ADR-07 — Supabase Storage for media, `next/image` for delivery
 
@@ -249,6 +250,7 @@ Decisions that require the business owner's input (D1–D18) are listed in `01_P
 | Date | Change | Reason |
 |---|---|---|
 | 2026-10-05 | ADR-01 … ADR-28 proposed | Discovery and architecture phase |
+| 2026-10-05 | Customer account system: ADR-06 amended (password auth enabled); Postgres fixed-window rate limiter; account service with per-user scoping tested against RLS | Owner's account brief |
 | 2026-10-05 | Architecture review: ADR-29 … ADR-33 added; ADR-06 amended; facet signalling, OOS handling, collection/guide keyword split, async rule collections, `locations`, `discount_targets`, `guide_section_products`, `credit_notes`, idempotency keys, `ga_client_id`, gift options, batch fulfilment, finance exports, search synonyms, size guides, OTP-first auth, Supabase SMTP, `prepare: false`, image cost controls | CTO-style review of the proposal |
 
 ## Appendix B — Owner decisions pending (summary)

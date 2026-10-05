@@ -1,39 +1,30 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { redirect } from "next/navigation";
 
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Container } from "@/components/storefront/container";
+import { AuthPage } from "@/components/auth/auth-page";
+import { LoginForm } from "@/components/auth/auth-forms";
+import { safeNextPath } from "@/lib/auth/safe-next";
+import { getSessionUser } from "@/lib/auth/session";
 
-export const metadata: Metadata = {
-  title: "Sign in",
-  robots: { index: false, follow: false },
-};
+export const metadata: Metadata = { title: "Sign in", robots: { index: false, follow: false } };
+export const dynamic = "force-dynamic";
 
-/**
- * Honest placeholder until customer accounts ship (email code sign-in,
- * docs/13 Phase 2). Guest checkout is fully available; a guest cart merges
- * into the account cart automatically once sign-in exists.
- */
-export default function LoginPage() {
+export default async function LoginPage(props: PageProps<"/login">) {
+  const sp = await props.searchParams;
+  const next = safeNextPath(typeof sp.next === "string" ? sp.next : null);
+  if (await getSessionUser()) redirect(next);
+  const linkError = sp.error === "link";
+
   return (
-    <Container className="pt-10 pb-24">
-      <div className="mx-auto max-w-md">
-        <p className="type-eyebrow text-ink-subtle">Account</p>
-        <h1 className="type-h1 mt-2">Sign in</h1>
-        <Alert variant="info" className="mt-6">
-          <AlertTitle>Accounts are coming soon</AlertTitle>
-          <AlertDescription>Sign-in with an email code is part of the next release. You can check out as a guest today; your order confirmation and tracking are sent by email.</AlertDescription>
+    <AuthPage eyebrow="Account" title="Sign in" intro="Your orders, addresses and wishlist in one place.">
+      {linkError ? (
+        <Alert variant="warning" className="mb-6">
+          <AlertTitle>That link did not work</AlertTitle>
+          <AlertDescription>It may have expired or already been used. Request a new one below.</AlertDescription>
         </Alert>
-        <div className="mt-6 flex gap-3">
-          <Button asChild>
-            <Link href="/checkout/">Continue as guest</Link>
-          </Button>
-          <Button variant="secondary" asChild>
-            <Link href="/">Back to home</Link>
-          </Button>
-        </div>
-      </div>
-    </Container>
+      ) : null}
+      <LoginForm next={next} />
+    </AuthPage>
   );
 }

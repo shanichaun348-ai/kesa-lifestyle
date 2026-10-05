@@ -61,12 +61,29 @@ The bag is server-side (`carts`/`cart_items`, keyed by an HttpOnly cookie, merge
 | Checkout service (place order, mark paid, cancel, webhook, reconciliation) | `src/modules/checkout/service.ts` |
 | Razorpay gateway and signature verification | `src/modules/payments/` |
 | Routes | `/api/cart/`, `/api/webhooks/razorpay/`, `/api/jobs/release-stale-reservations/`, `/api/jobs/reconcile-payments/`, `/api/orders/[n]/status/` |
-| Pages | `/cart/`, `/checkout/`, `/checkout/confirmation/[n]/`, `/login/` (placeholder) |
+| Pages | `/cart/`, `/checkout/`, `/checkout/confirmation/[n]/` |
 | Cron schedule | `vercel.json` (every 5 min release, every 15 min reconcile; needs `CRON_SECRET`) |
 
 Payment rules: placing an order reserves stock with a conditional update inside one transaction and is idempotent per attempt; an order becomes paid only through a verified webhook, a verified callback that is then confirmed against Razorpay's API, or the reconciliation job. Late captures after a timeout are reinstated when stock allows, otherwise queued for refund. `tests/db/checkout-flow.test.ts` exercises the whole lifecycle against embedded Postgres with a fake gateway that uses the real signature code.
 
 Razorpay setup: create the webhook in the Razorpay dashboard pointing at `https://<domain>/api/webhooks/razorpay/` with events `payment.captured`, `payment.failed`, `order.paid`, and paste the webhook secret into `RAZORPAY_WEBHOOK_SECRET`. Use test-mode keys on preview environments.
+
+### Customer accounts
+
+Supabase Auth with email + password (owner decision D8; OTP and Google remain available later). All auth runs server-side: no Supabase browser client, HttpOnly session cookies refreshed by `src/proxy.ts`, and server actions that call injectable flows in `src/modules/auth/flows.ts` (rate limits, enumeration-safe responses, guest order claim and cart/wishlist merge on login, open-redirect-safe `next`).
+
+| Piece | Where |
+|---|---|
+| Auth provider interface, Supabase implementation, flows, actions | `src/modules/auth/` |
+| Session helpers (`getSessionUser`, `requireUser`, `safeNextPath`) | `src/lib/auth/` |
+| Account service (profile, addresses, orders, wishlist, reviews, preferences, loyalty, referral) | `src/modules/account/service.ts` |
+| Rate limiter (Postgres fixed window, `rate_limits` table) | `src/lib/rate-limit.ts`, migration `0003` |
+| Pages | `/login/`, `/register/`, `/forgot-password/`, `/account/` (orders, addresses, wishlist, reviews, rewards, preferences, profile, reset-password) |
+| Routes | `/auth/callback/` (code exchange), `/api/session/` (id + email for the client shell) |
+
+Authorization: every account query is scoped by the session user id inside the service, and RLS on the `authenticated` role is a second fence. Order detail uses the order number, never a database id, and another customer's number answers 404. Reviews require a delivered item from the caller's own order and are moderated before display. `tests/db/account-authz.test.ts` proves the isolation between two customers at both layers, plus login lockout, enumeration safety and the redirect sanitiser.
+
+Supabase project settings for accounts: enable the Email provider with "Confirm email" on, set Site URL to the storefront origin, add `<origin>/auth/callback/` to the redirect allow-list, and point the password-reset template at the callback with `next=/account/reset-password/`. Loyalty and referral ledgers are live and visible on `/account/rewards/`; earning and redemption rules ship with the loyalty launch.
 
 ### Environment variables
 

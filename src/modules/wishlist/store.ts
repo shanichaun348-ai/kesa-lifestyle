@@ -1,11 +1,11 @@
 /**
  * Wishlist architecture.
  *
- * The storefront talks to a `WishlistStore` with four operations. Today the
- * only implementation is `localWishlistStore` (guest wishlist in
- * localStorage, keyed by product slug). Phase 2 adds the server store
- * (cookie token → `wishlists`/`wishlist_items`, merged into the account on
- * login, docs/05 §5) behind the same interface; components do not change.
+ * The device store (localStorage, keyed by product slug) is the UI's source
+ * of truth for instant feedback. When the customer is signed in, the store
+ * is mirrored to the account wishlist (`wishlists`/`wishlist_items`):
+ * `WishlistSync` merges on page load and `WishlistButton` writes through on
+ * every toggle. Guests keep a device-only list that merges on first login.
  *
  * Framework-agnostic on purpose: no React imports here.
  */
@@ -17,6 +17,8 @@ export interface WishlistStore {
   getSnapshot(): WishlistSnapshot;
   toggle(slug: string): void;
   has(slug: string): boolean;
+  /** Replace the whole list (used when mirroring the account wishlist). */
+  replace(slugs: readonly string[]): void;
 }
 
 const STORAGE_KEY = "kesa:wishlist:v1";
@@ -77,6 +79,11 @@ export const localWishlistStore: WishlistStore = {
   },
   has(slug) {
     return localWishlistStore.getSnapshot().includes(slug);
+  },
+  replace(slugs) {
+    cache = Object.freeze([...slugs]);
+    write(cache);
+    emit();
   },
 };
 

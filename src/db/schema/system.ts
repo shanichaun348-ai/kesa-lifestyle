@@ -54,6 +54,17 @@ export const webhookEvents = pgTable(
   (t) => [uniqueIndex("webhook_events_provider_event_idx").on(t.provider, t.providerEventId), appAll()],
 ).enableRLS();
 
+/** Fixed-window rate limit counters for per-account/per-email limits (docs/11 §8). */
+export const rateLimits = pgTable(
+  "rate_limits",
+  {
+    key: text("key").primaryKey(),
+    windowStart: timestamp("window_start", { withTimezone: true, mode: "string" }).notNull(),
+    count: integer("count").notNull().default(0),
+  },
+  (t) => [index("rate_limits_window_idx").on(t.windowStart), appAll()],
+).enableRLS();
+
 /** Every admin mutation, before/after (docs/11). Append-only. */
 export const auditLogs = pgTable(
   "audit_logs",

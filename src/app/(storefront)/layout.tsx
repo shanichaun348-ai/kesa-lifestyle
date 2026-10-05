@@ -1,3 +1,5 @@
+import { SessionProvider } from "@/components/auth/session-provider";
+import { WishlistSync } from "@/components/auth/wishlist-sync";
 import { CartProvider } from "@/components/cart/cart-provider";
 import { AnnouncementBar } from "@/components/storefront/announcement-bar";
 import { SiteFooter } from "@/components/storefront/site-footer";
@@ -18,7 +20,9 @@ const secondaryLinks = [
  */
 export default function StorefrontLayout({ children }: LayoutProps<"/">) {
   return (
+    <SessionProvider>
     <CartProvider>
+      <WishlistSync />
       <AnnouncementBar
         id="launch-shipping"
         message="Free shipping across India on orders over ₹999."
@@ -31,5 +35,6 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
       </main>
       <SiteFooter columns={sampleFooterColumns} />
     </CartProvider>
+    </SessionProvider>
   );
 }
