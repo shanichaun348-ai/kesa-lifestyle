@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { trackNewsletterSignup } from "@/modules/analytics/events";
 
 /**
  * Footer newsletter capture. The submit handler is a stub until the consent
@@ -16,6 +17,7 @@ export function NewsletterForm() {
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    trackNewsletterSignup();
     toast("Newsletter signup is not connected yet", { description: "Consent and email modules arrive in Phase 2." });
   }
 

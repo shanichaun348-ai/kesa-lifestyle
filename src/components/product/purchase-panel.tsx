@@ -11,6 +11,7 @@ import { Price } from "@/components/storefront/price";
 import { WishlistButton } from "@/components/storefront/wishlist-button";
 import { useCart } from "@/modules/cart/use-cart";
 import { availabilityOf, maxQuantity, type Availability } from "@/modules/catalog/variants";
+import { trackAddToCart } from "@/modules/analytics/events";
 import { cn } from "@/lib/utils";
 
 export type PurchaseOption = {
@@ -31,6 +32,8 @@ type PurchasePanelProps = {
   initialSku: string | null;
   lowStockThreshold: number;
   sizeGuideHref?: string | undefined;
+  /** Primary category path — passed through to analytics. */
+  categoryPath?: string | undefined;
 };
 
 const AVAILABILITY_COPY: Record<Availability, string> = {
@@ -99,6 +102,14 @@ export function PurchasePanel(props: PurchasePanelProps) {
       quantity,
       maxQuantity({ sku: option.sku, pricePaise: option.pricePaise, stock: option.stock }),
     );
+    trackAddToCart({
+      sku: option.sku,
+      productName: props.productName,
+      pricePaise: option.pricePaise,
+      quantity,
+      ...(props.categoryPath ? { categoryPath: props.categoryPath } : {}),
+      ...(hasOptions ? { optionLabel: `${props.optionName}: ${option.label}` } : {}),
+    });
     return true;
   }
 
@@ -180,7 +191,7 @@ export function PurchasePanel(props: PurchasePanelProps) {
             <Button size="lg" className="flex-1" onClick={onAdd}>
               Add to bag
             </Button>
-            <WishlistButton productSlug={props.productSlug} productName={props.productName} className="border border-line" />
+            <WishlistButton productSlug={props.productSlug} productName={props.productName} pricePaise={display?.pricePaise} className="border border-line" />
           </div>
           <Button size="lg" variant="secondary" fullWidth onClick={onBuyNow}>
             Buy now
@@ -192,7 +203,7 @@ export function PurchasePanel(props: PurchasePanelProps) {
             <Button size="lg" className="flex-1" disabled>
               Sold out
             </Button>
-            <WishlistButton productSlug={props.productSlug} productName={props.productName} className="border border-line" />
+            <WishlistButton productSlug={props.productSlug} productName={props.productName} pricePaise={display?.pricePaise} className="border border-line" />
           </div>
           <p className="type-small text-ink-muted">
             Save it to your wishlist. Back-in-stock alerts arrive with customer accounts; until then the wishlist is the way to keep track.

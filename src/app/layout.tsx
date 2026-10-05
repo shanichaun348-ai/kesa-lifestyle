@@ -1,6 +1,10 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
+import { Suspense } from "react";
 
+import { ConsentBanner } from "@/components/analytics/consent-banner";
+import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { Toaster } from "@/components/ui/sonner";
 
 import "./globals.css";
@@ -46,10 +50,13 @@ export const viewport: Viewport = {
   initialScale: 1,
 };
 
+const GA4_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en-IN" className={`${inter.variable} ${fraunces.variable} h-full`}>
       <body className="flex min-h-full flex-col">
+        {GA4_ID ? <GoogleAnalytics measurementId={GA4_ID} /> : null}
         <a
           href="#main"
           className="sr-only z-50 rounded-md bg-ink px-4 py-2 text-bg focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
@@ -58,6 +65,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         </a>
         {children}
         <Toaster />
+        {/* PageViewTracker uses usePathname — Suspense prevents the layout
+            from opting out of static rendering */}
+        <Suspense>
+          <PageViewTracker />
+        </Suspense>
+        {GA4_ID ? <ConsentBanner /> : null}
       </body>
     </html>
   );

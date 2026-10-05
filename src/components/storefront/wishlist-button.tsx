@@ -4,11 +4,13 @@ import { HeartIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { useWishlist } from "@/modules/wishlist/use-wishlist";
+import { trackAddToWishlist } from "@/modules/analytics/events";
 import { cn } from "@/lib/utils";
 
 type WishlistButtonProps = {
   productSlug: string;
   productName: string;
+  pricePaise?: number | undefined;
   className?: string;
 };
 
@@ -16,11 +18,18 @@ type WishlistButtonProps = {
  * Toggle button with `aria-pressed`, bound to the wishlist store.
  * Rendered as a sibling of the product link, never inside it (docs/09 §6).
  */
-export function WishlistButton({ productSlug, productName, className }: WishlistButtonProps) {
+export function WishlistButton({ productSlug, productName, pricePaise, className }: WishlistButtonProps) {
   const { has, toggle } = useWishlist();
   const saved = has(productSlug);
 
   function handleClick() {
+    if (!saved) {
+      trackAddToWishlist({
+        productSlug,
+        productName,
+        ...(pricePaise !== undefined ? { pricePaise } : {}),
+      });
+    }
     toggle(productSlug);
     toast(saved ? "Removed from wishlist" : "Saved to wishlist", { description: productName });
   }

@@ -13,6 +13,7 @@ import { Price } from "@/components/storefront/price";
 import { cartTotals, type CartLine } from "@/modules/cart/store";
 import { useCart } from "@/modules/cart/use-cart";
 import { MAX_QUANTITY_PER_LINE } from "@/modules/catalog/variants";
+import { trackBeginCheckout, trackRemoveFromCart } from "@/modules/analytics/events";
 import { formatPaise } from "@/lib/money";
 
 /** Showcase-only shape; the drawer reads the bag store by default. */
@@ -121,7 +122,17 @@ export function CartDrawer({ lines: staticLines, trigger }: CartDrawerProps) {
                 <button
                   type="button"
                   aria-label={`Remove ${line.name}`}
-                  onClick={() => live && cart.remove(line.sku)}
+                  onClick={() => {
+                    if (!live) return;
+                    trackRemoveFromCart({
+                      sku: line.sku,
+                      productName: line.name,
+                      pricePaise: line.unitPricePaise,
+                      quantity: line.quantity,
+                      ...(line.optionLabel ? { optionLabel: line.optionLabel } : {}),
+                    });
+                    cart.remove(line.sku);
+                  }}
                   className="-mr-2 inline-flex size-9 shrink-0 items-center justify-center self-start rounded-full text-ink-muted hover:bg-surface-muted hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 >
                   <XIcon className="size-4" aria-hidden="true" />
@@ -139,7 +150,23 @@ export function CartDrawer({ lines: staticLines, trigger }: CartDrawerProps) {
             </div>
             <p className="type-small text-ink-subtle">Shipping and offers are calculated at checkout.</p>
             <Button size="lg" fullWidth asChild>
-              <Link href="/checkout/">Checkout</Link>
+              <Link
+                href="/checkout/"
+                onClick={() => {
+                  if (!live) return;
+                  trackBeginCheckout(
+                    lines.map((l) => ({
+                      sku: l.sku,
+                      name: l.name,
+                      unitPricePaise: l.unitPricePaise,
+                      quantity: l.quantity,
+                      ...(l.optionLabel ? { optionLabel: l.optionLabel } : {}),
+                    })),
+                  );
+                }}
+              >
+                Checkout
+              </Link>
             </Button>
             <Button variant="link" className="self-center" asChild>
               <Link href="/cart/">View bag</Link>

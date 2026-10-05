@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 
@@ -10,6 +11,7 @@ import { ProductGallery, type GalleryItem } from "@/components/product/product-g
 import { ProductReviews } from "@/components/product/product-reviews";
 import { PurchasePanel, type PurchaseOption } from "@/components/product/purchase-panel";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
+import { ProductViewTracker } from "@/components/analytics/product-view-tracker";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Breadcrumbs } from "@/components/storefront/breadcrumbs";
 import { Container } from "@/components/storefront/container";
@@ -132,6 +134,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
     compareAtPaise: v.compareAtPaise,
   }));
   const initialSku = resolution.status === "ok" ? resolution.variant.sku : null;
+  const trackerVariant = (resolution.status === "ok" ? resolution.variant : null) ?? product.variants[0] ?? null;
   const faq = productFaq(product, category?.faq);
 
   const jsonLd: JsonLdObject[] = [
@@ -143,6 +146,16 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
   return (
     <Container className="pt-5 pb-16 lg:pb-24">
       <JsonLd data={jsonLd} />
+      {trackerVariant ? (
+        <Suspense>
+          <ProductViewTracker
+            sku={trackerVariant.sku}
+            productName={product.name}
+            pricePaise={trackerVariant.pricePaise}
+            categoryPath={product.primaryCategoryPath}
+          />
+        </Suspense>
+      ) : null}
       <Breadcrumbs items={breadcrumbs} />
 
       <article className="mt-5 grid gap-8 lg:mt-8 lg:grid-cols-12 lg:gap-12">
@@ -205,6 +218,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
             initialSku={initialSku}
             lowStockThreshold={product.lowStockThreshold}
             sizeGuideHref={product.optionName === "Size" ? "/size-guide/" : undefined}
+            categoryPath={product.primaryCategoryPath}
           />
 
           <DeliveryEstimateChecker />

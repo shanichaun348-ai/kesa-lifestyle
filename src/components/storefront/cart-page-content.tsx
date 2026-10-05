@@ -10,6 +10,7 @@ import { EmptyState } from "@/components/storefront/empty-state";
 import { Price } from "@/components/storefront/price";
 import { useCart } from "@/modules/cart/use-cart";
 import { MAX_QUANTITY_PER_LINE } from "@/modules/catalog/variants";
+import { trackBeginCheckout, trackRemoveFromCart } from "@/modules/analytics/events";
 import { formatPaise } from "@/lib/money";
 
 /** Full bag page over the bag store. Totals are provisional until the server cart exists. */
@@ -48,7 +49,20 @@ export function CartPageContent() {
               <Price pricePaise={line.unitPricePaise} size="sm" className="mt-1" />
               <div className="mt-auto flex items-center justify-between gap-3 pt-3">
                 <QuantityStepper size="sm" value={line.quantity} max={MAX_QUANTITY_PER_LINE} onChange={(q) => cart.setQuantity(line.sku, q, MAX_QUANTITY_PER_LINE)} label={`Quantity for ${line.name}`} />
-                <button type="button" onClick={() => cart.remove(line.sku)} className="type-small text-ink-muted underline underline-offset-4 hover:text-ink">
+                <button
+                  type="button"
+                  onClick={() => {
+                    trackRemoveFromCart({
+                      sku: line.sku,
+                      productName: line.name,
+                      pricePaise: line.unitPricePaise,
+                      quantity: line.quantity,
+                      ...(line.optionLabel ? { optionLabel: line.optionLabel } : {}),
+                    });
+                    cart.remove(line.sku);
+                  }}
+                  className="type-small text-ink-muted underline underline-offset-4 hover:text-ink"
+                >
                   Remove
                 </button>
               </div>
@@ -71,7 +85,22 @@ export function CartPageContent() {
           </div>
         </dl>
         <Button size="lg" fullWidth className="mt-5" asChild>
-          <Link href="/checkout/">Checkout</Link>
+          <Link
+            href="/checkout/"
+            onClick={() => {
+              trackBeginCheckout(
+                cart.lines.map((l) => ({
+                  sku: l.sku,
+                  name: l.name,
+                  unitPricePaise: l.unitPricePaise,
+                  quantity: l.quantity,
+                  ...(l.optionLabel ? { optionLabel: l.optionLabel } : {}),
+                })),
+              );
+            }}
+          >
+            Checkout
+          </Link>
         </Button>
         <p className="type-small mt-3 text-ink-subtle">Prices include GST. Final totals are confirmed at checkout.</p>
       </aside>

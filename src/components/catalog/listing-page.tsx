@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { ActiveFilters } from "@/components/catalog/active-filters";
 import { FilterForm } from "@/components/catalog/filter-form";
 import { ListingToolbar } from "@/components/catalog/listing-toolbar";
+import { CategoryViewTracker } from "@/components/analytics/category-view-tracker";
 import { JsonLd } from "@/components/seo/json-ld";
 import { Breadcrumbs, type Crumb } from "@/components/storefront/breadcrumbs";
 import { Container } from "@/components/storefront/container";
@@ -64,6 +65,10 @@ export async function ListingPage(props: ListingPageProps) {
   return (
     <Container className="pt-5 pb-16 lg:pb-24">
       <JsonLd data={jsonLd} />
+      <CategoryViewTracker
+        listName={props.title}
+        items={result.items.map((p) => ({ id: p.slug, name: p.name }))}
+      />
 
       <Breadcrumbs items={props.breadcrumbs} />
 
