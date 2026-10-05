@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" role="img" aria-label="Placeholder women category image">
+  <rect width="900" height="1200" fill="#ECE4D8"/>
+  <path d="M180 360c120 220 420 220 540 0" fill="none" stroke="#CFC8BD" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="450" cy="620" r="48" fill="#F8F5EF" stroke="#CFC8BD" stroke-width="7"/>
+</svg>

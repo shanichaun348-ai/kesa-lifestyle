@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1200" role="img" aria-label="Placeholder men category image">
+  <rect width="900" height="1200" fill="#DAD8D4"/>
+  <path d="M150 320q300 240 600 0" fill="none" stroke="#A9A6A1" stroke-width="10" stroke-linecap="round"/>
+  <path d="M190 420q260 200 520 0" fill="none" stroke="#BCB9B4" stroke-width="9" stroke-linecap="round"/>
+  <rect x="420" y="640" width="60" height="120" rx="30" fill="#F0EEEB" stroke="#A9A6A1" stroke-width="6"/>
+</svg>
