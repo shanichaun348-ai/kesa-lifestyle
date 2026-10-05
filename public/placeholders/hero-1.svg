@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 1500" role="img" aria-label="Placeholder hero image">
+  <rect width="1200" height="1500" fill="#E8E1D5"/>
+  <path d="M200 420c160 300 640 300 800 0" fill="none" stroke="#CFC8BD" stroke-width="12" stroke-linecap="round"/>
+  <path d="M260 500c130 260 550 260 680 0" fill="none" stroke="#DCD5C9" stroke-width="10" stroke-linecap="round"/>
+  <circle cx="600" cy="760" r="58" fill="#F8F5EF"/>
+  <circle cx="600" cy="760" r="58" fill="none" stroke="#CFC8BD" stroke-width="8"/>
+  <rect x="0" y="1100" width="1200" height="400" fill="#DFD7CA"/>
+</svg>

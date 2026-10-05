@@ -1,0 +1,299 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/* ------------------------------------------------------------------------
+   Kesa Lifestyle design tokens
+   Source of truth for colour, type, radius, shadow and motion. Documented in
+   docs/09_DESIGN_SYSTEM.md. Components must use these tokens, never raw hex.
+   ------------------------------------------------------------------------ */
+
+@theme {
+  /* Brand palette --------------------------------------------------------- */
+  --color-bg: #fbfaf7;
+  --color-surface: #ffffff;
+  --color-surface-muted: #f3f0ea;
+  --color-ink: #1b1917;
+  --color-ink-muted: #5f5a54;
+  --color-ink-subtle: #8c867f;
+  --color-line: #e6e1d9;
+  --color-line-strong: #cfc8bd;
+  --color-brand: #5b3a2e;
+  --color-brand-hover: #472c23;
+  --color-highlight: #9a7b3c;
+  --color-success: #2f6b4f;
+  --color-warning: #8a6a1f;
+  --color-danger: #9b2c2c;
+  --color-overlay: rgb(27 25 23 / 0.5);
+
+  /* Radius ---------------------------------------------------------------- */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 8px;
+  --radius-xl: 12px;
+  --radius-2xl: 16px;
+
+  /* Shadows (deliberately few; cards have none) --------------------------- */
+  --shadow-header: 0 1px 0 0 #e6e1d9;
+  --shadow-float: 0 8px 24px -12px rgb(27 25 23 / 0.28);
+  --shadow-overlay: 0 24px 48px -16px rgb(27 25 23 / 0.35);
+
+  /* Layout ---------------------------------------------------------------- */
+  --container-page: 82.5rem; /* 1320px */
+
+  /* Motion ---------------------------------------------------------------- */
+  --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --animate-accordion-down: accordion-down 250ms var(--ease-standard);
+  --animate-accordion-up: accordion-up 250ms var(--ease-standard);
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  }
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+}
+
+/* Fonts are injected by next/font as CSS variables on <html>. `inline` makes
+   utilities reference the runtime variable directly. */
+@theme inline {
+  --font-display: var(--font-fraunces), "Georgia", "Times New Roman", serif;
+  --font-sans: var(--font-inter), system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, monospace;
+
+  /* Semantic aliases used by the vendored shadcn primitives ---------------- */
+  --color-background: var(--color-bg);
+  --color-foreground: var(--color-ink);
+  --color-card: var(--color-surface);
+  --color-card-foreground: var(--color-ink);
+  --color-popover: var(--color-surface);
+  --color-popover-foreground: var(--color-ink);
+  --color-primary: var(--color-ink);
+  --color-primary-foreground: var(--color-bg);
+  --color-secondary: var(--color-surface-muted);
+  --color-secondary-foreground: var(--color-ink);
+  --color-muted: var(--color-surface-muted);
+  --color-muted-foreground: var(--color-ink-muted);
+  --color-accent: var(--color-surface-muted);
+  --color-accent-foreground: var(--color-ink);
+  --color-destructive: var(--color-danger);
+  --color-border: var(--color-line);
+  --color-input: var(--color-line-strong);
+  --color-ring: var(--color-brand);
+}
+
+/* Motion durations as plain variables (used in component CSS, not utilities). */
+:root {
+  --duration-fast: 150ms;
+  --duration-base: 250ms;
+  --duration-slow: 400ms;
+}
+
+/* ------------------------------------------------------------------------
+   Variants for Radix `data-state` attributes used by the primitives
+   ------------------------------------------------------------------------ */
+@custom-variant data-open (&:where([data-state="open"]));
+@custom-variant data-closed (&:where([data-state="closed"]));
+@custom-variant data-checked (&:where([data-state="checked"]));
+@custom-variant data-unchecked (&:where([data-state="unchecked"]));
+@custom-variant data-active (&:where([data-state="active"]));
+@custom-variant data-disabled (&:where([data-disabled]));
+@custom-variant data-horizontal (&:where([data-orientation="horizontal"]));
+@custom-variant data-vertical (&:where([data-orientation="vertical"]));
+
+/* ------------------------------------------------------------------------
+   Base
+   ------------------------------------------------------------------------ */
+@layer base {
+  * {
+    border-color: var(--color-line);
+  }
+
+  html {
+    font-family: var(--font-sans);
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--color-bg);
+    color: var(--color-ink);
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+
+  ::selection {
+    background-color: color-mix(in oklab, var(--color-brand) 18%, transparent);
+  }
+
+  /* Visible focus for everything that does not opt into a custom ring. */
+  :focus-visible {
+    outline: 2px solid var(--color-brand);
+    outline-offset: 2px;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 400;
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  img,
+  video {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* ------------------------------------------------------------------------
+   Typography utilities (fluid; see docs/09 §3)
+   ------------------------------------------------------------------------ */
+@utility type-display {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.5rem, 1.6rem + 3.5vw, 4rem);
+  line-height: 1.08;
+  letter-spacing: -0.02em;
+}
+
+@utility type-h1 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.875rem, 1.3rem + 2.2vw, 2.75rem);
+  line-height: 1.12;
+  letter-spacing: -0.01em;
+}
+
+@utility type-h2 {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+@utility type-h3 {
+  font-family: var(--font-display);
+  font-weight: 500;
+  font-size: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  line-height: 1.3;
+}
+
+@utility type-lead {
+  font-family: var(--font-sans);
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+
+@utility type-body {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
+}
+
+@utility type-small {
+  font-family: var(--font-sans);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+@utility type-eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.75rem;
+  line-height: 1.33;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@utility type-price {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Page container: 16px gutters on phones, 24px tablet, 40px desktop. */
+@utility container-page {
+  width: 100%;
+  max-width: var(--container-page);
+  margin-inline: auto;
+  padding-inline: 1rem;
+
+  @media (min-width: 768px) {
+    padding-inline: 1.5rem;
+  }
+  @media (min-width: 1024px) {
+    padding-inline: 2.5rem;
+  }
+}
+
+/* Editorial reveal on scroll. Pure CSS scroll-driven animation: no observer,
+   no JavaScript. Browsers without `animation-timeline` and users who prefer
+   reduced motion see the content immediately. Only for editorial sections,
+   never product grids (docs/09 §7). */
+@utility reveal {
+  @supports (animation-timeline: view()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: reveal-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 35%;
+    }
+  }
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Hide scrollbar for horizontal chip rows while keeping scrollability. */
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
