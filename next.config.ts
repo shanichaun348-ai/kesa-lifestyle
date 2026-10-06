@@ -29,7 +29,7 @@ const securityHeaders = [
       "default-src 'self'",
       // unsafe-eval required by React/Turbopack in dev for callstack reconstruction.
       // Production stays strict (no unsafe-eval).
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com`,
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://checkout.razorpay.com`,
       // Google Fonts CSS + Next.js styled components.
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Google Fonts font files + self.
@@ -37,11 +37,11 @@ const securityHeaders = [
       // Images: self, data URIs, and any HTTPS source for product images / OG.
       "img-src 'self' data: https:",
       // XHR/fetch: self + GA. Dev adds ws://* for Turbopack HMR websocket.
-      `connect-src 'self' https://www.google-analytics.com https://analytics.google.com${isDev ? " ws://localhost:* wss://localhost:*" : ""}`,
+      `connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://api.razorpay.com https://lumberjack.razorpay.com${isDev ? " ws://localhost:* wss://localhost:*" : ""}`,
       // Embedded media (audio/video).
       "media-src 'self'",
-      // Frames: none required; SAMEORIGIN covers the admin frame case.
-      "frame-src 'none'",
+      // Razorpay payment modal opens in an iframe from api.razorpay.com.
+      "frame-src 'self' https://api.razorpay.com",
       // Objects (Flash, plugins) — none.
       "object-src 'none'",
       // Base URI lockdown.
