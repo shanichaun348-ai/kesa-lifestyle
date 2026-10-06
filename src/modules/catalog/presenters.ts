@@ -92,7 +92,10 @@ export function toCardData(product: Product, opts: ToCardOptions): ProductCardDa
     badge,
     rating: product.rating,
     siblings: siblings.length > 0 ? siblings : undefined,
-    quickAdd: product.variants.length === 1 && inStock,
+    quickAdd: product.variants.length === 1 && inStock
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      ? { sku: product.variants[0]!.sku, unitPricePaise: product.variants[0]!.pricePaise }
+      : undefined,
     soldOut: !inStock,
   };
   if (opts.quickView) card.quickView = toQuickView(product);

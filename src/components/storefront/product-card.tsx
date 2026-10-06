@@ -34,7 +34,7 @@ export type ProductCardData = {
   rating?: { value: number; count: number } | undefined;
   siblings?: ProductCardSibling[] | undefined;
   /** Single-variant products can be added straight from the card. */
-  quickAdd?: boolean | undefined;
+  quickAdd?: { sku: string; unitPricePaise: number } | undefined;
   soldOut?: boolean | undefined;
   /** When present, a quick-view control is rendered on pointer devices. */
   quickView?: QuickViewProduct | undefined;
@@ -112,6 +112,10 @@ export function ProductCard({ product, priority = false, className }: ProductCar
         {product.quickAdd && !product.soldOut ? (
           <QuickAddButton
             productName={product.name}
+            productSlug={product.slug}
+            sku={product.quickAdd.sku}
+            unitPricePaise={product.quickAdd.unitPricePaise}
+            image={product.image}
             className={cn(
               "absolute right-2 bottom-2 z-10",
               // Always visible on touch devices; revealed on hover/focus with a pointer.

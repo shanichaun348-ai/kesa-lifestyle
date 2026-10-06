@@ -54,9 +54,10 @@ export function CartDrawer({ lines: staticLines, trigger }: CartDrawerProps) {
   const live = staticLines === undefined;
   const lines: readonly CartLine[] = live ? cart.lines : toStoreLines(staticLines);
   const { count, subtotalPaise } = cartTotals(lines);
+  const [open, setOpen] = React.useState(false);
 
   return (
-    <Sheet>
+    <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
         {trigger ?? (
           <Button variant="ghost" size="icon" aria-label={`Open bag, ${count} ${count === 1 ? "item" : "items"}`} className="relative -mr-2">
@@ -153,6 +154,7 @@ export function CartDrawer({ lines: staticLines, trigger }: CartDrawerProps) {
               <Link
                 href="/checkout/"
                 onClick={() => {
+                  setOpen(false);
                   if (!live) return;
                   trackBeginCheckout(
                     lines.map((l) => ({
@@ -169,7 +171,7 @@ export function CartDrawer({ lines: staticLines, trigger }: CartDrawerProps) {
               </Link>
             </Button>
             <Button variant="link" className="self-center" asChild>
-              <Link href="/cart/">View bag</Link>
+              <Link href="/cart/" onClick={() => setOpen(false)}>View bag</Link>
             </Button>
           </SheetFooter>
         ) : null}

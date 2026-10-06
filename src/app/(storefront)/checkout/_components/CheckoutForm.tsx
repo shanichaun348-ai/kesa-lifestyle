@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { formatPaise } from "@/lib/money";
+import { localCartStore } from "@/modules/cart/store";
 
 // ── Cart types (mirrors cart/store.ts CartLine) ───────────────────────────────
 
@@ -188,7 +189,7 @@ export function CheckoutForm() {
           const verifyJson = await verifyRes.json() as Record<string, unknown>;
           if (verifyRes.ok && verifyJson.success) {
             // Clear cart after successful payment.
-            try { window.localStorage.removeItem(CART_STORAGE_KEY); } catch { /* ignore */ }
+            localCartStore.clear();
             setOrderSuccess({ orderId: orderData.orderId });
             setCheckoutState("success");
           } else {
