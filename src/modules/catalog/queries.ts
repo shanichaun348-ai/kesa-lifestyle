@@ -1,19 +1,53 @@
 import "server-only";
 
 import { DemoCatalogRepository } from "./demo-repository";
+import { SupabaseCatalogRepository } from "./supabase-repository";
 import type { CatalogRepository } from "./repository";
 import type { Category, Collection, ListingScope, Product } from "./types";
 
 /**
  * Server-only entry points used by routes. Everything goes through the
- * repository so the demo → Postgres switch happens in one place.
+ * repository so the demo → Supabase switch happens in one place.
+ *
+ * Selection rules (evaluated in order):
+ *   1. SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY both set → SupabaseCatalogRepository.
+ *   2. NODE_ENV === "production" without Supabase config → throw (fail closed).
+ *   3. Otherwise (development / test) → DemoCatalogRepository.
+ *
+ * Production must NEVER resolve to DemoCatalogRepository.
+ * See docs/PRODUCTION_CONFIGURATION.md.
  */
 
 let repository: CatalogRepository | null = null;
 
+/** Reset the cached repository instance. ONLY for use in tests. */
+export function _resetCatalogRepositoryForTesting(): void {
+  repository = null;
+}
+
 export function getCatalogRepository(): CatalogRepository {
-  // Phase 1: return new PostgresCatalogRepository(db) when DATABASE_URL is set.
-  repository ??= new DemoCatalogRepository();
+  if (repository) return repository;
+
+  const supabaseConfigured = !!(
+    process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+
+  if (supabaseConfigured) {
+    repository = new SupabaseCatalogRepository();
+    return repository;
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    throw new Error(
+      "PRODUCTION STARTUP FAILURE: CATALOG REPOSITORY MISCONFIGURED.\n" +
+        "SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY must both be set in production.\n" +
+        "The application must never fall back to the in-memory DemoCatalogRepository in production.\n" +
+        "Set the missing variables and redeploy. See docs/PRODUCTION_CONFIGURATION.md",
+    );
+  }
+
+  // Development / test only — the production guard above prevents reaching this line in prod.
+  repository = new DemoCatalogRepository();
   return repository;
 }
 
