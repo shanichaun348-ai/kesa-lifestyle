@@ -83,15 +83,15 @@ export function CheckoutForm() {
   const [cart, setCart] = React.useState<CartLine[]>(() => readCart());
   const [cartLoaded, setCartLoaded] = React.useState(() => true);
 
-  const [name, setName] = React.useState("Test User");
-  const [email, setEmail] = React.useState("test@kesalifestyle.com");
-  const [phone, setPhone] = React.useState("9265228644");
-  const [addrName, setAddrName] = React.useState("Test User");
-  const [addrPhone, setAddrPhone] = React.useState("9265228644");
-  const [line1, setLine1] = React.useState("123 Test Street");
-  const [city, setCity] = React.useState("Rajkot");
-  const [state, setState] = React.useState("Gujarat");
-  const [pincode, setPincode] = React.useState("360003");
+  const [name, setName] = React.useState("");
+  const [email, setEmail] = React.useState("");
+  const [phone, setPhone] = React.useState("");
+  const [addrName, setAddrName] = React.useState("");
+  const [addrPhone, setAddrPhone] = React.useState("");
+  const [line1, setLine1] = React.useState("");
+  const [city, setCity] = React.useState("");
+  const [state, setState] = React.useState("");
+  const [pincode, setPincode] = React.useState("");
   const [couponCode, setCouponCode] = React.useState("");
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
