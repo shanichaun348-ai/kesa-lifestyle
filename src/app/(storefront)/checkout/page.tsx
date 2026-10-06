@@ -4,6 +4,10 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Container } from "@/components/storefront/container";
 import { CheckoutForm } from "./_components/CheckoutForm";
 
+// Checkout must be server-rendered on every request so env vars (Razorpay key)
+// are read at runtime, not baked in at build time.
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Checkout",
   robots: { index: false, follow: false },
