@@ -13,6 +13,7 @@ export type AuditAction =
   | "product.publish"
   | "product.unpublish"
   | "order.update_status"
+  | "order.cancel"
   | "order.refund"
   | "customer.update"
   | "customer.suspend"

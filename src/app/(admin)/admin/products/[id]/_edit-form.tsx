@@ -209,7 +209,7 @@ export function ProductEditForm({ product }: { product: Product }) {
           <h2 className={SECTION_TITLE_CLS}>Variants &amp; inventory</h2>
           <button type="button" onClick={addVariant} className="text-xs text-brand hover:underline">+ Add variant</button>
         </div>
-        <p className="text-xs text-ink-subtle -mt-2">Leave "Option" blank for single-variant products. Price in paise (₹1 = 100 paise).</p>
+        <p className="text-xs text-ink-subtle -mt-2">Leave &ldquo;Option value&rdquo; blank for single-variant products. Price in paise (₹1 = 100 paise).</p>
 
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">

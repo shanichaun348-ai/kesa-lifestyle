@@ -41,6 +41,16 @@ export function orderStatusBadge(status: string) {
     delivered: { label: "Delivered", variant: "success" },
     cancelled: { label: "Cancelled", variant: "danger" },
     refunded: { label: "Refunded", variant: "neutral" },
+    // Live Supabase order statuses
+    CREATED: { label: "Awaiting payment", variant: "warning" },
+    PAYMENT_PENDING: { label: "Payment pending", variant: "warning" },
+    PAID: { label: "Paid — to process", variant: "info" },
+    PAYMENT_FAILED: { label: "Payment failed", variant: "danger" },
+    CANCELLED: { label: "Cancelled", variant: "danger" },
+    PROCESSING: { label: "Processing", variant: "info" },
+    SHIPPED: { label: "Shipped", variant: "info" },
+    DELIVERED: { label: "Delivered", variant: "success" },
+    REFUNDED: { label: "Refunded", variant: "neutral" },
   };
   const entry = map[status] ?? { label: status, variant: "neutral" as Variant };
   return <StatusBadge label={entry.label} variant={entry.variant} />;
@@ -51,6 +61,7 @@ export function paymentStatusBadge(status: string) {
     pending: { label: "Pending", variant: "warning" },
     paid: { label: "Paid", variant: "success" },
     failed: { label: "Failed", variant: "danger" },
+    cancelled: { label: "Cancelled", variant: "danger" },
     refunded: { label: "Refunded", variant: "neutral" },
     partially_refunded: { label: "Partial Refund", variant: "warning" },
   };
