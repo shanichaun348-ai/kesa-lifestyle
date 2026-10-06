@@ -80,7 +80,7 @@ export default async function ProductsPage() {
                   <td className="px-4 py-3">{productStatusBadge(product.status)}</td>
                   {canWrite ? (
                     <td className="px-4 py-3 text-right">
-                      <Link href={`/admin/products/${product.id}/`} className="text-sm text-brand hover:underline">
+                      <Link href={`/admin/products/${product.slug}/`} className="text-sm text-brand hover:underline">
                         Edit
                       </Link>
                     </td>

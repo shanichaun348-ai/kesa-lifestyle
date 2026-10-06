@@ -4,9 +4,11 @@ import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminSignOut } from "@/components/admin/admin-sign-out";
 import { requireAdmin } from "@/modules/admin/guard";
 import { ROLE_LABELS } from "@/modules/admin/rbac";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await requireAdmin();
+  const dbConnected = isSupabaseConfigured();
 
   return (
     <div className="flex min-h-screen bg-bg">
@@ -45,10 +47,11 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         </div>
 
         <main className="flex-1 overflow-y-auto p-5 lg:p-8">
-          {/* Demo-mode banner */}
-          <div className="mb-6 rounded-md border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning">
-            <strong>Demo mode:</strong> No database is connected. Changes are not persisted. Connect Supabase (decision D10) to go live.
-          </div>
+          {!dbConnected && (
+            <div className="mb-6 rounded-md border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-warning">
+              <strong>Demo mode:</strong> No database is connected. Changes are not persisted. Set <code>SUPABASE_URL</code> and <code>SUPABASE_SERVICE_ROLE_KEY</code> to go live.
+            </div>
+          )}
           {children}
         </main>
       </div>
