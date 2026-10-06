@@ -19,14 +19,18 @@ const serverSchema = z.object({
   DATABASE_URL: z.url().optional(),
   /** Direct (non-pooled) connection used only by migrations and seeds. */
   DATABASE_DIRECT_URL: z.url().optional(),
+  /** Supabase project URL (e.g. https://xyzabc.supabase.co). Required in production. */
+  SUPABASE_URL: z.url().optional(),
   /** Service-role key. Server only. Used for Storage admin and auth admin calls, never for data queries. */
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(20).optional(),
-  /** Shared secret for cron-invoked job routes. */
-  CRON_SECRET: z.string().min(16).optional(),
-  /** Razorpay API key secret (pairs with NEXT_PUBLIC_RAZORPAY_KEY_ID). Server only. */
+  /** Razorpay API key ID. Server-side only (also set NEXT_PUBLIC_RAZORPAY_KEY_ID for the browser modal). */
+  RAZORPAY_KEY_ID: z.string().min(10).optional(),
+  /** Razorpay API key secret. Server only. */
   RAZORPAY_KEY_SECRET: z.string().min(10).optional(),
   /** Razorpay webhook signing secret, set in the Razorpay dashboard. Server only. */
   RAZORPAY_WEBHOOK_SECRET: z.string().min(10).optional(),
+  /** Shared secret for cron-invoked job routes. */
+  CRON_SECRET: z.string().min(16).optional(),
   /** Allows the seed script to run against a non-local database. Never set in production. */
   ALLOW_SEED: z.enum(["1"]).optional(),
 });
@@ -70,6 +74,10 @@ export function getServerEnv(): ServerEnv {
   if (typeof window !== "undefined") {
     throw new Error("getServerEnv() was called in the browser. Server secrets must never reach the client.");
   }
+  // Re-parse on every call in test so vi.stubEnv changes are reflected.
+  if (process.env.NODE_ENV === "test") {
+    return parse(serverSchema, process.env, "server");
+  }
   cachedServerEnv ??= parse(serverSchema, process.env, "server");
   return cachedServerEnv;
 }
@@ -81,4 +89,31 @@ export function requireServerEnv<K extends keyof ServerEnv>(key: K): NonNullable
     throw new Error(`${key} is not set. Copy .env.example to .env.local and fill it in (see README → Environment variables).`);
   }
   return value as NonNullable<ServerEnv[K]>;
+}
+
+/**
+ * Asserts that all variables required for production are present.
+ * Call this at application startup in production to fail fast with a clear message
+ * instead of silently falling back to demo/in-memory implementations.
+ *
+ * No-ops in development and test environments.
+ */
+export function assertProductionConfig(): void {
+  const env = getServerEnv();
+  if (env.NODE_ENV !== "production") return;
+
+  const missing: string[] = [];
+  if (!env.SUPABASE_URL) missing.push("SUPABASE_URL");
+  if (!env.SUPABASE_SERVICE_ROLE_KEY) missing.push("SUPABASE_SERVICE_ROLE_KEY");
+  if (!env.RAZORPAY_KEY_ID) missing.push("RAZORPAY_KEY_ID");
+  if (!env.RAZORPAY_KEY_SECRET) missing.push("RAZORPAY_KEY_SECRET");
+  if (!env.RAZORPAY_WEBHOOK_SECRET) missing.push("RAZORPAY_WEBHOOK_SECRET");
+
+  if (missing.length > 0) {
+    throw new Error(
+      `Production startup failure: the following required environment variables are not set:\n` +
+        missing.map((k) => `  - ${k}`).join("\n") + "\n" +
+        "See docs/PRODUCTION_CONFIGURATION.md for setup instructions.",
+    );
+  }
 }
