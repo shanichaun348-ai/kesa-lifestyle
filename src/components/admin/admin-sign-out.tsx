@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut } from "@/app/(admin)/admin/login/_actions";
+import { signOut } from "@/app/(admin-login)/admin/login/_actions";
 
 export function AdminSignOut() {
   return (
