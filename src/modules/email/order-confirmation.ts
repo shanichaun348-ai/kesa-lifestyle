@@ -1,0 +1,130 @@
+import { formatPaise } from "@/lib/money";
+import { site } from "@/lib/site";
+import type { Order } from "@/modules/orders/types";
+
+export function orderReference(order: Pick<Order, "id" | "orderNumber">): string {
+  return order.orderNumber ? `KL-${order.orderNumber}` : order.id;
+}
+
+function esc(s: string): string {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
+}
+
+function addressLines(order: Order): string[] {
+  const a = order.shippingAddress;
+  return [a.name, a.line1, a.line2, `${a.city}, ${a.state} ${a.pincode}`, a.phone].filter((l): l is string => !!l && l.trim() !== "");
+}
+
+export function customerConfirmationEmail(order: Order): { subject: string; html: string; text: string } {
+  const ref = orderReference(order);
+  const firstName = order.customer.name.trim().split(/\s+/)[0] ?? "there";
+  const lines = addressLines(order);
+
+  const itemRowsHtml = order.items
+    .map(
+      (i) => `
+        <tr>
+          <td style="padding:10px 0;border-bottom:1px solid #eee;">
+            <div style="font-weight:500;color:#1a1a1a;">${esc(i.productName)}</div>
+            <div style="font-size:13px;color:#777;">${i.variantOptionValue ? esc(i.variantOptionValue) + " · " : ""}Qty ${i.quantity}</div>
+          </td>
+          <td style="padding:10px 0;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;color:#1a1a1a;">${formatPaise(i.lineTotalPaise)}</td>
+        </tr>`,
+    )
+    .join("");
+
+  const totalsRows: Array<[string, string, string?]> = [
+    ["Subtotal", formatPaise(order.subtotalPaise)],
+    ...(order.discountPaise > 0 ? [[`Discount${order.coupon ? ` (${order.coupon.code})` : ""}`, `− ${formatPaise(order.discountPaise)}`, "#2f7d4f"] as [string, string, string]] : []),
+    ["Shipping", order.shippingPaise === 0 ? "Free" : formatPaise(order.shippingPaise)],
+  ];
+
+  const totalsHtml = totalsRows
+    .map(([label, value, color]) => `<tr><td style="padding:4px 0;color:#777;">${esc(label)}</td><td style="padding:4px 0;text-align:right;color:${color ?? "#1a1a1a"};">${value}</td></tr>`)
+    .join("");
+
+  const html = `<!doctype html>
+<html><body style="margin:0;background:#f6f4f0;font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1a1a1a;">
+  <div style="max-width:560px;margin:0 auto;padding:32px 16px;">
+    <div style="text-align:center;margin-bottom:24px;">
+      <div style="font-size:22px;letter-spacing:0.04em;font-weight:600;">${esc(site.name)}</div>
+    </div>
+    <div style="background:#fff;border:1px solid #e8e4dd;border-radius:8px;padding:28px;">
+      <p style="margin:0 0 4px;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:#999;">Order ${esc(ref)}</p>
+      <h1 style="margin:0 0 12px;font-size:22px;font-weight:600;">Thank you, ${esc(firstName)} — your order is confirmed</h1>
+      <p style="margin:0 0 20px;color:#555;line-height:1.5;">We've received your payment and are getting your jewellery ready. We'll email you again when it ships.</p>
+
+      <table style="width:100%;border-collapse:collapse;font-size:14px;">${itemRowsHtml}</table>
+
+      <table style="width:100%;border-collapse:collapse;font-size:14px;margin-top:12px;">
+        ${totalsHtml}
+        <tr><td style="padding:10px 0 2px;font-weight:600;border-top:1px solid #eee;">Total paid</td><td style="padding:10px 0 2px;text-align:right;font-weight:600;border-top:1px solid #eee;">${formatPaise(order.totalPaise)}</td></tr>
+        <tr><td colspan="2" style="font-size:12px;color:#999;">Includes ${formatPaise(order.gstPaise)} GST.</td></tr>
+      </table>
+
+      <div style="margin-top:24px;padding-top:20px;border-top:1px solid #eee;font-size:14px;">
+        <p style="margin:0 0 6px;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;color:#999;">Delivering to</p>
+        ${lines.map((l) => `<div style="color:#555;">${esc(l)}</div>`).join("")}
+      </div>
+    </div>
+    <p style="margin:20px 0 0;text-align:center;font-size:12px;color:#999;line-height:1.6;">
+      Questions? Reply to this email or write to <a href="mailto:hello@kesalifestyle.com" style="color:#999;">hello@kesalifestyle.com</a>.<br/>
+      <a href="${esc(site.url)}" style="color:#999;">${esc(site.url.replace(/^https?:\/\//, ""))}</a>
+    </p>
+  </div>
+</body></html>`;
+
+  const text = [
+    `${site.name} — Order ${ref}`,
+    ``,
+    `Thank you, ${firstName} — your order is confirmed.`,
+    `We've received your payment and will email you again when it ships.`,
+    ``,
+    `Items:`,
+    ...order.items.map((i) => `  • ${i.productName}${i.variantOptionValue ? ` (${i.variantOptionValue})` : ""} × ${i.quantity} — ${formatPaise(i.lineTotalPaise)}`),
+    ``,
+    `Subtotal: ${formatPaise(order.subtotalPaise)}`,
+    ...(order.discountPaise > 0 ? [`Discount: − ${formatPaise(order.discountPaise)}`] : []),
+    `Shipping: ${order.shippingPaise === 0 ? "Free" : formatPaise(order.shippingPaise)}`,
+    `Total paid: ${formatPaise(order.totalPaise)} (includes ${formatPaise(order.gstPaise)} GST)`,
+    ``,
+    `Delivering to:`,
+    ...lines.map((l) => `  ${l}`),
+    ``,
+    `Questions? Reply to this email or write to hello@kesalifestyle.com.`,
+  ].join("\n");
+
+  return { subject: `Order ${ref} confirmed — ${site.name}`, html, text };
+}
+
+export function adminNewOrderEmail(order: Order): { subject: string; html: string; text: string } {
+  const ref = orderReference(order);
+  const adminUrl = `${site.url.replace(/\/$/, "")}/admin/orders/${order.id}/`;
+  const lines = addressLines(order);
+  const itemsText = order.items.map((i) => `  • ${i.productName}${i.variantOptionValue ? ` (${i.variantOptionValue})` : ""} × ${i.quantity} — ${i.sku}`);
+
+  const html = `<!doctype html><html><body style="font-family:-apple-system,Segoe UI,Helvetica,Arial,sans-serif;color:#1a1a1a;font-size:14px;line-height:1.5;">
+    <h2 style="margin:0 0 8px;">New paid order ${esc(ref)} — ${formatPaise(order.totalPaise)}</h2>
+    <p style="margin:0 0 16px;"><a href="${esc(adminUrl)}">Open in admin →</a></p>
+    <p style="margin:0 0 4px;"><strong>Customer:</strong> ${esc(order.customer.name)} · ${esc(order.customer.email)} · ${esc(order.customer.phone)}</p>
+    <p style="margin:0 0 12px;"><strong>Ship to:</strong> ${lines.map(esc).join(", ")}</p>
+    <p style="margin:0 0 4px;"><strong>Items:</strong></p>
+    <ul style="margin:0 0 12px;padding-left:18px;">${order.items.map((i) => `<li>${esc(i.productName)}${i.variantOptionValue ? ` (${esc(i.variantOptionValue)})` : ""} × ${i.quantity} — <code>${esc(i.sku)}</code></li>`).join("")}</ul>
+    <p style="margin:0;color:#777;">Razorpay payment: <code>${esc(order.razorpayPaymentId ?? "—")}</code></p>
+  </body></html>`;
+
+  const text = [
+    `New paid order ${ref} — ${formatPaise(order.totalPaise)}`,
+    adminUrl,
+    ``,
+    `Customer: ${order.customer.name} · ${order.customer.email} · ${order.customer.phone}`,
+    `Ship to: ${lines.join(", ")}`,
+    ``,
+    `Items:`,
+    ...itemsText,
+    ``,
+    `Razorpay payment: ${order.razorpayPaymentId ?? "—"}`,
+  ].join("\n");
+
+  return { subject: `New order ${ref} — ${formatPaise(order.totalPaise)} — ${order.customer.name}`, html, text };
+}

@@ -77,7 +77,7 @@ const INDIAN_STATES = [
 
 type CheckoutState = "idle" | "submitting" | "success";
 
-type OrderSuccess = { orderId: string };
+type OrderSuccess = { orderId: string; orderNumber: number | null };
 
 export function CheckoutForm() {
   const [cart, setCart] = React.useState<CartLine[]>(() => readCart());
@@ -190,7 +190,10 @@ export function CheckoutForm() {
           if (verifyRes.ok && verifyJson.success) {
             // Clear cart after successful payment.
             localCartStore.clear();
-            setOrderSuccess({ orderId: orderData.orderId });
+            setOrderSuccess({
+              orderId: orderData.orderId,
+              orderNumber: typeof verifyJson.orderNumber === "number" ? verifyJson.orderNumber : null,
+            });
             setCheckoutState("success");
           } else {
             toast.error("Payment verification failed. Contact support with your order reference.");
@@ -231,7 +234,7 @@ export function CheckoutForm() {
         <p className="type-eyebrow text-ink-subtle">Order confirmed</p>
         <h1 className="type-h1">Thank you for your order!</h1>
         <p className="text-ink-subtle">
-          Your order <span className="font-medium text-ink">{orderSuccess.orderId}</span> has been placed. You will receive a confirmation on your email shortly.
+          Your order <span className="font-medium text-ink">{orderSuccess.orderNumber ? `KL-${orderSuccess.orderNumber}` : orderSuccess.orderId}</span> has been placed. A confirmation email is on its way to <span className="font-medium text-ink">{email.trim()}</span>.
         </p>
         <div className="flex gap-3">
           <Button variant="primary" asChild>

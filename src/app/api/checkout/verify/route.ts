@@ -1,5 +1,6 @@
-import { type NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 
+import { notifyOrderPaid } from "@/modules/email/order-notifications";
 import { verifyPaymentSignature } from "@/modules/payments/razorpay-security";
 import { getOrderRepository } from "@/modules/orders/queries";
 import { transitionOrder } from "@/modules/orders/state-machine";
@@ -58,7 +59,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   // Idempotency: if already PAID, return success without re-processing.
   if (order.status === "PAID") {
-    return Response.json({ success: true, orderId, alreadyProcessed: true });
+    return Response.json({ success: true, orderId, orderNumber: order.orderNumber ?? null, alreadyProcessed: true });
   }
 
   // Verify HMAC payment signature.
@@ -94,6 +95,9 @@ export async function POST(request: NextRequest): Promise<Response> {
   paid = { ...paid, razorpayPaymentId };
   await orderRepo.update(paid);
 
+  // Send after the response so the customer isn't kept waiting on the email provider.
+  after(() => notifyOrderPaid(paid));
+
   console.log(
     JSON.stringify({
       level: "info",
@@ -105,5 +109,5 @@ export async function POST(request: NextRequest): Promise<Response> {
     }),
   );
 
-  return Response.json({ success: true, orderId });
+  return Response.json({ success: true, orderId, orderNumber: paid.orderNumber ?? null });
 }

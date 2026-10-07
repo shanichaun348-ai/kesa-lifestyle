@@ -4,7 +4,7 @@ import { useActionState } from "react";
 
 import type { OrderStatus } from "@/modules/orders/types";
 
-import { advanceOrder, cancelOrder, markRefunded, type OrderActionState } from "./_actions";
+import { advanceOrder, cancelOrder, markRefunded, resendConfirmationEmail, type OrderActionState } from "./_actions";
 
 type Props = {
   orderId: string;
@@ -42,21 +42,34 @@ export function OrderActions({ orderId, status, canWrite, canRefund }: Props) {
     () => markRefunded(orderId),
     null,
   );
+  const [emailState, emailAction, emailPending] = useActionState<OrderActionState, FormData>(
+    () => resendConfirmationEmail(orderId),
+    null,
+  );
 
   const showAdvance = canWrite && !!next;
   const showCancel = canWrite && CANCELLABLE.has(status);
   const showRefund = canRefund && REFUNDABLE.has(status);
-  if (!showAdvance && !showCancel && !showRefund) return null;
+  const showEmail = canWrite && REFUNDABLE.has(status);
+  if (!showAdvance && !showCancel && !showRefund && !showEmail) return null;
 
   return (
     <section className="rounded-md border border-line bg-surface p-5 space-y-3">
       <h2 className="text-sm font-medium text-ink">Actions</h2>
-      <Message state={advState ?? cancelState ?? refundState} />
+      <Message state={advState ?? cancelState ?? refundState ?? emailState} />
 
       {showAdvance ? (
         <form action={advAction}>
           <button disabled={advPending} className="w-full rounded-md border border-ink bg-ink px-3 py-2 text-left text-sm font-medium text-bg hover:bg-brand-hover disabled:opacity-50">
             {advPending ? "Saving…" : next!.label}
+          </button>
+        </form>
+      ) : null}
+
+      {showEmail ? (
+        <form action={emailAction}>
+          <button disabled={emailPending} className="w-full rounded-md border border-line px-3 py-2 text-left text-sm text-ink hover:bg-surface-muted disabled:opacity-50">
+            {emailPending ? "Sending…" : "Resend confirmation email"}
           </button>
         </form>
       ) : null}

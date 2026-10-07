@@ -57,6 +57,8 @@ export type OrderCoupon = {
 export type Order = {
   /** Internal order ID — "ord_" + UUID. */
   id: string;
+  /** Human-friendly sequential number from the database (shown as KL-{n}). */
+  orderNumber?: number;
   status: OrderStatus;
   customer: CheckoutCustomer;
   shippingAddress: ShippingAddress;

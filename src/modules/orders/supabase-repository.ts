@@ -211,6 +211,7 @@ export class SupabaseOrderRepository implements OrderRepository {
     const items = (row.order_items as Array<Record<string, unknown>> | undefined) ?? [];
     return {
       id: row.id as string,
+      ...(row.order_number !== null && row.order_number !== undefined && { orderNumber: Number(row.order_number) }),
       status: row.status as Order["status"],
       customer: {
         name: row.customer_name as string,

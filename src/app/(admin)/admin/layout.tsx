@@ -1,3 +1,5 @@
+import "server-only";
+
 import type { ReactNode } from "react";
 
 import { AdminNav } from "@/components/admin/admin-nav";

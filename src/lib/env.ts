@@ -31,6 +31,12 @@ const serverSchema = z.object({
   RAZORPAY_WEBHOOK_SECRET: z.string().min(10).optional(),
   /** Shared secret for cron-invoked job routes. */
   CRON_SECRET: z.string().min(16).optional(),
+  /** Resend API key for transactional email. Server only. */
+  RESEND_API_KEY: z.string().min(10).optional(),
+  /** Verified sender, e.g. "Kesa Lifestyle <orders@kesalifestyle.com>". */
+  EMAIL_FROM: z.string().min(3).optional(),
+  /** Internal inbox that receives a copy of every new paid order. */
+  ORDER_NOTIFY_EMAIL: z.email().optional(),
   /** Allows the seed script to run against a non-local database. Never set in production. */
   ALLOW_SEED: z.enum(["1"]).optional(),
 });

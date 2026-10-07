@@ -4,7 +4,8 @@ import { revalidatePath } from "next/cache";
 
 import { auditLog } from "@/modules/admin/audit";
 import { requireAdmin } from "@/modules/admin/guard";
-import { setOrderStatus } from "@/modules/admin/orders-data";
+import { PAID_STATUSES, setOrderStatus } from "@/modules/admin/orders-data";
+import { notifyOrderPaid } from "@/modules/email/order-notifications";
 import { getOrderRepository } from "@/modules/orders/queries";
 import type { OrderStatus } from "@/modules/orders/types";
 
@@ -35,6 +36,17 @@ export async function cancelOrder(orderId: string): Promise<OrderActionState> {
   revalidatePath("/admin/orders/");
   revalidatePath("/admin/");
   return { success: "Order cancelled and stock released." };
+}
+
+export async function resendConfirmationEmail(orderId: string): Promise<OrderActionState> {
+  const session = await requireAdmin("orders:write");
+  const order = await getOrderRepository().findById(orderId);
+  if (!order) return { error: "Order not found." };
+  if (!PAID_STATUSES.has(order.status)) return { error: "Only paid orders have a confirmation email." };
+  const result = await notifyOrderPaid(order, { customerOnly: true });
+  if (!result.customer.ok) return { error: result.customer.error };
+  auditLog(session, "order.resend_email", { orderId, to: order.customer.email });
+  return { success: `Confirmation sent to ${order.customer.email}.` };
 }
 
 export async function markRefunded(orderId: string): Promise<OrderActionState> {

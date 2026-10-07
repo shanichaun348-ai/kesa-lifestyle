@@ -1,5 +1,6 @@
-import { type NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 
+import { notifyOrderPaid } from "@/modules/email/order-notifications";
 import { getWebhookIdempotencyKey, verifyWebhookSignature } from "@/modules/payments/razorpay-security";
 import { getOrderRepository } from "@/modules/orders/queries";
 import { canTransition, transitionOrder } from "@/modules/orders/state-machine";
@@ -117,6 +118,8 @@ export async function POST(request: NextRequest): Promise<Response> {
           let updated = transitionOrder(order, "PAID");
           if (razorpayPaymentId) updated = { ...updated, razorpayPaymentId };
           await orderRepo.update(updated);
+          // Only this path or the verify route performs the PAID transition, so the email goes out once.
+          after(() => notifyOrderPaid(updated));
           console.log(
             JSON.stringify({
               level: "info",
