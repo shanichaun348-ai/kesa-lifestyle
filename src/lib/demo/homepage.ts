@@ -25,13 +25,13 @@ export const demoGenderTiles = [
     title: "Women",
     description: "Earrings, necklaces, rings, bracelets, bangles and sets.",
     href: "/women/",
-    image: placeholder("category-women.svg", "Placeholder: women's jewellery edit"),
+    image: { src: "/images/home/shop-women.png", alt: "Model wearing gold-tone knot earrings and an open heart ring" },
   },
   {
     title: "Men",
     description: "Chains, bracelets, rings and pendants.",
     href: "/men/",
-    image: placeholder("category-men.svg", "Placeholder: men's jewellery edit"),
+    image: { src: "/images/home/shop-men.png", alt: "Gold-tone curb chain bracelet and plain band ring worn with a pinstripe jacket" },
   },
 ] as const;
 
