@@ -13,7 +13,11 @@ import { StylingGuides } from "@/components/home/styling-guides";
 import { UgcGrid } from "@/components/home/ugc-grid";
 import { WhyKesa } from "@/components/home/why-kesa";
 import { JsonLd } from "@/components/seo/json-ld";
-import { DEMO_CONTENT_NOTICE, demoBestSellers, demoNewArrivals } from "@/lib/demo/catalog";
+import { DEMO_CONTENT_NOTICE } from "@/lib/demo/catalog";
+import { sortProducts } from "@/modules/catalog/listing";
+import { toCardData } from "@/modules/catalog/presenters";
+import { getCatalogRepository, siblingsFor } from "@/modules/catalog/queries";
+import type { Product } from "@/modules/catalog/types";
 import {
   demoBrandStatement,
   demoCategories,
@@ -49,7 +53,31 @@ export const metadata: Metadata = {
  * dismissal, wishlist and quick-add buttons). In Phase 1 the section list and
  * its content come from `homepage_sections`; today it is demo data.
  */
-export default function HomePage() {
+const RAIL_SIZE = 4;
+
+/** Rule-collection members first; top up from the whole active catalogue while it is small. */
+function topUp(primary: Product[], pool: Product[]): Product[] {
+  const seen = new Set(primary.map((p) => p.slug));
+  return [...primary, ...pool.filter((p) => !seen.has(p.slug))].slice(0, RAIL_SIZE);
+}
+
+async function homeRails() {
+  const repo = getCatalogRepository();
+  const [active, arrivals, bestsellers] = await Promise.all([
+    repo.getAllActiveProducts(),
+    repo.getScopeCandidates({ kind: "collection", slug: "new-arrivals" }),
+    repo.getScopeCandidates({ kind: "collection", slug: "bestsellers" }),
+  ]);
+  const newArrivals = topUp(sortProducts(arrivals, "newest"), sortProducts(active, "newest"));
+  const bestSellers = topUp(bestsellers, sortProducts(active, "bestselling"));
+  const siblings = await siblingsFor([...newArrivals, ...bestSellers]);
+  const now = new Date();
+  const card = (p: Product) => toCardData(p, { now, siblings: siblings.get(p.slug) });
+  return { newArrivals: newArrivals.map(card), bestSellers: bestSellers.map(card) };
+}
+
+export default async function HomePage() {
+  const { newArrivals, bestSellers } = await homeRails();
   return (
     <>
       <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
@@ -66,7 +94,7 @@ export default function HomePage() {
           eyebrow="Just in"
           title="New arrivals"
           viewAll={{ label: "View all new arrivals", href: "/collections/new-arrivals/" }}
-          products={demoNewArrivals}
+          products={newArrivals}
           priorityCount={4}
         />
 
@@ -77,7 +105,7 @@ export default function HomePage() {
           eyebrow="Most loved"
           title="Bestsellers"
           viewAll={{ label: "View all bestsellers", href: "/collections/bestsellers/" }}
-          products={demoBestSellers}
+          products={bestSellers}
         />
 
         <BrandStatement {...demoBrandStatement} />

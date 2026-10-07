@@ -77,6 +77,8 @@ function makeRepo(products: Array<{ product: Product; variant: ProductVariant }>
     getFamilySiblings: async () => [],
     getRelatedProducts: async () => [],
     getAllActiveProducts: async () => products.map((p) => p.product),
+    getAllProducts: async () => products.map((p) => p.product),
+    getAnyProductBySlug: async () => null,
     getProductsBySku: async (skus: string[]) => {
       const result = new Map<string, { product: Product; variant: ProductVariant }>();
       for (const sku of skus) {

@@ -7,44 +7,55 @@ import { auditLog } from "@/modules/admin/audit";
 import { requireAdmin } from "@/modules/admin/guard";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 
-export type ProductFormState = { error: string } | { success: string } | null;
+import { categoryOptions, rupeesToPaise, SKU_PATTERN } from "../_category-options";
+
+export type ProductFormState = { error: string } | null;
 
 export async function createProduct(prevState: ProductFormState, formData: FormData): Promise<ProductFormState> {
   const session = await requireAdmin("products:write");
 
   const name = formData.get("name");
   const slug = formData.get("slug");
-  const status = formData.get("status") ?? "draft";
-  const shortDescription = formData.get("shortDescription") ?? "";
-  const gender = formData.get("gender") ?? "women";
-  const primaryCategoryPath = formData.get("primaryCategoryPath") ?? "";
-  const pricePaise = formData.get("pricePaise");
-  const compareAtPaise = formData.get("compareAtPaise");
+  const shortDescription = formData.get("shortDescription");
+  const gender = formData.get("gender");
+  const primaryCategoryPath = formData.get("primaryCategoryPath");
   const sku = formData.get("sku");
-  const stock = formData.get("stock") ?? "0";
+  const stock = formData.get("stock");
+  const pricePaise = rupeesToPaise(formData.get("priceRupees"));
+  const compareAtPaise = rupeesToPaise(formData.get("compareAtRupees"));
 
   if (typeof name !== "string" || !name.trim()) return { error: "Product name is required." };
-  if (typeof slug !== "string" || !/^[a-z0-9-]+$/.test(slug.trim())) return { error: "Slug must be lowercase letters, numbers and hyphens only." };
-  if (!pricePaise || isNaN(Number(pricePaise))) return { error: "Price is required." };
-  if (!sku || typeof sku !== "string" || !sku.trim()) return { error: "SKU is required." };
+  if (typeof slug !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.trim())) return { error: "Slug must be lowercase letters, numbers and single hyphens, e.g. gold-hoop-earrings." };
+  if (pricePaise === null || pricePaise <= 0) return { error: "Enter the price in rupees, e.g. 999 or 1299.50." };
+  if (compareAtPaise !== null && compareAtPaise <= pricePaise) return { error: "Compare-at price must be higher than the selling price (or leave it blank)." };
+  if (typeof sku !== "string" || !SKU_PATTERN.test(sku.trim())) return { error: "SKU may only contain letters, numbers, dots, dashes and underscores (no spaces), e.g. KL-NCK-0101." };
+  if (typeof gender !== "string" || !["women", "men", "unisex"].includes(gender)) return { error: "Choose a gender." };
+
+  const categories = await categoryOptions();
+  const category = categories.find((c) => c.path === primaryCategoryPath);
+  if (!category) return { error: "Choose a category from the list." };
 
   const db = getSupabaseServiceClient();
+  const cleanSlug = slug.trim();
+  const cleanSku = sku.trim().toUpperCase();
 
-  // Check slug uniqueness
-  const { data: existing } = await db.from("cat_products").select("id").eq("slug", slug.trim()).single();
-  if (existing) return { error: `Slug "${slug.trim()}" is already in use.` };
+  const [{ data: slugTaken }, { data: skuTaken }] = await Promise.all([
+    db.from("cat_products").select("id").eq("slug", cleanSlug).maybeSingle(),
+    db.from("cat_variants").select("id").eq("sku", cleanSku).maybeSingle(),
+  ]);
+  if (slugTaken) return { error: `The slug "${cleanSlug}" is already used by another product.` };
+  if (skuTaken) return { error: `The SKU "${cleanSku}" already exists on another product.` };
 
-  // Insert product
-  const { data: newProduct, error: insertError } = await db
+  const { data: created, error: insertError } = await db
     .from("cat_products")
     .insert({
-      slug: slug.trim(),
+      slug: cleanSlug,
       name: name.trim(),
       short_description: typeof shortDescription === "string" ? shortDescription.trim() : "",
       description: [],
       gender,
-      primary_category_path: typeof primaryCategoryPath === "string" ? primaryCategoryPath.trim() : "",
-      category_paths: [typeof primaryCategoryPath === "string" ? primaryCategoryPath.trim() : ""],
+      primary_category_path: category.path,
+      category_paths: [category.path],
       tags: [],
       attributes: {},
       highlights: [],
@@ -57,38 +68,34 @@ export async function createProduct(prevState: ProductFormState, formData: FormD
       complete_the_look_slugs: [],
       faq: [],
       images: [],
-      status,
-      published_at: status === "active" ? new Date().toISOString() : null,
+      // Always starts as a draft: images are added on the edit screen, then the product is published.
+      status: "draft",
+      published_at: null,
       sales_30d: 0,
       sort_weight: 0,
     })
     .select("id")
     .single();
 
-  if (insertError || !newProduct) return { error: `Failed to create product: ${insertError?.message ?? "unknown error"}` };
+  if (insertError || !created) return { error: `Could not create the product: ${insertError?.message ?? "unknown error"}` };
+  const productId = (created as { id: string }).id;
 
-  const productId = (newProduct as { id: string }).id;
-
-  // Insert variant
-  const { error: varError } = await db.from("cat_variants").insert({
+  const { error: variantError } = await db.from("cat_variants").insert({
     product_id: productId,
-    sku: (sku as string).trim(),
+    sku: cleanSku,
     option_value: null,
-    price_paise: parseInt(pricePaise as string, 10),
-    compare_at_paise: compareAtPaise ? parseInt(compareAtPaise as string, 10) : null,
+    price_paise: pricePaise,
+    compare_at_paise: compareAtPaise,
     position: 0,
   });
+  if (variantError) return { error: `Product created but the variant failed: ${variantError.message}` };
 
-  if (varError) return { error: `Product created but variant failed: ${varError.message}` };
+  await db.from("product_variants").upsert(
+    { sku: cleanSku, product_id: productId, product_name: name.trim(), available_stock: Math.max(0, parseInt(typeof stock === "string" ? stock : "0", 10) || 0), reserved_stock: 0 },
+    { onConflict: "sku" },
+  );
 
-  // Insert inventory row
-  await db.from("product_variants").upsert({
-    sku: (sku as string).trim(),
-    available_stock: parseInt(stock as string, 10) || 0,
-    reserved_stock: 0,
-  }, { onConflict: "sku" });
-
-  auditLog(session, "product.create", { name, slug, status });
+  auditLog(session, "product.create", { name: name.trim(), slug: cleanSlug, status: "draft" });
   revalidatePath("/admin/products/");
-  redirect(`/admin/products/${slug.trim()}/`);
+  redirect(`/admin/products/${cleanSlug}/?created=1`);
 }

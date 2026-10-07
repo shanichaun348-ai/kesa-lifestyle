@@ -19,7 +19,7 @@ import { ProductRail } from "@/components/storefront/product-rail";
 import { RatingStars } from "@/components/storefront/rating-stars";
 import { SectionHeading } from "@/components/storefront/section-heading";
 import { effectivePrice, isNewArrival } from "@/modules/catalog/listing";
-import { productHref, toCardData } from "@/modules/catalog/presenters";
+import { primaryImage, productHref, toCardData } from "@/modules/catalog/presenters";
 import { getCatalogRepository, getCategoryByPath } from "@/modules/catalog/queries";
 import type { FaqItem, Product } from "@/modules/catalog/types";
 import { resolveVariant } from "@/modules/catalog/variants";
@@ -122,7 +122,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
   ];
 
   const galleryItems: GalleryItem[] = [
-    ...product.images.map((image) => ({ kind: "image" as const, image })),
+    ...(product.images.length > 0 ? product.images : [primaryImage(product)]).map((image) => ({ kind: "image" as const, image })),
     ...(product.videos ?? []).map((video) => ({ kind: "video" as const, video })),
   ];
 
@@ -212,7 +212,7 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
           <PurchasePanel
             productSlug={product.slug}
             productName={product.name}
-            image={product.images[0] ?? { src: "", alt: product.name }}
+            image={primaryImage(product)}
             optionName={product.optionName}
             options={options}
             initialSku={initialSku}

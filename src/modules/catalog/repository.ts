@@ -31,6 +31,10 @@ export interface CatalogRepository {
   getFamilySiblings(product: Product): Promise<Product[]>;
   getRelatedProducts(product: Product, limit: number): Promise<Product[]>;
   getAllActiveProducts(): Promise<Product[]>;
+  /** Every product regardless of status — admin screens only. */
+  getAllProducts(): Promise<Product[]>;
+  /** Any product by slug regardless of status — admin screens only. */
+  getAnyProductBySlug(slug: string): Promise<Product | null>;
   /**
    * Look up active products and their matching variant by SKU.
    * Returns a map keyed by SKU. SKUs not found are absent from the map.

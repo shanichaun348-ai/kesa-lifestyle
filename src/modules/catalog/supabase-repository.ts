@@ -297,6 +297,14 @@ export class SupabaseCatalogRepository implements CatalogRepository {
     return this.activeProducts();
   }
 
+  async getAllProducts(): Promise<Product[]> {
+    return this.allProducts();
+  }
+
+  async getAnyProductBySlug(slug: string): Promise<Product | null> {
+    return (await this.allProducts()).find((p) => p.slug === slug) ?? null;
+  }
+
   async getProductsBySku(
     skus: string[],
   ): Promise<Map<string, { product: Product; variant: ProductVariant }>> {

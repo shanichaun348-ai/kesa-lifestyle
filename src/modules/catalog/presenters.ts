@@ -5,7 +5,7 @@
 import type { ProductCardData } from "@/components/storefront/product-card";
 
 import { effectivePrice, isBestseller, isInStock, isNewArrival } from "./listing";
-import type { Product } from "./types";
+import type { ImageRef, Product } from "./types";
 
 export type QuickViewProduct = {
   slug: string;
@@ -25,9 +25,14 @@ export function productHref(product: Pick<Product, "slug">): string {
   return `/products/${product.slug}/`;
 }
 
+/** First product image, or a neutral placeholder so `<Image>` never receives an empty src. */
+export function primaryImage(product: Pick<Product, "images" | "name">): ImageRef {
+  return product.images[0] ?? { src: "/placeholders/product-1.svg", alt: `${product.name} — image coming soon`, unoptimized: true };
+}
+
 export function toQuickView(product: Product): QuickViewProduct {
   const { pricePaise, compareAtPaise } = effectivePrice(product);
-  const image = product.images[0] ?? { src: "", alt: product.name };
+  const image = primaryImage(product);
   return {
     slug: product.slug,
     name: product.name,
@@ -66,7 +71,7 @@ const SWATCH_BY_FINISH: Record<string, string> = {
 
 export function toCardData(product: Product, opts: ToCardOptions): ProductCardData {
   const { pricePaise, compareAtPaise } = effectivePrice(product);
-  const primary = product.images[0] ?? { src: "", alt: product.name };
+  const primary = primaryImage(product);
   const hover = product.images[1];
   const inStock = isInStock(product);
 
@@ -93,7 +98,6 @@ export function toCardData(product: Product, opts: ToCardOptions): ProductCardDa
     rating: product.rating,
     siblings: siblings.length > 0 ? siblings : undefined,
     quickAdd: product.variants.length === 1 && inStock
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       ? { sku: product.variants[0]!.sku, unitPricePaise: product.variants[0]!.pricePaise }
       : undefined,
     soldOut: !inStock,

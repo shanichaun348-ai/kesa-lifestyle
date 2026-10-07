@@ -15,7 +15,7 @@ import { toCardData } from "@/modules/catalog/presenters";
 import { SEED_NOW, seedProducts } from "./seed-catalog";
 
 export const DEMO_CONTENT_NOTICE =
-  "Sample products and content shown for layout review. Real catalogue, reviews and stories arrive with the catalogue module.";
+  "Sample reviews, stories and social posts shown for layout review. Verified reviews and real stories appear here after launch.";
 
 const siblingsOf = (slug: string) => {
   const me = seedProducts.find((p) => p.slug === slug);

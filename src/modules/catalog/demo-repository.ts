@@ -126,6 +126,14 @@ export class DemoCatalogRepository implements CatalogRepository {
     return activeProducts();
   }
 
+  async getAllProducts(): Promise<Product[]> {
+    return seedProducts;
+  }
+
+  async getAnyProductBySlug(slug: string): Promise<Product | null> {
+    return seedProducts.find((p) => p.slug === slug) ?? null;
+  }
+
   async getProductsBySku(skus: string[]): Promise<Map<string, { product: Product; variant: ProductVariant }>> {
     const wanted = new Set(skus);
     const result = new Map<string, { product: Product; variant: ProductVariant }>();
