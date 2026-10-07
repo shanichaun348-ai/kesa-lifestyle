@@ -20,8 +20,8 @@ type SiteHeaderProps = {
  */
 export function SiteHeader({ menus, secondaryLinks }: SiteHeaderProps) {
   return (
-    <header className="sticky top-0 z-40 bg-bg/95 shadow-(--shadow-header) backdrop-blur supports-backdrop-filter:bg-bg/85">
-      <div className="container-page flex h-14 items-center gap-2 lg:h-[4.5rem]">
+    <header className="header-shrink sticky top-0 z-40 bg-bg/95 shadow-(--shadow-header) backdrop-blur supports-backdrop-filter:bg-bg/85 [--header-h:4.5rem]">
+      <div className="container-page flex h-14 items-center gap-2 transition-[height] duration-150 lg:h-(--header-h)">
         <MobileNav menus={menus} secondaryLinks={secondaryLinks} />
 
         <Logo className="lg:mr-8" />
@@ -32,7 +32,7 @@ export function SiteHeader({ menus, secondaryLinks }: SiteHeaderProps) {
               <li key={menu.href} className="group/menu">
                 <Link
                   href={menu.href}
-                  className="relative flex h-[4.5rem] items-center text-sm font-medium text-ink after:absolute after:inset-x-0 after:bottom-5 after:h-px after:origin-left after:scale-x-0 after:bg-ink after:transition-transform after:duration-250 after:ease-(--ease-standard) group-hover/menu:after:scale-x-100 group-focus-within/menu:after:scale-x-100"
+                  className="relative flex h-(--header-h) items-center text-sm font-medium text-ink after:absolute after:inset-x-0 after:bottom-4 after:h-px after:origin-left after:scale-x-0 after:bg-ink after:transition-transform after:duration-250 after:ease-(--ease-standard) group-hover/menu:after:scale-x-100 group-focus-within/menu:after:scale-x-100"
                   aria-haspopup={menu.columns ? "true" : undefined}
                 >
                   {menu.label}

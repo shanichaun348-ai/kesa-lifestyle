@@ -55,6 +55,20 @@ export function PurchasePanel(props: PurchasePanelProps) {
   const [quantity, setQuantity] = React.useState(1);
   const [error, setError] = React.useState<string | null>(null);
 
+  // Sticky bar on phones: shown once the main Add to bag button has scrolled off the top.
+  const actionsRef = React.useRef<HTMLDivElement>(null);
+  const [showSticky, setShowSticky] = React.useState(false);
+  React.useEffect(() => {
+    const el = actionsRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      ([entry]) => setShowSticky(!!entry && !entry.isIntersecting && entry.boundingClientRect.top < 0),
+      { threshold: 0 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   const selected = props.options.find((o) => o.sku === sku) ?? null;
   const display = selected ?? props.options[0] ?? null;
   const anyStock = props.options.some((o) => o.stock > 0);
@@ -185,7 +199,7 @@ export function PurchasePanel(props: PurchasePanelProps) {
       ) : null}
 
       {availability !== "out_of_stock" ? (
-        <div className="flex flex-col gap-3">
+        <div ref={actionsRef} className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
             <QuantityStepper value={quantity} max={Math.max(1, max || 1)} onChange={setQuantity} />
             <Button size="lg" className="flex-1" onClick={onAdd}>
@@ -210,6 +224,27 @@ export function PurchasePanel(props: PurchasePanelProps) {
           </p>
         </div>
       )}
+
+      {availability !== "out_of_stock" ? (
+        <div
+          aria-hidden={!showSticky}
+          className={cn(
+            "fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 backdrop-blur supports-backdrop-filter:bg-bg/85 lg:hidden",
+            "pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 transition-[transform,opacity] duration-250 ease-(--ease-standard)",
+            showSticky ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0",
+          )}
+        >
+          <div className="container-page flex items-center gap-3">
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-medium text-ink">{props.productName}</p>
+              {display ? <Price pricePaise={display.pricePaise} compareAtPaise={display.compareAtPaise} size="sm" /> : null}
+            </div>
+            <Button size="md" onClick={onAdd} tabIndex={showSticky ? 0 : -1}>
+              Add to bag
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

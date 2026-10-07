@@ -274,7 +274,7 @@
     @media (prefers-reduced-motion: no-preference) {
       animation: reveal-in linear both;
       animation-timeline: view();
-      animation-range: entry 0% entry 35%;
+      animation-range: entry 0% entry 40%;
     }
   }
 }
@@ -282,11 +282,94 @@
 @keyframes reveal-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(28px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+/* Entrance for above-the-fold copy (hero). Children stagger with `--i`. */
+@utility rise {
+  @media (prefers-reduced-motion: no-preference) {
+    opacity: 0;
+    animation: rise-in 900ms var(--ease-standard) both;
+    animation-delay: calc(120ms + var(--i, 0) * 110ms);
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slow cinematic zoom on hero imagery. */
+@utility ken-burns {
+  @media (prefers-reduced-motion: no-preference) {
+    animation: ken-burns 18s var(--ease-standard) both;
+    transform-origin: 55% 40%;
+  }
+}
+
+@keyframes ken-burns {
+  from {
+    transform: scale(1.12);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+/* Infinite horizontal ticker. The track holds the content twice so the loop
+   is seamless; pauses on hover; static when motion is reduced. */
+@utility marquee-track {
+  display: flex;
+  width: max-content;
+  @media (prefers-reduced-motion: no-preference) {
+    animation: marquee 38s linear infinite;
+    &:hover {
+      animation-play-state: paused;
+    }
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* Registered so the header height interpolates instead of snapping. */
+@property --header-h {
+  syntax: "<length>";
+  inherits: true;
+  initial-value: 4.5rem;
+}
+
+/* Header condenses as the page scrolls (scroll-driven, no JS). */
+@utility header-shrink {
+  @supports (animation-timeline: scroll()) {
+    @media (prefers-reduced-motion: no-preference) {
+      animation: header-shrink linear both;
+      animation-timeline: scroll(root);
+      animation-range: 0 160px;
+    }
+  }
+}
+
+@keyframes header-shrink {
+  to {
+    --header-h: 3.5rem;
   }
 }
 

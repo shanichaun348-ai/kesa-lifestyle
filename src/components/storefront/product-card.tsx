@@ -71,8 +71,10 @@ export function ProductCard({ product, priority = false, className }: ProductCar
           priority={priority}
           unoptimized={product.image.unoptimized ?? false}
           className={cn(
-            "object-cover transition-opacity duration-250 ease-(--ease-standard)",
-            product.hoverImage && "group-hover/card:opacity-0 group-focus-within/card:opacity-0",
+            "object-cover transition-[opacity,transform] duration-700 ease-(--ease-standard)",
+            product.hoverImage
+              ? "group-hover/card:opacity-0 group-focus-within/card:opacity-0"
+              : "motion-safe:group-hover/card:scale-105 motion-safe:group-focus-within/card:scale-105",
             product.soldOut && "opacity-60",
           )}
         />
@@ -83,7 +85,7 @@ export function ProductCard({ product, priority = false, className }: ProductCar
             fill
             sizes={IMAGE_SIZES}
             unoptimized={product.hoverImage.unoptimized ?? false}
-            className="object-cover opacity-0 transition-opacity duration-250 ease-(--ease-standard) group-hover/card:opacity-100 group-focus-within/card:opacity-100"
+            className="scale-105 object-cover opacity-0 transition-[opacity,transform] duration-700 ease-(--ease-standard) group-hover/card:scale-100 group-hover/card:opacity-100 group-focus-within/card:scale-100 group-focus-within/card:opacity-100"
           />
         ) : null}
 

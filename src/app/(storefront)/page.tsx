@@ -10,6 +10,7 @@ import { ProductSection } from "@/components/home/product-section";
 import { Reviews } from "@/components/home/reviews";
 import { ShopTheLook } from "@/components/home/shop-the-look";
 import { StylingGuides } from "@/components/home/styling-guides";
+import { TrustMarquee } from "@/components/home/trust-marquee";
 import { UgcGrid } from "@/components/home/ugc-grid";
 import { WhyKesa } from "@/components/home/why-kesa";
 import { JsonLd } from "@/components/seo/json-ld";
@@ -82,9 +83,10 @@ export default async function HomePage() {
     <>
       <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
 
-      <div className="flex flex-col gap-14 pb-14 lg:gap-24 lg:pb-24">
-        <Hero {...demoHero} />
+      <Hero {...demoHero} />
+      <TrustMarquee items={demoWhyKesa.map((f) => f.title)} />
 
+      <div className="flex flex-col gap-14 pt-14 pb-14 lg:gap-24 lg:pt-24 lg:pb-24">
         <GenderTiles tiles={demoGenderTiles} />
 
         <CategoryTiles categories={demoCategories} />

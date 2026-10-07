@@ -24,12 +24,13 @@ type ReviewsProps = {
  */
 export function Reviews({ reviews, notice }: ReviewsProps) {
   return (
-    <section aria-labelledby="reviews-title" className="container-page">
+    <section aria-labelledby="reviews-title" className="container-page reveal">
       <SectionHeading eyebrow="From customers" title="Worn and reviewed" className="mb-6" />
       <ul className="grid gap-4 md:grid-cols-3 md:gap-6">
         {reviews.map((r) => (
           <li key={r.id}>
-            <article className="flex h-full flex-col gap-3 rounded-md border border-line bg-surface p-5">
+            <article className="relative flex h-full flex-col gap-3 rounded-md border border-line bg-surface p-6 transition-[transform,box-shadow] duration-400 ease-(--ease-standard) motion-safe:hover:-translate-y-1 hover:shadow-(--shadow-float)">
+              <span aria-hidden="true" className="absolute top-3 right-5 font-display text-6xl leading-none text-line-strong/60">&ldquo;</span>
               <RatingStars rating={r.rating} />
               <h3 className="text-base font-medium text-ink">{r.title}</h3>
               <blockquote className="type-small flex-1 text-ink-muted">{r.body}</blockquote>
