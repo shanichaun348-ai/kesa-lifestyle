@@ -36,12 +36,13 @@ export const demoGenderTiles = [
 ] as const;
 
 export const demoCategories = [
-  { label: "Earrings", href: "/women/earrings/", image: placeholder("product-1.svg", "") },
-  { label: "Necklaces", href: "/women/necklaces/", image: placeholder("product-2.svg", "") },
-  { label: "Rings", href: "/women/rings/", image: placeholder("product-3.svg", "") },
-  { label: "Bracelets", href: "/women/bracelets/", image: placeholder("product-4.svg", "") },
-  { label: "Jewellery sets", href: "/women/jewellery-sets/", image: placeholder("product-2.svg", "") },
-  { label: "Men's chains", href: "/men/chains/", image: placeholder("product-3.svg", "") },
+  { label: "Earrings", href: "/women/earrings/", image: { src: "/images/categories/earrings.png", alt: "" } },
+  { label: "Necklaces", href: "/women/necklaces/", image: { src: "/images/categories/necklaces.png", alt: "" } },
+  { label: "Bracelets", href: "/women/bracelets/", image: { src: "/images/categories/bracelets.png", alt: "" } },
+  { label: "Rings", href: "/women/rings/", image: { src: "/images/categories/rings.png", alt: "" } },
+  // No dedicated mangalsutra category yet; they live under necklaces.
+  { label: "Mangalsutra", href: "/women/necklaces/", image: { src: "/images/categories/mangalsutra.png", alt: "" } },
+  { label: "Men's", href: "/men/", image: { src: "/images/categories/men.png", alt: "" } },
 ] as const;
 
 const byIndex = (...idx: number[]): ProductCardData[] =>
