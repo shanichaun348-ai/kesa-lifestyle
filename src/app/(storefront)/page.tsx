@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { BrandStatement } from "@/components/home/brand-statement";
 import { CategoryTiles } from "@/components/home/category-tiles";
 import { GenderTiles } from "@/components/home/gender-tiles";
-import { Hero } from "@/components/home/hero";
+import { HeroCarousel, type HeroSlide } from "@/components/home/hero-carousel";
 import { JournalPreview } from "@/components/home/journal-preview";
 import { NewsletterBand } from "@/components/home/newsletter-band";
 import { ProductSection } from "@/components/home/product-section";
@@ -23,7 +23,6 @@ import {
   demoBrandStatement,
   demoCategories,
   demoGenderTiles,
-  demoHero,
   demoJournalPosts,
   demoLook,
   demoReviews,
@@ -54,6 +53,23 @@ export const metadata: Metadata = {
  * dismissal, wishlist and quick-add buttons). In Phase 1 the section list and
  * its content come from `homepage_sections`; today it is demo data.
  */
+const HERO_SLIDES: readonly HeroSlide[] = [
+  {
+    src: "/images/hero/pillars-of-time.png",
+    alt: "New launch — Pillars of Time. Where time becomes art. A gold-tone necklace and earring set with pink stones and pearls on a carved wooden box.",
+    href: "/women/necklaces/",
+    cta: "Shop the Pillars of Time collection",
+    focusX: 72,
+  },
+  {
+    src: "/images/hero/leafy-affair.png",
+    alt: "New launch — Styled by Nature, Leafy Affair. A gold leaf pendant on a fine chain and a matching ring, worn by a model.",
+    href: "/collections/new-arrivals/",
+    cta: "Shop the Leafy Affair collection",
+    focusX: 70,
+  },
+];
+
 const RAIL_SIZE = 4;
 
 /** Rule-collection members first; top up from the whole active catalogue while it is small. */
@@ -83,7 +99,7 @@ export default async function HomePage() {
     <>
       <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
 
-      <Hero {...demoHero} />
+      <HeroCarousel slides={HERO_SLIDES} />
       <TrustMarquee items={demoWhyKesa.map((f) => f.title)} />
 
       <div className="flex flex-col gap-14 pt-14 pb-14 lg:gap-24 lg:pt-24 lg:pb-24">

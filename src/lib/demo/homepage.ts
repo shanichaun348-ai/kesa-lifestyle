@@ -20,15 +20,6 @@ const placeholder = (file: string, alt: string): DemoImage => ({
   unoptimized: true,
 });
 
-export const demoHero = {
-  eyebrow: "New season",
-  title: "Jewellery that completes your look.",
-  lead: "Lightweight, skin-friendly pieces for every day and every occasion. Designed in India, made to be worn.",
-  primary: { label: "Shop women", href: "/women/" },
-  secondary: { label: "Shop men", href: "/men/" },
-  image: placeholder("hero-1.svg", "Placeholder: model wearing layered gold-tone necklaces"),
-};
-
 export const demoGenderTiles = [
   {
     title: "Women",
