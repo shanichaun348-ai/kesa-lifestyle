@@ -13,6 +13,24 @@ export const site = {
   locale: "en_IN",
 } as const;
 
+/**
+ * Legal disclosures required by the Consumer Protection (E-Commerce) Rules, 2020.
+ * Fill in the bracketed values before launch — they render verbatim on /grievance-officer/.
+ */
+export const legal = {
+  entityName: "[Registered business name]",
+  registeredAddress: "[Registered office address, city, state, PIN]",
+  supportEmail: "hello@kesalifestyle.com",
+  supportPhone: "+91 94090 17177",
+  supportHours: "Monday to Saturday, 10:00 am to 6:00 pm IST",
+  grievanceOfficer: {
+    name: "[Grievance officer full name]",
+    designation: "Grievance Officer",
+    email: "hello@kesalifestyle.com",
+    phone: "+91 94090 17177",
+  },
+} as const;
+
 export function absoluteUrl(path: string): string {
   return new URL(path, site.url).toString();
 }

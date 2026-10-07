@@ -125,6 +125,8 @@ export const sampleFooterColumns: FooterColumn[] = [
     links: [
       { label: "Shipping", href: "/shipping-policy/" },
       { label: "Returns", href: "/returns-policy/" },
+      { label: "Track order", href: "/track-order/" },
+      { label: "Grievance officer", href: "/grievance-officer/" },
     ],
   },
   {

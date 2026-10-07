@@ -78,6 +78,11 @@ export function SiteFooter({ columns }: SiteFooterProps) {
                 Returns
               </Link>
             </li>
+            <li>
+              <Link href="/grievance-officer/" className="hover:text-ink">
+                Grievance officer
+              </Link>
+            </li>
           </ul>
         </div>
       </div>
