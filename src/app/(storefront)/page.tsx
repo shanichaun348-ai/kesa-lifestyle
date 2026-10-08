@@ -55,18 +55,33 @@ export const metadata: Metadata = {
  */
 const HERO_SLIDES: readonly HeroSlide[] = [
   {
-    src: "/images/hero/pillars-of-time.png",
-    alt: "New launch — Pillars of Time. Where time becomes art. A gold-tone necklace and earring set with pink stones and pearls on a carved wooden box.",
-    href: "/women/necklaces/",
-    cta: "Shop the Pillars of Time collection",
-    focusX: 72,
+    src: "/images/hero/style-that-feels-like-you.png",
+    alt: "Kesa Lifestyle — Style that feels like you. Premium jewellery collection: a model in a black saree wearing a crystal necklace, drop earrings and bracelet beside three necklace sets on display.",
+    href: "/women/",
+    cta: "Shop the premium jewellery collection",
+    focusX: 28,
   },
   {
-    src: "/images/hero/leafy-affair.png",
-    alt: "New launch — Styled by Nature, Leafy Affair. A gold leaf pendant on a fine chain and a matching ring, worn by a model.",
+    src: "/images/hero/festive-showcase.png",
+    alt: "A model wearing a gold-tone pendant necklace beside a display of crystal pendant necklaces and an Om pendant.",
+    href: "/women/necklaces/",
+    cta: "Shop necklaces",
+    focusX: 25,
+  },
+  {
+    src: "/images/hero/everyday-elegance.png",
+    alt: "Kesa Lifestyle. Gold-tone crystal pendant necklaces on cream silk, and a model wearing a delicate gold chain with a crystal pendant.",
     href: "/collections/new-arrivals/",
-    cta: "Shop the Leafy Affair collection",
-    focusX: 70,
+    cta: "Shop new arrivals",
+    focusX: 62,
+  },
+  {
+    src: "/images/hero/golden-elegance.png",
+    alt: "Kesa Lifestyle. A gold-tone crystal flower pendant necklace and a charm bracelet with coloured stones on cream satin.",
+    href: "/women/bracelets/",
+    cta: "Shop bracelets",
+    focusX: 40,
+    focusY: 40,
   },
 ];
 

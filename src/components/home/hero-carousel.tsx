@@ -17,6 +17,8 @@ export type HeroSlide = {
   cta: string;
   /** Horizontal focal point for portrait crops on phones (0–100, default 50). */
   focusX?: number | undefined;
+  /** Vertical focal point for wide crops on desktop (0–100, default 50). */
+  focusY?: number | undefined;
 };
 
 type HeroCarouselProps = {
@@ -99,7 +101,7 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
             className="relative w-full shrink-0 snap-start"
           >
             <Link href={slide.href} aria-label={slide.cta} className="block outline-none focus-visible:[&>div]:ring-4 focus-visible:[&>div]:ring-inset focus-visible:[&>div]:ring-bg/70">
-              <div className="relative aspect-[4/5] sm:aspect-[16/9] lg:aspect-[1880/720]">
+              <div className="relative aspect-[4/5] sm:aspect-[16/9] lg:aspect-[2/1] lg:max-h-[44rem]">
                 <Image
                   src={slide.src}
                   alt={slide.alt}
@@ -110,7 +112,7 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
                   sizes="100vw"
                   quality={82}
                   className="object-cover"
-                  style={{ objectPosition: `${slide.focusX ?? 50}% 50%` }}
+                  style={{ objectPosition: `${slide.focusX ?? 50}% ${slide.focusY ?? 50}%` }}
                 />
               </div>
             </Link>
