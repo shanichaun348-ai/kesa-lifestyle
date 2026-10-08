@@ -13,7 +13,7 @@ export default async function ProfilePage() {
   const user = await requireUser("/account/profile/");
   const service = getAccountService();
   if (!service) return <AccountNotConfigured />;
-  const profile = await service.profile.get(user.id);
+  const profile = await service.profile.get(user.id, user.email);
 
   return (
     <>

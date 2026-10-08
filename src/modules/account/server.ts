@@ -1,15 +1,14 @@
 import "server-only";
 
-import { getDb } from "@/db/client";
-import { getServerEnv } from "@/lib/env";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
-import { createAccountService, type AccountService } from "./service";
+import { createSupabaseAccountService, type SupabaseAccountService } from "./supabase-service";
 
-let cached: AccountService | null = null;
+let cached: SupabaseAccountService | null = null;
 
-/** Account service bound to the real database, or null without one. */
-export function getAccountService(): AccountService | null {
-  if (!getServerEnv().DATABASE_URL) return null;
-  cached ??= createAccountService(getDb());
+/** Account service on the live Supabase schema, or null when Supabase is not configured (local demo). */
+export function getAccountService(): SupabaseAccountService | null {
+  if (!isSupabaseConfigured()) return null;
+  cached ??= createSupabaseAccountService();
   return cached;
 }

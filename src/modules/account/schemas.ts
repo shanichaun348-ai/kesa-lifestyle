@@ -25,19 +25,3 @@ export const addressSchema = z.object({
   pincode: z.string().trim().regex(PINCODE_RE, "Enter a valid 6-digit pincode"),
   isDefaultShipping: z.boolean().optional(),
 });
-
-export const reviewSchema = z.object({
-  orderItemId: z.uuid(),
-  rating: z.number().int().min(1).max(5),
-  title: z.string().trim().min(3, "Give your review a short title.").max(80),
-  body: z.string().trim().min(10, "Tell us a little more (at least 10 characters).").max(2000),
-});
-
-export const preferencesSchema = z.object({
-  offers: z.boolean(),
-  new_arrivals: z.boolean(),
-  journal: z.boolean(),
-});
-
-export const wishlistSyncSchema = z.object({ slugs: z.array(z.string().regex(/^[a-z0-9-]{1,120}$/)).max(100) });
-export const wishlistToggleSchema = z.object({ slug: z.string().regex(/^[a-z0-9-]{1,120}$/) });

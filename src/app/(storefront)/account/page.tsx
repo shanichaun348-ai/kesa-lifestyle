@@ -7,26 +7,22 @@ import { AccountHeading, AccountNotConfigured } from "@/components/account/not-c
 import { requireUser } from "@/lib/auth/guard";
 import { formatPaise } from "@/lib/money";
 import { getAccountService } from "@/modules/account/server";
+import type { AccountOrderStatus } from "@/modules/account/supabase-service";
 
 export const metadata: Metadata = { title: "Your account", robots: { index: false, follow: false } };
 
-const STATUS_LABEL: Record<string, string> = {
+const STATUS_LABEL: Record<AccountOrderStatus, string> = {
   pending_payment: "Awaiting payment",
-  payment_failed: "Payment failed",
-  cod_pending: "Confirming",
+  failed: "Payment failed",
   paid: "Paid",
-  confirmed: "Confirmed",
   processing: "Being packed",
   shipped: "Shipped",
   delivered: "Delivered",
-  completed: "Completed",
   cancelled: "Cancelled",
   refunded: "Refunded",
-  partially_refunded: "Partially refunded",
-  rto: "Returned to us",
 };
 
-export function orderStatusLabel(status: string): string {
+export function orderStatusLabel(status: AccountOrderStatus): string {
   return STATUS_LABEL[status] ?? status;
 }
 
@@ -34,7 +30,12 @@ export default async function AccountOverviewPage() {
   const user = await requireUser("/account/");
   const service = getAccountService();
   if (!service) return <AccountNotConfigured />;
-  const [profile, orders, loyalty] = await Promise.all([service.profile.get(user.id), service.orders.list(user.id, 3), service.loyalty.summary(user.id)]);
+  const [profile, orders, addresses] = await Promise.all([
+    service.profile.get(user.id, user.email),
+    service.orders.list(user.id, 3, user.emailConfirmed ? user.email : null),
+    service.addresses.list(user.id),
+  ]);
+  const defaultAddress = addresses.find((a) => a.isDefaultShipping) ?? addresses[0];
 
   return (
     <>
@@ -45,8 +46,10 @@ export default async function AccountOverviewPage() {
             <CardTitle>Recent orders</CardTitle>
           </CardHeader>
           <CardContent>
-            {orders.length === 0 ? (
-              <p className="type-small text-ink-muted">No orders yet.</p>
+            {!user.emailConfirmed ? (
+              <p className="type-small text-ink-muted">Confirm your email ({user.email}) using the link we sent you, and your orders will appear here.</p>
+            ) : orders.length === 0 ? (
+              <p className="type-small text-ink-muted">No orders yet. Orders placed with {user.email} appear here.</p>
             ) : (
               <ul className="divide-y divide-line">
                 {orders.map((o) => (
@@ -69,15 +72,25 @@ export default async function AccountOverviewPage() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Rewards</CardTitle>
+            <CardTitle>Delivery address</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col gap-2 text-sm text-ink-muted">
-            <p>
-              <span className="type-h3 text-ink">{loyalty.balancePoints}</span> points · {loyalty.tier} tier
-            </p>
-            <p>Earning and redeeming open with the loyalty launch; your balance is tracked from day one.</p>
+            {defaultAddress ? (
+              <>
+                <p className="text-ink">{defaultAddress.fullName}</p>
+                <p>
+                  {defaultAddress.line1}
+                  {defaultAddress.line2 ? `, ${defaultAddress.line2}` : ""}
+                </p>
+                <p>
+                  {defaultAddress.city}, {defaultAddress.state} {defaultAddress.pincode}
+                </p>
+              </>
+            ) : (
+              <p>Save an address to speed up checkout.</p>
+            )}
             <Button variant="link" className="self-start" asChild>
-              <Link href="/account/rewards/">Rewards and referrals</Link>
+              <Link href="/account/addresses/">Manage addresses</Link>
             </Button>
           </CardContent>
         </Card>

@@ -5,7 +5,7 @@ import * as schema from "@/db/schema";
 import { seed } from "@/db/seed/seed";
 import { consumeRateLimit } from "@/lib/rate-limit";
 import { createAccountService, type AccountService } from "@/modules/account/service";
-import { claimGuestOrders, forgotPasswordFlow, loginFlow, registerFlow, resetPasswordFlow } from "@/modules/auth/flows";
+import { forgotPasswordFlow, loginFlow, registerFlow, resetPasswordFlow } from "@/modules/auth/flows";
 import { createCartService } from "@/modules/cart/service";
 import { createCheckoutService } from "@/modules/checkout/service";
 
@@ -212,7 +212,7 @@ describe("auth flows", () => {
   it("login is rate limited per email and never reveals whether the account exists", async () => {
     const provider = new FakeAuthProvider();
     provider.seed("c@example.com", "correct horse battery", crypto.randomUUID());
-    const deps = { provider, db, siteUrl };
+    const deps = { provider, siteUrl };
     const wrong = await loginFlow(deps, { email: "c@example.com", password: "nope" });
     const missing = await loginFlow(deps, { email: "nobody@example.com", password: "nope" });
     expect(wrong).toMatchObject({ ok: false, code: "invalid_credentials" });
@@ -242,15 +242,14 @@ describe("auth flows", () => {
       giftWrap: false,
       pincodeCodAvailable: true,
     });
-    const result = await loginFlow({ provider, db, siteUrl }, { email: user.email, password: "correct horse battery", next: "https://evil.example/phish" });
-    expect(result).toMatchObject({ ok: true, value: { claimedOrders: 1, next: "/account/" } });
-    expect((await account.orders.list(user.id)).length).toBe(1);
+    const result = await loginFlow({ provider, siteUrl }, { email: user.email, password: "correct horse battery", next: "https://evil.example/phish" });
+    expect(result).toMatchObject({ ok: true, value: { next: "/account/" } });
   });
 
   it("register and forgot-password are enumeration-safe; weak passwords are rejected", async () => {
     const provider = new FakeAuthProvider();
     provider.seed("taken@example.com", "correct horse battery", crypto.randomUUID());
-    const deps = { provider, db, siteUrl };
+    const deps = { provider, siteUrl };
     const fresh = await registerFlow(deps, { email: "fresh@example.com", password: "a long enough passphrase", firstName: "F", acceptsMarketing: true });
     const taken = await registerFlow(deps, { email: "taken@example.com", password: "a long enough passphrase", firstName: "T" });
     expect(fresh).toMatchObject({ ok: true, value: { needsConfirmation: true } });
@@ -258,13 +257,11 @@ describe("auth flows", () => {
     expect(await registerFlow(deps, { email: "weak@example.com", password: "short", firstName: "W" })).toMatchObject({ ok: false, code: "invalid_input" });
     expect(await forgotPasswordFlow(deps, { email: "ghost@example.com" })).toEqual({ ok: true, value: undefined });
     expect(provider.resetRequests).toContain("ghost@example.com");
-    const consent = await db.select().from(schema.customerConsents).where(eq(schema.customerConsents.email, "fresh@example.com"));
-    expect(consent).toHaveLength(1);
   });
 
   it("reset password needs a session and matching confirmation", async () => {
     const provider = new FakeAuthProvider();
-    const deps = { provider, db, siteUrl };
+    const deps = { provider, siteUrl };
     expect(await resetPasswordFlow(deps, { password: "another long passphrase", confirm: "different passphrase!" })).toMatchObject({ ok: false, code: "invalid_input" });
     expect(await resetPasswordFlow(deps, { password: "another long passphrase", confirm: "another long passphrase" })).toMatchObject({ ok: false, code: "no_session" });
     provider.seed("r@example.com", "old password 123", crypto.randomUUID());
@@ -272,9 +269,6 @@ describe("auth flows", () => {
     expect(await resetPasswordFlow(deps, { password: "another long passphrase", confirm: "another long passphrase" })).toEqual({ ok: true, value: undefined });
   });
 
-  it("claimGuestOrders is a no-op for users without an email match", async () => {
-    expect(await claimGuestOrders(db, { id: B.id, email: "nomatch@example.com", emailConfirmed: true })).toBe(0);
-  });
 });
 
 describe("rate limiter", () => {

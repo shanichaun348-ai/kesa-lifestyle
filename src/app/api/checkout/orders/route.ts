@@ -1,6 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { type NextRequest } from "next/server";
 
+import { getSessionUser } from "@/lib/auth/session";
 import { getCatalogRepository } from "@/modules/catalog/queries";
 import { computeOrderPricing } from "@/modules/checkout/pricing";
 import type { Order, OrderItem } from "@/modules/orders/types";
@@ -75,9 +76,11 @@ export async function POST(request: NextRequest): Promise<Response> {
   const customerRaw = b.customer as Record<string, string>;
   const addrRaw = b.shippingAddress as Record<string, string>;
 
+  // Signed-in customers fall back to their account email, which is what links the order to their history.
+  const sessionUser = await getSessionUser();
   const customer = {
     name: (customerRaw.name ?? "").trim(),
-    email: (customerRaw.email ?? "").trim().toLowerCase(),
+    email: ((customerRaw.email ?? "").trim() || sessionUser?.email || "").toLowerCase(),
     phone: (customerRaw.phone ?? "").trim(),
   };
 

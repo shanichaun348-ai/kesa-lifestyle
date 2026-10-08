@@ -12,15 +12,9 @@ import * as schema from "@/db/schema";
 import { isUniqueViolation, type Db } from "@/db/types";
 import type { ProductCardData } from "@/components/storefront/product-card";
 
-export class AccountError extends Error {
-  constructor(
-    readonly code: "not_found" | "forbidden" | "invalid" | "duplicate" | "not_eligible",
-    message: string,
-  ) {
-    super(message);
-    this.name = "AccountError";
-  }
-}
+import { AccountError } from "./errors";
+
+export { AccountError };
 
 export type AddressInput = {
   label?: string | undefined;

@@ -10,11 +10,8 @@ const NAV = [
   { href: "/account/", label: "Overview" },
   { href: "/account/orders/", label: "Orders" },
   { href: "/account/addresses/", label: "Addresses" },
-  { href: "/account/wishlist/", label: "Wishlist" },
-  { href: "/account/reviews/", label: "Reviews" },
-  { href: "/account/rewards/", label: "Rewards" },
-  { href: "/account/preferences/", label: "Email preferences" },
   { href: "/account/profile/", label: "Profile" },
+  { href: "/wishlist/", label: "Wishlist" },
 ];
 
 /**

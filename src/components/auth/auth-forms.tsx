@@ -12,7 +12,6 @@ import { Field, FieldDescription, FieldError, FieldGroup, FieldLabel } from "@/c
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useSession } from "@/components/auth/session-provider";
-import { useCart } from "@/components/cart/cart-provider";
 import { forgotPasswordAction, loginAction, registerAction, resetPasswordAction } from "@/modules/auth/actions";
 
 type Errors = Record<string, string>;
@@ -40,14 +39,12 @@ function useSubmit<T>(run: () => Promise<{ ok: true; value: T } | { ok: false; m
 export function LoginForm({ next }: { next: string }) {
   const router = useRouter();
   const session = useSession();
-  const cart = useCart();
   const [email, setEmail] = React.useState("");
   const [password, setPassword] = React.useState("");
   const form = useSubmit(
     () => loginAction({ email, password, next }),
     async (value) => {
-      await Promise.all([session.refresh(), cart.refresh()]);
-      if (value.claimedOrders > 0) toast.success(`Welcome back. ${value.claimedOrders} earlier ${value.claimedOrders === 1 ? "order is" : "orders are"} now in your account.`);
+      await session.refresh();
       router.push(value.next);
       router.refresh();
     },

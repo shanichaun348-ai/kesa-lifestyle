@@ -18,15 +18,20 @@ export default async function OrdersPage() {
   const user = await requireUser("/account/orders/");
   const service = getAccountService();
   if (!service) return <AccountNotConfigured />;
-  const orders = await service.orders.list(user.id, 50);
+  const orders = await service.orders.list(user.id, 50, user.emailConfirmed ? user.email : null);
 
   return (
     <>
       <AccountHeading title="Orders" />
-      {orders.length === 0 ? (
+      {!user.emailConfirmed ? (
+        <EmptyState
+          title="Confirm your email to see your orders"
+          description={`We sent a confirmation link to ${user.email ?? "your email"}. Once it is confirmed, every order placed with that address appears here.`}
+        />
+      ) : orders.length === 0 ? (
         <EmptyState
           title="No orders yet"
-          description="Orders you place while signed in, or with this email, appear here."
+          description={`Orders placed with ${user.email ?? "your email"} appear here.`}
           action={
             <Button asChild>
               <Link href="/collections/new-arrivals/">Start shopping</Link>

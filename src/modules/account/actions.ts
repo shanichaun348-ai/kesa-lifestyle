@@ -1,17 +1,13 @@
 "use server";
 
-import { createHash } from "node:crypto";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 
-import { getDb } from "@/db/client";
 import { getSessionUser } from "@/lib/auth/session";
 import { stateName } from "@/lib/india-states";
-import { consumeRateLimit, limiterKey } from "@/lib/rate-limit";
 
-import { addressSchema, preferencesSchema, profileSchema, reviewSchema, wishlistSyncSchema, wishlistToggleSchema } from "./schemas";
+import { addressSchema, profileSchema } from "./schemas";
+import { AccountError } from "./errors";
 import { getAccountService } from "./server";
-import { AccountError } from "./service";
 
 export type ActionResult<T = undefined> = { ok: true; value: T } | { ok: false; code: string; message: string; fieldErrors?: Record<string, string> | undefined };
 
@@ -42,24 +38,17 @@ function fieldErrors(issues: Array<{ path: PropertyKey[]; message: string }>): R
   return out;
 }
 
-async function meta() {
-  try {
-    const h = await headers();
-    const ip = h.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "";
-    return { ipHash: ip ? createHash("sha256").update(ip).digest("hex").slice(0, 32) : undefined, userAgent: h.get("user-agent")?.slice(0, 200) ?? undefined };
-  } catch {
-    return { ipHash: undefined, userAgent: undefined };
-  }
-}
-
 export async function updateProfileAction(input: unknown): Promise<ActionResult> {
   const c = await ctx();
   if (isResult(c)) return c;
   const parsed = profileSchema.safeParse(input);
   if (!parsed.success) return { ok: false, code: "invalid_input", message: "Please check the highlighted fields.", fieldErrors: fieldErrors(parsed.error.issues) };
   try {
+    // Make sure the row exists before updating (covers users created before the trigger).
+    await c.service.profile.get(c.userId, c.email);
     await c.service.profile.update(c.userId, { firstName: parsed.data.firstName, lastName: parsed.data.lastName, phone: parsed.data.phone ? `+91${parsed.data.phone}` : null });
     revalidatePath("/account/profile/");
+    revalidatePath("/account/");
     return { ok: true, value: undefined };
   } catch (error) {
     return fail(error);
@@ -74,6 +63,7 @@ export async function saveAddressAction(input: unknown): Promise<ActionResult<{ 
   const a = parsed.data;
   const row = { label: a.label, fullName: a.fullName, phone: `+91${a.phone}`, line1: a.line1, line2: a.line2, landmark: a.landmark, city: a.city, state: stateName(a.stateCode), stateCode: a.stateCode, pincode: a.pincode, isDefaultShipping: a.isDefaultShipping };
   try {
+    await c.service.profile.get(c.userId, c.email);
     let id = a.id;
     if (id) await c.service.addresses.update(c.userId, id, row);
     else id = await c.service.addresses.create(c.userId, row);
@@ -105,64 +95,6 @@ export async function setDefaultAddressAction(input: { id: string }): Promise<Ac
     await c.service.addresses.setDefault(c.userId, input.id);
     revalidatePath("/account/addresses/");
     return { ok: true, value: undefined };
-  } catch (error) {
-    return fail(error);
-  }
-}
-
-export async function submitReviewAction(input: unknown): Promise<ActionResult<{ id: string | null }>> {
-  const c = await ctx();
-  if (isResult(c)) return c;
-  const parsed = reviewSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, code: "invalid_input", message: "Please check the highlighted fields.", fieldErrors: fieldErrors(parsed.error.issues) };
-  const limit = await consumeRateLimit(getDb(), limiterKey("review:user", c.userId), 5, 86_400);
-  if (!limit.allowed) return { ok: false, code: "rate_limited", message: "You have submitted several reviews today. Please try again tomorrow." };
-  try {
-    const id = await c.service.reviews.create(c.userId, parsed.data);
-    revalidatePath("/account/reviews/");
-    return { ok: true, value: { id } };
-  } catch (error) {
-    return fail(error);
-  }
-}
-
-export async function updatePreferencesAction(input: unknown): Promise<ActionResult> {
-  const c = await ctx();
-  if (isResult(c)) return c;
-  const parsed = preferencesSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, code: "invalid_input", message: "Invalid preferences." };
-  try {
-    const m = await meta();
-    await c.service.preferences.set(c.userId, c.email, parsed.data, { source: "account_preferences", ipHash: m.ipHash, userAgent: m.userAgent });
-    revalidatePath("/account/preferences/");
-    return { ok: true, value: undefined };
-  } catch (error) {
-    return fail(error);
-  }
-}
-
-/** Merge the device wishlist into the account and return the account's slugs. */
-export async function syncWishlistAction(input: unknown): Promise<ActionResult<{ slugs: string[] }>> {
-  const c = await ctx();
-  if (isResult(c)) return c;
-  const parsed = wishlistSyncSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, code: "invalid_input", message: "Invalid wishlist." };
-  try {
-    return { ok: true, value: { slugs: await c.service.wishlist.merge(c.userId, parsed.data.slugs) } };
-  } catch (error) {
-    return fail(error);
-  }
-}
-
-export async function toggleWishlistAction(input: unknown): Promise<ActionResult<{ saved: boolean }>> {
-  const c = await ctx();
-  if (isResult(c)) return c;
-  const parsed = wishlistToggleSchema.safeParse(input);
-  if (!parsed.success) return { ok: false, code: "invalid_input", message: "Invalid product." };
-  try {
-    const result = await c.service.wishlist.toggle(c.userId, parsed.data.slug);
-    revalidatePath("/account/wishlist/");
-    return { ok: true, value: result };
   } catch (error) {
     return fail(error);
   }

@@ -30,12 +30,13 @@ export class SupabaseAuthProvider implements AuthProvider {
     return createSupabaseServerClient();
   }
 
-  async signUp(input: { email: string; password: string; firstName?: string | undefined; lastName?: string | undefined; redirectTo: string }) {
+  async signUp(input: { email: string; password: string; firstName?: string | undefined; lastName?: string | undefined; acceptsMarketing?: boolean | undefined; redirectTo: string }) {
     const supabase = await this.client();
+    // Metadata is copied onto the profile row by the auth trigger (migration 009).
     const { data, error } = await supabase.auth.signUp({
       email: input.email,
       password: input.password,
-      options: { emailRedirectTo: input.redirectTo, data: { first_name: input.firstName ?? null, last_name: input.lastName ?? null } },
+      options: { emailRedirectTo: input.redirectTo, data: { first_name: input.firstName ?? null, last_name: input.lastName ?? null, accepts_marketing: input.acceptsMarketing ?? false } },
     });
     if (error) return mapError(error);
     // Supabase returns a user with an empty identities array when the email already exists (enumeration-safe).

@@ -20,7 +20,7 @@ export type AuthErrorCode =
   | "unknown";
 
 export interface AuthProvider {
-  signUp(input: { email: string; password: string; firstName?: string | undefined; lastName?: string | undefined; redirectTo: string }): Promise<AuthResult<{ userId: string | null; needsConfirmation: boolean }>>;
+  signUp(input: { email: string; password: string; firstName?: string | undefined; lastName?: string | undefined; acceptsMarketing?: boolean | undefined; redirectTo: string }): Promise<AuthResult<{ userId: string | null; needsConfirmation: boolean }>>;
   signInWithPassword(input: { email: string; password: string }): Promise<AuthResult<AuthUser>>;
   signOut(): Promise<void>;
   requestPasswordReset(input: { email: string; redirectTo: string }): Promise<AuthResult>;
