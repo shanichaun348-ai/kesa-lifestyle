@@ -36,8 +36,8 @@ const securityHeaders = [
       "font-src 'self' https://fonts.gstatic.com",
       // Images: self, data URIs, and any HTTPS source for product images / OG.
       "img-src 'self' data: https:",
-      // XHR/fetch: self + GA. Dev adds ws://* for Turbopack HMR websocket.
-      `connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://api.razorpay.com https://lumberjack.razorpay.com${isDev ? " ws://localhost:* wss://localhost:*" : ""}`,
+      // XHR/fetch: self + GA + Razorpay + Supabase (direct photo uploads to Storage). Dev adds ws://* for Turbopack HMR.
+      `connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://api.razorpay.com https://lumberjack.razorpay.com https://*.supabase.co${isDev ? " ws://localhost:* wss://localhost:*" : ""}`,
       // Embedded media (audio/video).
       "media-src 'self'",
       // Razorpay payment modal opens in an iframe from api.razorpay.com.
