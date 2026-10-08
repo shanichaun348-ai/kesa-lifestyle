@@ -13,7 +13,7 @@ export default async function CustomersPage() {
     <div className="space-y-6">
       <PageHeader title="Customers" description={`${customers.length} customers who have placed an order`} />
 
-      <div className="overflow-hidden rounded-md border border-line bg-surface">
+      <div className="overflow-x-auto rounded-md border border-line bg-surface">
         {customers.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-ink-muted">No customers yet.</p>
         ) : (

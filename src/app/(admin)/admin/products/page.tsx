@@ -53,7 +53,7 @@ export default async function ProductsPage({ searchParams }: Props) {
         ))}
       </div>
 
-      <div className="overflow-hidden rounded-md border border-line bg-surface">
+      <div className="overflow-x-auto rounded-md border border-line bg-surface">
         {products.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-ink-muted">No products here.</p>
         ) : (

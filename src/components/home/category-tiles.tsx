@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -24,9 +25,12 @@ export function CategoryTiles({ categories }: { categories: readonly Category[] 
         action={{ label: "All jewellery", href: "/women/" }}
         className="mb-8"
       />
-      <ul className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-6 md:gap-6 md:overflow-visible md:px-0">
+      <ul
+        className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-[repeat(var(--cols),minmax(0,1fr))] md:gap-8 md:overflow-visible md:px-0 lg:mx-auto lg:max-w-4xl"
+        style={{ "--cols": categories.length } as CSSProperties}
+      >
         {categories.map((c, i) => (
-          <li key={c.href} className="w-[30vw] shrink-0 snap-start sm:w-[20vw] md:w-auto">
+          <li key={c.href} className="w-[34vw] shrink-0 snap-start sm:w-[22vw] md:w-auto">
             <Link
               href={c.href}
               className="group/cat flex flex-col items-center gap-3 outline-none focus-visible:[&>span:first-child]:ring-2 focus-visible:[&>span:first-child]:ring-brand focus-visible:[&>span:first-child]:ring-offset-4"

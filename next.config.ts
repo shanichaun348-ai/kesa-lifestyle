@@ -75,6 +75,9 @@ const nextConfig: NextConfig = {
   },
   async redirects() {
     return [
+      // Women-only at launch: send men's URLs to the women's range (temporary, not cached as permanent).
+      { source: "/men", destination: "/women/", permanent: false },
+      { source: "/men/:path*", destination: "/women/", permanent: false },
       // /style/[slug]/ → /style-guides/[slug]/ (permanent; preserves link equity)
       {
         source: "/style/:slug/",

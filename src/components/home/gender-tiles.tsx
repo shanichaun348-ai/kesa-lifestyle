@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRightIcon } from "lucide-react";
 
 import type { DemoImage } from "@/lib/demo/homepage";
+import { cn } from "@/lib/utils";
 
 type GenderTile = {
   title: string;
@@ -11,30 +12,34 @@ type GenderTile = {
   image: DemoImage;
 };
 
-/** Two large editorial entry points with the title set over the photograph. */
+/**
+ * Large editorial entry points with the title set over the photograph.
+ * Two tiles sit side by side; a single tile becomes a wide banner.
+ */
 export function GenderTiles({ tiles }: { tiles: readonly GenderTile[] }) {
+  const single = tiles.length === 1;
   return (
     <section aria-labelledby="gender-title" className="container-page reveal">
       <h2 id="gender-title" className="sr-only">
-        Shop by gender
+        Shop by range
       </h2>
-      <ul className="grid gap-4 sm:grid-cols-2 sm:gap-6">
+      <ul className={cn("grid gap-4 sm:gap-6", !single && "sm:grid-cols-2")}>
         {tiles.map((tile) => (
           <li key={tile.href}>
             <Link
               href={tile.href}
               className="group/tile relative block overflow-hidden rounded-md bg-ink text-bg outline-none focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-brand"
             >
-              <div className="relative aspect-[4/5] sm:aspect-[3/4] lg:aspect-[4/5]">
+              <div className={cn("relative aspect-[4/5]", single ? "sm:aspect-[16/9] lg:aspect-[21/9]" : "sm:aspect-[3/4] lg:aspect-[4/5]")}>
                 <Image
                   src={tile.image.src}
                   alt={tile.image.alt}
                   fill
                   priority
                   fetchPriority="high"
-                  sizes="(min-width: 640px) 50vw, 100vw"
+                  sizes={single ? "100vw" : "(min-width: 640px) 50vw, 100vw"}
                   unoptimized={tile.image.unoptimized ?? false}
-                  className="object-cover transition-transform duration-700 ease-(--ease-standard) motion-safe:group-hover/tile:scale-105"
+                  className="object-cover object-[50%_30%] transition-transform duration-700 ease-(--ease-standard) motion-safe:group-hover/tile:scale-105"
                 />
                 <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-ink/80 via-ink/20 to-transparent transition-opacity duration-400 group-hover/tile:opacity-90" />
               </div>

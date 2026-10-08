@@ -53,7 +53,7 @@ export default async function AdminDashboard() {
             <h2 className="text-base font-medium text-ink">Recent orders</h2>
             <Link href="/admin/orders/" className="text-sm text-brand hover:underline">View all →</Link>
           </div>
-          <div className="overflow-hidden rounded-md border border-line bg-surface">
+          <div className="overflow-x-auto rounded-md border border-line bg-surface">
             {stats.recent.length === 0 ? (
               <p className="px-4 py-10 text-center text-sm text-ink-muted">No orders yet. They will appear here as soon as a customer checks out.</p>
             ) : (

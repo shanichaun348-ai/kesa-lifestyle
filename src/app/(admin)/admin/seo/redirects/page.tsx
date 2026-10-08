@@ -28,7 +28,7 @@ export default async function RedirectsPage() {
           <p className="text-sm text-ink-muted">No redirects configured.</p>
         </div>
       ) : (
-        <div className="overflow-hidden rounded-md border border-line bg-surface">
+        <div className="overflow-x-auto rounded-md border border-line bg-surface">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-muted">

@@ -27,22 +27,14 @@ export const demoGenderTiles = [
     href: "/women/",
     image: { src: "/images/home/shop-women.png", alt: "Model wearing gold-tone knot earrings and an open heart ring" },
   },
-  {
-    title: "Men",
-    description: "Chains, bracelets, rings and pendants.",
-    href: "/men/",
-    image: { src: "/images/home/shop-men.png", alt: "Gold-tone curb chain bracelet and plain band ring worn with a pinstripe jacket" },
-  },
 ] as const;
 
 export const demoCategories = [
   { label: "Earrings", href: "/women/earrings/", image: { src: "/images/categories/earrings.jpg", alt: "" } },
   { label: "Necklaces", href: "/women/necklaces/", image: { src: "/images/categories/necklace.jpg", alt: "" } },
   { label: "Bracelets", href: "/women/bracelets/", image: { src: "/images/categories/bracelet.jpg", alt: "" } },
-  { label: "Rings", href: "/women/rings/", image: { src: "/images/categories/rings.png", alt: "" } },
   // No dedicated mangalsutra category yet; they live under necklaces.
   { label: "Mangalsutra", href: "/women/necklaces/", image: { src: "/images/categories/mangalsutra.jpg", alt: "" } },
-  { label: "Men's", href: "/men/", image: { src: "/images/categories/men.png", alt: "" } },
 ] as const;
 
 const byIndex = (...idx: number[]): ProductCardData[] =>

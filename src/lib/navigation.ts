@@ -64,33 +64,6 @@ export const sampleHeaderMenus: NavMenu[] = [
     },
   },
   {
-    label: "Men",
-    href: "/men/",
-    columns: [
-      {
-        heading: "Shop by type",
-        links: [
-          { label: "Chains", href: "/men/chains/" },
-          { label: "Bracelets", href: "/men/bracelets/" },
-          { label: "Rings", href: "/men/rings/" },
-          { label: "Pendants", href: "/men/pendants/" },
-        ],
-      },
-      {
-        heading: "Edits",
-        links: [
-          { label: "Everyday essentials", href: "/collections/men-everyday/" },
-          { label: "Layering chains", href: "/collections/layering-chains/" },
-        ],
-      },
-    ],
-    feature: {
-      title: "Minimal chains",
-      href: "/collections/layering-chains/",
-      image: { src: "/placeholders/editorial-2.svg", alt: "Fine steel chains arranged on stone", unoptimized: true },
-    },
-  },
-  {
     label: "Collections",
     href: "/collections/",
     columns: [
@@ -114,7 +87,6 @@ export const sampleFooterColumns: FooterColumn[] = [
     heading: "Shop",
     links: [
       { label: "Women", href: "/women/" },
-      { label: "Men", href: "/men/" },
       { label: "New arrivals", href: "/collections/new-arrivals/" },
       { label: "Bestsellers", href: "/collections/bestsellers/" },
       { label: "Collections", href: "/collections/" },

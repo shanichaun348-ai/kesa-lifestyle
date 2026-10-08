@@ -136,7 +136,7 @@ export default async function SeoPage() {
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-base font-medium text-ink">Category metadata</h2>
         </div>
-        <div className="overflow-hidden rounded-md border border-line bg-surface">
+        <div className="overflow-x-auto rounded-md border border-line bg-surface">
           <table className="min-w-full text-sm">
             <thead>
               <tr className="border-b border-line bg-surface-muted">

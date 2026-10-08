@@ -280,7 +280,8 @@ const roots: Category[] = [
     seoTitle: "Men's Jewellery Online | Kesa Lifestyle",
     seoDescription: "Shop men's chains, bracelets, rings and pendants. Stainless steel and plated brass, built for daily wear.",
     position: 2,
-    isVisible: true,
+    // Women-only at launch; flip to true (and restore the nav entries) when the men's range goes live.
+    isVisible: false,
   },
 ];
 
@@ -299,7 +300,7 @@ export const seedCategories: Category[] = [
     faq: c.faq,
     image: c.image,
     position: i + 1,
-    isVisible: true,
+    isVisible: c.gender === "women",
   })),
 ];
 

@@ -45,7 +45,7 @@ export default async function OrdersPage({ searchParams }: Props) {
         })}
       </div>
 
-      <div className="overflow-hidden rounded-md border border-line bg-surface">
+      <div className="overflow-x-auto rounded-md border border-line bg-surface">
         {orders.length === 0 ? (
           <p className="px-4 py-10 text-center text-sm text-ink-muted">No orders here yet.</p>
         ) : (

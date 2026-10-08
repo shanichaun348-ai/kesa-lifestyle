@@ -101,7 +101,8 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
             className="relative w-full shrink-0 snap-start"
           >
             <Link href={slide.href} aria-label={slide.cta} className="block outline-none focus-visible:[&>div]:ring-4 focus-visible:[&>div]:ring-inset focus-visible:[&>div]:ring-bg/70">
-              <div className="relative aspect-[4/5] sm:aspect-[16/9] lg:aspect-[2/1] lg:max-h-[44rem]">
+              {/* Explicit height on desktop: an aspect-ratio box with max-height shrinks its width instead. */}
+              <div className="relative w-full aspect-[4/5] sm:aspect-[16/9] lg:aspect-auto lg:h-[min(50vw,44rem)]">
                 <Image
                   src={slide.src}
                   alt={slide.alt}
