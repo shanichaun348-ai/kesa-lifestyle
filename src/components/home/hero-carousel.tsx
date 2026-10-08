@@ -122,9 +122,9 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
             className="relative w-full shrink-0 snap-start"
           >
             <Link href={slide.href} aria-label={slide.cta} className="block outline-none focus-visible:[&>div]:ring-4 focus-visible:[&>div]:ring-inset focus-visible:[&>div]:ring-bg/70">
-              {/* Phones: 4:5 with the portrait art when provided. Larger screens: 16:9, capped so the hero never
-                  exceeds the viewport. Explicit height (not max-height) keeps the width at 100%. */}
-              <div className={cn("relative w-full sm:aspect-[16/9] lg:aspect-auto lg:h-[min(56vw,85svh)]", slide.mobileSrc ? "aspect-[4/5]" : "aspect-[4/3]")}>
+              {/* Fixed shapes the artwork is produced for: 2.4:1 banners (1536×640) on tablets and up, 2:3 portrait
+                  (1024×1536) on phones when a portrait file exists. Art in these ratios fills the box exactly. */}
+              <div className={cn("relative w-full aspect-[12/5]", slide.mobileSrc && "max-sm:aspect-[2/3]")}>
                 {slide.mobileSrc ? (
                   <>
                     <SlideImage src={slide.mobileSrc} alt={slide.alt} priority={i === 0} className="sm:hidden" />
