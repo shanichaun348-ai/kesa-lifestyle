@@ -191,32 +191,42 @@ export function ProductEditForm({ product, categories }: { product: Product; cat
             <button type="button" onClick={() => setImages((rows) => [...rows, { key: key(), src: "", alt: "" }])} className="text-xs text-brand hover:underline">+ Add by URL</button>
           </div>
         </div>
-        <p className={HINT + " -mt-2"}>JPEG, PNG or WebP up to 8 MB each; square 1200×1200 looks best. The first photo is the main one — drag rows by removing and re-adding, or paste a URL directly.</p>
+        <p className={HINT + " -mt-2"}>JPEG, PNG or WebP up to 8 MB each; square 1200×1200 looks best. The first photo is the main one shown in listings — use &ldquo;Make main&rdquo; to reorder.</p>
         {uploadError ? <p role="alert" className="rounded-sm border border-danger/30 bg-danger/5 px-3 py-2 text-xs text-danger">{uploadError}</p> : null}
-        <div className="space-y-3">
+        <ul className="space-y-3">
           {images.map((img, idx) => (
-            <div key={img.key} className="grid items-end gap-2 sm:grid-cols-[1fr_220px_auto]">
-              <div>
-                {idx === 0 ? <span className={LABEL}>Photo URL</span> : null}
-                <input value={img.src} onChange={(e) => updateImage(img.key, { src: e.target.value })} disabled={pending} placeholder="https://…" className={INPUT} />
+            <li key={img.key} className="flex flex-col gap-3 rounded-md border border-line p-3 sm:flex-row sm:items-start">
+              <div className="relative size-20 shrink-0 overflow-hidden rounded-sm border border-line bg-surface-muted">
+                {img.src.trim() ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={img.src} alt="" className="size-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.visibility = "hidden"; }} />
+                ) : (
+                  <span className="flex size-full items-center justify-center text-[10px] text-ink-subtle">No image</span>
+                )}
+                {idx === 0 ? <span className="absolute inset-x-0 bottom-0 bg-ink/80 py-0.5 text-center text-[10px] font-medium uppercase tracking-wider text-bg">Main</span> : null}
               </div>
-              <div>
-                {idx === 0 ? <span className={LABEL}>Describe the photo (for accessibility &amp; SEO)</span> : null}
-                <input value={img.alt} onChange={(e) => updateImage(img.key, { alt: e.target.value })} disabled={pending} placeholder="e.g. Gold hoop earrings on a model" className={INPUT} />
+              <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-[1fr_220px]">
+                <div>
+                  <span className={LABEL}>Photo URL</span>
+                  <input value={img.src} onChange={(e) => updateImage(img.key, { src: e.target.value })} disabled={pending} placeholder="https://…" className={INPUT} />
+                </div>
+                <div>
+                  <span className={LABEL}>Describe the photo (accessibility &amp; SEO)</span>
+                  <input value={img.alt} onChange={(e) => updateImage(img.key, { alt: e.target.value })} disabled={pending} placeholder="e.g. Gold hoop earrings on a model" className={INPUT} />
+                </div>
               </div>
-              <div>
-                {idx === 0 ? <span className="mb-1 block text-xs opacity-0">x</span> : null}
-                {images.length > 1 ? <button type="button" onClick={() => setImages((rows) => rows.filter((r) => r.key !== img.key))} className="h-10 px-3 text-sm text-danger hover:underline">Remove</button> : null}
+              <div className="flex shrink-0 gap-3 sm:flex-col sm:items-end sm:pt-5">
+                {idx > 0 ? (
+                  <button type="button" onClick={() => setImages((rows) => [img, ...rows.filter((r) => r.key !== img.key)])} className="text-sm text-brand hover:underline">Make main</button>
+                ) : null}
+                {images.length > 1 ? (
+                  <button type="button" onClick={() => setImages((rows) => rows.filter((r) => r.key !== img.key))} className="text-sm text-danger hover:underline">Remove</button>
+                ) : null}
               </div>
-            </div>
+            </li>
           ))}
-        </div>
-        {previewSrc ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={previewSrc} alt="" className="h-24 w-24 rounded-sm border border-line object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }} />
-        ) : (
-          <p className="text-xs text-warning">No photos yet — the product cannot be published until it has at least one.</p>
-        )}
+        </ul>
+        {!previewSrc ? <p className="text-xs text-warning">No photos yet — the product cannot be published until it has at least one.</p> : null}
       </section>
 
       <section className={SECTION}>
