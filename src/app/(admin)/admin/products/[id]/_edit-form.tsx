@@ -5,7 +5,11 @@ import { useActionState } from "react";
 
 import type { Product } from "@/modules/catalog/types";
 
+import { getBrowserSupabase } from "@/lib/supabase-browser";
+import { cn } from "@/lib/utils";
+
 import type { CategoryOption } from "../_category-options";
+import { prepareProductUploads } from "../_upload-action";
 import { updateProduct, type ProductEditState } from "./_actions";
 
 type VariantRow = { key: number; sku: string; optionValue: string; priceRupees: string; compareAtRupees: string; stock: string };
@@ -40,6 +44,49 @@ export function ProductEditForm({ product, categories }: { product: Product; cat
       ? product.variants.map((v) => ({ key: key(), sku: v.sku, optionValue: v.optionValue ?? "", priceRupees: rupees(v.pricePaise), compareAtRupees: rupees(v.compareAtPaise), stock: String(v.stock) }))
       : [{ key: key(), sku: "", optionValue: "", priceRupees: "", compareAtRupees: "", stock: "0" }],
   );
+
+  const [uploading, setUploading] = React.useState(false);
+  const [uploadError, setUploadError] = React.useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  async function onFilesChosen(list: FileList | null) {
+    if (!list || list.length === 0) return;
+    setUploading(true);
+    setUploadError(null);
+    const files = Array.from(list);
+    try {
+      const prep = await prepareProductUploads(product.slug, files.map((f) => ({ name: f.name, type: f.type, size: f.size })));
+      if (!prep.ok) {
+        setUploadError(prep.error);
+        return;
+      }
+      const supabase = getBrowserSupabase();
+      if (!supabase) {
+        setUploadError("Uploads are not configured on this site (missing public Supabase keys).");
+        return;
+      }
+      const added: ImageRow[] = [];
+      for (const [i, target] of prep.targets.entries()) {
+        const file = files[i]!;
+        // The bytes go straight from the browser to Storage; the server only issued the signed URL.
+        const { error } = await supabase.storage.from(target.bucket).uploadToSignedUrl(target.path, target.token, file, { contentType: file.type, cacheControl: "31536000" });
+        if (error) {
+          setUploadError(`Could not upload "${file.name}": ${error.message}`);
+          break;
+        }
+        added.push({ key: key(), src: target.publicUrl, alt: product.name });
+      }
+      if (added.length > 0) {
+        // Replace a lone empty row rather than leaving it above the uploads.
+        setImages((rows) => (rows.length === 1 && !rows[0]!.src.trim() ? added : [...rows, ...added]));
+      }
+    } catch {
+      setUploadError("Upload failed — check your connection and try again.");
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  }
 
   const visibleCategories = gender === "unisex" ? categories : categories.filter((c) => c.gender === gender);
   const categoryKnown = categories.some((c) => c.path === categoryPath);
@@ -119,11 +166,33 @@ export function ProductEditForm({ product, categories }: { product: Product; cat
       </section>
 
       <section className={SECTION}>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className={SECTION_TITLE}>Photos</h2>
-          <button type="button" onClick={() => setImages((rows) => [...rows, { key: key(), src: "", alt: "" }])} className="text-xs text-brand hover:underline">+ Add photo</button>
+          <div className="flex items-center gap-3">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              multiple
+              className="sr-only"
+              id="ep-upload"
+              disabled={pending || uploading}
+              onChange={(e) => onFilesChosen(e.target.files)}
+            />
+            <label
+              htmlFor="ep-upload"
+              className={cn(
+                "inline-flex h-9 cursor-pointer items-center rounded-md border border-ink bg-ink px-4 text-sm font-medium text-bg hover:bg-brand-hover",
+                (pending || uploading) && "pointer-events-none opacity-50",
+              )}
+            >
+              {uploading ? "Uploading…" : "Upload photos"}
+            </label>
+            <button type="button" onClick={() => setImages((rows) => [...rows, { key: key(), src: "", alt: "" }])} className="text-xs text-brand hover:underline">+ Add by URL</button>
+          </div>
         </div>
-        <p className={HINT + " -mt-2"}>Paste the public URL of each photo (upload to Supabase Storage first, then copy its URL). The first photo is the main one.</p>
+        <p className={HINT + " -mt-2"}>JPEG, PNG or WebP up to 8 MB each; square 1200×1200 looks best. The first photo is the main one — drag rows by removing and re-adding, or paste a URL directly.</p>
+        {uploadError ? <p role="alert" className="rounded-sm border border-danger/30 bg-danger/5 px-3 py-2 text-xs text-danger">{uploadError}</p> : null}
         <div className="space-y-3">
           {images.map((img, idx) => (
             <div key={img.key} className="grid items-end gap-2 sm:grid-cols-[1fr_220px_auto]">
