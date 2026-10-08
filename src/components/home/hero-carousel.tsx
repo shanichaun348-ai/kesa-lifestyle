@@ -8,18 +8,39 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type HeroSlide = {
-  /** Banner artwork with the campaign copy already set in the image. */
+  /** Landscape banner artwork (copy set in the image). Shown whole, never cropped. */
   src: string;
+  /** Optional portrait version (about 1080×1350) used on phones instead of `src`. */
+  mobileSrc?: string | undefined;
   /** Spoken copy for the slide — repeat the headline that is baked into the artwork. */
   alt: string;
   href: string;
   /** Accessible label for the whole-slide link, e.g. "Shop Pillars of Time". */
   cta: string;
-  /** Horizontal focal point for portrait crops on phones (0–100, default 50). */
-  focusX?: number | undefined;
-  /** Vertical focal point for wide crops on desktop (0–100, default 50). */
-  focusY?: number | undefined;
 };
+
+/**
+ * The photo is scaled to fit entirely inside the slide; a blurred, enlarged
+ * copy of the same photo fills whatever is left so there are never hard bars.
+ */
+function SlideImage({ src, alt, priority, className }: { src: string; alt: string; priority: boolean; className?: string }) {
+  return (
+    <div className={cn("absolute inset-0 overflow-hidden bg-ink", className)}>
+      <Image src={src} alt="" aria-hidden="true" fill sizes="100vw" quality={40} className="scale-125 object-cover opacity-80 blur-2xl" />
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        priority={priority}
+        fetchPriority={priority ? "high" : "auto"}
+        loading={priority ? "eager" : "lazy"}
+        sizes="100vw"
+        quality={85}
+        className="object-contain"
+      />
+    </div>
+  );
+}
 
 type HeroCarouselProps = {
   slides: readonly HeroSlide[];
@@ -101,20 +122,17 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
             className="relative w-full shrink-0 snap-start"
           >
             <Link href={slide.href} aria-label={slide.cta} className="block outline-none focus-visible:[&>div]:ring-4 focus-visible:[&>div]:ring-inset focus-visible:[&>div]:ring-bg/70">
-              {/* Explicit height on desktop: an aspect-ratio box with max-height shrinks its width instead. */}
-              <div className="relative w-full aspect-[4/5] sm:aspect-[16/9] lg:aspect-auto lg:h-[min(50vw,44rem)]">
-                <Image
-                  src={slide.src}
-                  alt={slide.alt}
-                  fill
-                  priority={i === 0}
-                  fetchPriority={i === 0 ? "high" : "auto"}
-                  loading={i === 0 ? "eager" : "lazy"}
-                  sizes="100vw"
-                  quality={82}
-                  className="object-cover"
-                  style={{ objectPosition: `${slide.focusX ?? 50}% ${slide.focusY ?? 50}%` }}
-                />
+              {/* Phones: 4:5 with the portrait art when provided. Larger screens: 16:9, capped so the hero never
+                  exceeds the viewport. Explicit height (not max-height) keeps the width at 100%. */}
+              <div className={cn("relative w-full sm:aspect-[16/9] lg:aspect-auto lg:h-[min(56vw,85svh)]", slide.mobileSrc ? "aspect-[4/5]" : "aspect-[4/3]")}>
+                {slide.mobileSrc ? (
+                  <>
+                    <SlideImage src={slide.mobileSrc} alt={slide.alt} priority={i === 0} className="sm:hidden" />
+                    <SlideImage src={slide.src} alt={slide.alt} priority={i === 0} className="hidden sm:block" />
+                  </>
+                ) : (
+                  <SlideImage src={slide.src} alt={slide.alt} priority={i === 0} />
+                )}
               </div>
             </Link>
           </li>
