@@ -62,7 +62,10 @@ export const demoBrandStatement = {
   statement: "Good jewellery should not be precious about being worn. Ours is made for the commute, the wedding and the Tuesday in between.",
   body: "Every Kesa piece is plated over a hypoallergenic base, checked by hand and sold at a price that lets you build a collection rather than own one special thing.",
   link: { label: "Our story", href: "/about/" },
-  image: placeholder("editorial-1.svg", "Placeholder: Kesa workshop detail"),
+  image: {
+    src: "/images/home/floral-pendant-on-satin.jpg",
+    alt: "A gold-tone crystal flower pendant necklace with tassel drops laid on a marble slab over cream satin, with white flowers around it.",
+  },
 };
 
 export const demoStylingGuides = [
