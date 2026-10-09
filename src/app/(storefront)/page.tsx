@@ -60,28 +60,10 @@ const HERO_SLIDES: readonly HeroSlide[] = [
     cta: "Shop the collection",
   },
   {
-    src: "/images/hero/brand-showcase.jpg",
-    alt: "Kesa Lifestyle — Style that feels like you. A model in a black embroidered saree wearing a gold-tone crystal pendant necklace, beside gold-tone crystal lariat necklaces and an Om pendant on display stands.",
+    src: "/images/hero/necklace-showcase.jpg",
+    alt: "A model in a black embroidered saree wearing a gold-tone crystal pendant necklace, beside gold-tone crystal lariat necklaces and an Om pendant on display stands.",
     href: "/women/necklaces/",
     cta: "Shop necklaces",
-  },
-  {
-    src: "/images/hero/festive-showcase.png",
-    alt: "A model wearing a gold-tone pendant necklace beside a display of crystal pendant necklaces and an Om pendant.",
-    href: "/women/necklaces/",
-    cta: "Shop necklaces",
-  },
-  {
-    src: "/images/hero/everyday-elegance.png",
-    alt: "Kesa Lifestyle. Gold-tone crystal pendant necklaces on cream silk, and a model wearing a delicate gold chain with a crystal pendant.",
-    href: "/collections/new-arrivals/",
-    cta: "Shop new arrivals",
-  },
-  {
-    src: "/images/hero/golden-elegance.png",
-    alt: "Kesa Lifestyle. A gold-tone crystal flower pendant necklace and a charm bracelet with coloured stones on cream satin.",
-    href: "/women/bracelets/",
-    cta: "Shop bracelets",
   },
 ];
 
