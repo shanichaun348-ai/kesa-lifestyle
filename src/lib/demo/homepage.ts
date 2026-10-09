@@ -20,6 +20,11 @@ const placeholder = (file: string, alt: string): DemoImage => ({
   unoptimized: true,
 });
 
+/**
+ * Not rendered at launch: the range is women-only, so a lone "Shop Women" tile
+ * only repeated the hero. Re-add `<GenderTiles tiles={demoGenderTiles} />` to
+ * the homepage with a second tile when men's items come back.
+ */
 export const demoGenderTiles = [
   {
     title: "Women",

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 
 import { BrandStatement } from "@/components/home/brand-statement";
 import { CategoryTiles } from "@/components/home/category-tiles";
-import { GenderTiles } from "@/components/home/gender-tiles";
 import { HeroCarousel, type HeroSlide } from "@/components/home/hero-carousel";
 import { JournalPreview } from "@/components/home/journal-preview";
 import { NewsletterBand } from "@/components/home/newsletter-band";
@@ -22,7 +21,6 @@ import type { Product } from "@/modules/catalog/types";
 import {
   demoBrandStatement,
   demoCategories,
-  demoGenderTiles,
   demoJournalPosts,
   demoLook,
   demoReviews,
@@ -120,8 +118,6 @@ export default async function HomePage() {
       <TrustMarquee items={demoWhyKesa.map((f) => f.title)} />
 
       <div className="flex flex-col gap-14 pt-14 pb-14 lg:gap-24 lg:pt-24 lg:pb-24">
-        <GenderTiles tiles={demoGenderTiles} />
-
         <CategoryTiles categories={demoCategories} />
 
         <ProductSection
