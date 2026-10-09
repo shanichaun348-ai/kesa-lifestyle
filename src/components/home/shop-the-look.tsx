@@ -7,9 +7,12 @@ import type { ProductCardData } from "@/components/storefront/product-card";
 import type { DemoImage } from "@/lib/demo/homepage";
 
 type ShopTheLookProps = {
-  eyebrow: string;
+  eyebrow?: string | undefined;
+  /** Names the section for assistive tech; shown on the page only when `showCopy` is true. */
   title: string;
-  description: string;
+  description?: string | undefined;
+  /** Render the eyebrow, title and description beside the photo. Off when the photo carries the story alone. */
+  showCopy?: boolean | undefined;
   image: DemoImage;
   products: ProductCardData[];
   href: string;
@@ -19,7 +22,7 @@ type ShopTheLookProps = {
  * One editorial photograph with the pieces listed beside it. The list is
  * plain links with thumbnails: no hotspots, so it works on every input.
  */
-export function ShopTheLook({ eyebrow, title, description, image, products, href }: ShopTheLookProps) {
+export function ShopTheLook({ eyebrow, title, description, showCopy = true, image, products, href }: ShopTheLookProps) {
   return (
     <section aria-labelledby="look-title" className="container-page">
       <div className="reveal grid gap-8 lg:grid-cols-12 lg:items-center lg:gap-12">
@@ -35,13 +38,19 @@ export function ShopTheLook({ eyebrow, title, description, image, products, href
         </figure>
 
         <div className="flex flex-col gap-6 lg:col-span-5">
-          <div className="flex flex-col gap-2">
-            <p className="type-eyebrow text-ink-subtle">{eyebrow}</p>
-            <h2 id="look-title" className="type-h2">
+          {showCopy ? (
+            <div className="flex flex-col gap-2">
+              {eyebrow ? <p className="type-eyebrow text-ink-subtle">{eyebrow}</p> : null}
+              <h2 id="look-title" className="type-h2">
+                {title}
+              </h2>
+              {description ? <p className="type-body text-ink-muted">{description}</p> : null}
+            </div>
+          ) : (
+            <h2 id="look-title" className="sr-only">
               {title}
             </h2>
-            <p className="type-body text-ink-muted">{description}</p>
-          </div>
+          )}
 
           <ul className="divide-y divide-line border-y border-line" aria-label="Pieces in this look">
             {products.map((p) => (

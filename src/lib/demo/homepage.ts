@@ -46,12 +46,12 @@ const byIndex = (...idx: number[]): ProductCardData[] =>
   idx.map((i) => demoProducts[i]).filter((p): p is ProductCardData => p !== undefined);
 
 export const demoLook = {
-  eyebrow: "Shop the look",
-  title: "The Sunday brunch edit",
-  description: "Three pieces that work together: a layered necklace, huggie hoops and a signet ring. Wear all three or start with one.",
+  // Copy is hidden on the page (owner request 2026-10-09): the photo carries the story and the demo wording did not match it.
+  title: "Shop the look",
+  showCopy: false,
   image: {
-    src: "/images/home/sunday-brunch-edit.jpg",
-    alt: "A model in an embroidered cream saree wearing a gold-tone antique pendant necklace with black beads and matching drop earrings, flowers in her hair.",
+    src: "/images/home/bridal-look.jpg",
+    alt: "A model in an embroidered cream saree wearing a gold-tone antique pendant necklace with black beads, matching drop earrings and a gemstone charm bracelet, flowers in her hair.",
   },
   products: byIndex(2, 4, 5),
   href: "/collections/demo-sunday-brunch-edit/",
