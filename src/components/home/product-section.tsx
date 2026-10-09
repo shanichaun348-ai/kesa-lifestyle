@@ -13,8 +13,9 @@ type ProductSectionProps = {
   priorityCount?: number | undefined;
 };
 
-/** New Arrivals, Best Sellers and any merchandised product row. */
+/** New Arrivals, Best Sellers and any merchandised product row. Renders nothing while the row is empty. */
 export function ProductSection({ id, eyebrow, title, description, viewAll, products, priorityCount }: ProductSectionProps) {
+  if (products.length === 0) return null;
   return (
     <section aria-labelledby={`${id}-title`} className="container-page reveal">
       <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">

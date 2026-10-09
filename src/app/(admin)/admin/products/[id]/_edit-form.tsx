@@ -191,7 +191,7 @@ export function ProductEditForm({ product, categories }: { product: Product; cat
             <button type="button" onClick={() => setImages((rows) => [...rows, { key: key(), src: "", alt: "" }])} className="text-xs text-brand hover:underline">+ Add by URL</button>
           </div>
         </div>
-        <p className={HINT + " -mt-2"}>JPEG, PNG or WebP up to 8 MB each; square 1200×1200 looks best. The first photo is the main one shown in listings — use &ldquo;Make main&rdquo; to reorder.</p>
+        <p className={HINT + " -mt-2"}>JPEG, PNG or WebP up to 8 MB each. Use portrait photos at 4:5 — 1200×1500 px (or 1600×2000) — with the piece in the middle; listings crop a little off the top and bottom. The first photo is the main one shown in listings — use &ldquo;Make main&rdquo; to reorder.</p>
         {uploadError ? <p role="alert" className="rounded-sm border border-danger/30 bg-danger/5 px-3 py-2 text-xs text-danger">{uploadError}</p> : null}
         <ul className="space-y-3">
           {images.map((img, idx) => (
