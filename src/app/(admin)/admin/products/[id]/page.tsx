@@ -59,6 +59,11 @@ export default async function EditProductPage({ params, searchParams }: Props) {
       ) : null}
       {flags.published ? <p role="status" className="rounded-md border border-success/30 bg-success/5 px-4 py-3 text-sm text-success">Published — this product is now visible in the store.</p> : null}
       {flags.error === "no-image" ? <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">Add at least one photo and save before publishing.</p> : null}
+      {flags.error === "publish-failed" || flags.error === "unpublish-failed" ? (
+        <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
+          The status change could not be saved. Try again; if it keeps failing, check the server logs.
+        </p>
+      ) : null}
 
       {canWrite ? (
         <ProductEditForm product={product} categories={categories} />

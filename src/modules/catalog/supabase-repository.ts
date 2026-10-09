@@ -1,5 +1,7 @@
 import "server-only";
 
+import { cache } from "react";
+
 import { getSupabaseServiceClient } from "@/lib/supabase";
 
 import { isInStock, matchesFilters, runListing, sortProducts } from "./listing";
@@ -156,6 +158,16 @@ async function fetchInventory(skus: string[]): Promise<Map<string, number>> {
   return map;
 }
 
+/**
+ * Per-request memo of the full catalogue. React `cache()` dedupes calls made
+ * while rendering one request and is discarded afterwards, so every request
+ * sees the current rows. The repository instance itself is a process-wide
+ * singleton (see queries.ts), so it must NOT hold the products on a field:
+ * on Vercel a function instance serves many requests and an instance-level
+ * cache would keep serving stale products after an admin edit or publish.
+ */
+const loadCatalog = cache(fetchAllWithInventory);
+
 // ── Repository ────────────────────────────────────────────────────────────────
 
 /**
@@ -167,12 +179,8 @@ async function fetchInventory(skus: string[]): Promise<Map<string, number>> {
  * are site configuration and do not require a separate production table today.
  */
 export class SupabaseCatalogRepository implements CatalogRepository {
-  // A single in-request cache avoids re-fetching on the same request.
-  private _products: Product[] | null = null;
-
   private async allProducts(): Promise<Product[]> {
-    this._products ??= await fetchAllWithInventory();
-    return this._products;
+    return loadCatalog();
   }
 
   private async activeProducts(): Promise<Product[]> {

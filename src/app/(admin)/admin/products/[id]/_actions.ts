@@ -132,7 +132,14 @@ export async function publishProduct(slug: string): Promise<void> {
   const { data } = await db.from("cat_products").select("images, published_at").eq("slug", slug).maybeSingle();
   if (!data) redirect("/admin/products/");
   if (((data.images as unknown[]) ?? []).length === 0) redirect(`/admin/products/${slug}/?error=no-image`);
-  await db.from("cat_products").update({ status: "active", published_at: data.published_at ?? new Date().toISOString(), updated_at: new Date().toISOString() }).eq("slug", slug);
+  const { error } = await db
+    .from("cat_products")
+    .update({ status: "active", published_at: data.published_at ?? new Date().toISOString(), updated_at: new Date().toISOString() })
+    .eq("slug", slug);
+  if (error) {
+    console.error(`publishProduct(${slug}) failed: ${error.message}`);
+    redirect(`/admin/products/${slug}/?error=publish-failed`);
+  }
   auditLog(session, "product.publish", { productId: slug });
   revalidateProduct(slug);
   redirect(`/admin/products/${slug}/?published=1`);
@@ -140,9 +147,14 @@ export async function publishProduct(slug: string): Promise<void> {
 
 export async function unpublishProduct(slug: string): Promise<void> {
   const session = await requireAdmin("products:write");
-  await getSupabaseServiceClient().from("cat_products").update({ status: "draft", updated_at: new Date().toISOString() }).eq("slug", slug);
+  const { error } = await getSupabaseServiceClient().from("cat_products").update({ status: "draft", updated_at: new Date().toISOString() }).eq("slug", slug);
+  if (error) {
+    console.error(`unpublishProduct(${slug}) failed: ${error.message}`);
+    redirect(`/admin/products/${slug}/?error=unpublish-failed`);
+  }
   auditLog(session, "product.unpublish", { productId: slug });
   revalidateProduct(slug);
+  redirect(`/admin/products/${slug}/`);
 }
 
 export async function archiveProduct(slug: string): Promise<void> {
