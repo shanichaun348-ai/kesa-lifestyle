@@ -60,7 +60,7 @@ const HERO_SLIDES: readonly HeroSlide[] = [
     cta: "Shop the collection",
   },
   {
-    src: "/images/hero/necklace-showcase.jpg",
+    src: "/images/hero/necklace-showcase-close.jpg",
     alt: "A model in a black embroidered saree wearing a gold-tone crystal pendant necklace, beside gold-tone crystal lariat necklaces and an Om pendant on display stands.",
     href: "/women/necklaces/",
     cta: "Shop necklaces",
