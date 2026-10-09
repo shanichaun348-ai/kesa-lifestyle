@@ -49,7 +49,10 @@ export const demoLook = {
   eyebrow: "Shop the look",
   title: "The Sunday brunch edit",
   description: "Three pieces that work together: a layered necklace, huggie hoops and a signet ring. Wear all three or start with one.",
-  image: placeholder("look-1.svg", "Placeholder: model wearing the brunch edit"),
+  image: {
+    src: "/images/home/sunday-brunch-edit.jpg",
+    alt: "A model in an embroidered cream saree wearing a gold-tone antique pendant necklace with black beads and matching drop earrings, flowers in her hair.",
+  },
   products: byIndex(2, 4, 5),
   href: "/collections/demo-sunday-brunch-edit/",
 };
