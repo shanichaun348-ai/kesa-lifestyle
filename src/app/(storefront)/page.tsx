@@ -12,7 +12,6 @@ import { NewsletterBand } from "@/components/home/newsletter-band";
 import { ProductSection } from "@/components/home/product-section";
 import { Reviews } from "@/components/home/reviews";
 import { ShopTheLook } from "@/components/home/shop-the-look";
-import { StylingGuides } from "@/components/home/styling-guides";
 import { TrustMarquee } from "@/components/home/trust-marquee";
 import { UgcGrid } from "@/components/home/ugc-grid";
 import { WhyKesa } from "@/components/home/why-kesa";
@@ -28,7 +27,6 @@ import {
   demoJournalPosts,
   demoLook,
   demoReviews,
-  demoStylingGuides,
   demoUgcPosts,
   demoWhyKesa,
 } from "@/lib/demo/homepage";
@@ -167,8 +165,6 @@ export default async function HomePage() {
         />
 
         <BrandStatement {...demoBrandStatement} />
-
-        <StylingGuides guides={demoStylingGuides} />
 
         <WhyKesa facts={demoWhyKesa} />
 

@@ -68,6 +68,11 @@ export const demoBrandStatement = {
   },
 };
 
+/**
+ * Not rendered on the homepage (owner request 2026-10-09): the guide covers
+ * were placeholders. Re-add `<StylingGuides guides={demoStylingGuides} />`
+ * when real cover photography exists. The /style-guides/ pages still work.
+ */
 export const demoStylingGuides = [
   {
     title: "What jewellery to wear with a saree",
