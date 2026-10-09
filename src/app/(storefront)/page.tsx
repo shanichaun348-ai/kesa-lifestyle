@@ -62,6 +62,12 @@ const HERO_SLIDES: readonly HeroSlide[] = [
     cta: "Shop the collection",
   },
   {
+    src: "/images/hero/brand-showcase.jpg",
+    alt: "Kesa Lifestyle — Style that feels like you. A model in a black embroidered saree wearing a gold-tone crystal pendant necklace, beside gold-tone crystal lariat necklaces and an Om pendant on display stands.",
+    href: "/women/necklaces/",
+    cta: "Shop necklaces",
+  },
+  {
     src: "/images/hero/festive-showcase.png",
     alt: "A model wearing a gold-tone pendant necklace beside a display of crystal pendant necklaces and an Om pendant.",
     href: "/women/necklaces/",
