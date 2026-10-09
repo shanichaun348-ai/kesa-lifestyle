@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CartDrawer } from "@/components/storefront/cart-drawer";
 import { Logo } from "@/components/storefront/logo";
 import { MobileNav } from "@/components/storefront/mobile-nav";
+import { ThemeToggle } from "@/components/storefront/theme-toggle";
 import { WishlistLink } from "@/components/storefront/wishlist-link";
 import type { NavLink, NavMenu } from "@/lib/navigation";
 
@@ -97,6 +98,7 @@ export function SiteHeader({ menus, secondaryLinks }: SiteHeaderProps) {
             </Link>
           </Button>
           <WishlistLink className="hidden sm:inline-flex" />
+          <ThemeToggle />
           <CartDrawer />
         </div>
       </div>

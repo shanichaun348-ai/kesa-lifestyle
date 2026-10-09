@@ -25,7 +25,7 @@ export type HeroSlide = {
  */
 function SlideImage({ src, alt, priority, className }: { src: string; alt: string; priority: boolean; className?: string }) {
   return (
-    <div className={cn("absolute inset-0 overflow-hidden bg-ink", className)}>
+    <div className={cn("absolute inset-0 overflow-hidden bg-image-scrim", className)}>
       <Image src={src} alt="" aria-hidden="true" fill sizes="100vw" quality={40} className="scale-125 object-cover opacity-80 blur-2xl" />
       <Image
         src={src}
@@ -102,7 +102,7 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
     <section
       aria-roledescription="carousel"
       aria-label="Featured campaigns"
-      className="group/hero relative isolate overflow-hidden bg-ink"
+      className="group/hero relative isolate overflow-hidden bg-image-scrim"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
       onFocusCapture={() => setPaused(true)}
@@ -121,7 +121,7 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
             aria-label={`${i + 1} of ${count}`}
             className="relative w-full shrink-0 snap-start"
           >
-            <Link href={slide.href} aria-label={slide.cta} className="block outline-none focus-visible:[&>div]:ring-4 focus-visible:[&>div]:ring-inset focus-visible:[&>div]:ring-bg/70">
+            <Link href={slide.href} aria-label={slide.cta} className="block outline-none focus-visible:[&>div]:ring-4 focus-visible:[&>div]:ring-inset focus-visible:[&>div]:ring-on-image/70">
               {/* Fixed shapes the artwork is produced for: 2.4:1 banners (1536×640) on tablets and up, 2:3 portrait
                   (1024×1536) on phones when a portrait file exists. Art in these ratios fills the box exactly. */}
               <div className={cn("relative w-full aspect-[12/5]", slide.mobileSrc && "max-sm:aspect-[2/3]")}>
@@ -145,7 +145,7 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
             type="button"
             onClick={() => goTo(index - 1)}
             aria-label="Previous slide"
-            className="absolute top-1/2 left-3 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full border border-bg/40 bg-ink/30 text-bg opacity-0 backdrop-blur transition-[opacity,background-color] duration-250 hover:bg-ink/60 focus-visible:opacity-100 group-hover/hero:opacity-100 md:inline-flex lg:left-6"
+            className="absolute top-1/2 left-3 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full border border-on-image/40 bg-image-scrim/30 text-on-image opacity-0 backdrop-blur transition-[opacity,background-color] duration-250 hover:bg-image-scrim/60 focus-visible:opacity-100 group-hover/hero:opacity-100 md:inline-flex lg:left-6"
           >
             <ChevronLeftIcon className="size-5" aria-hidden="true" />
           </button>
@@ -153,7 +153,7 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
             type="button"
             onClick={() => goTo(index + 1)}
             aria-label="Next slide"
-            className="absolute top-1/2 right-3 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full border border-bg/40 bg-ink/30 text-bg opacity-0 backdrop-blur transition-[opacity,background-color] duration-250 hover:bg-ink/60 focus-visible:opacity-100 group-hover/hero:opacity-100 md:inline-flex lg:right-6"
+            className="absolute top-1/2 right-3 hidden size-11 -translate-y-1/2 items-center justify-center rounded-full border border-on-image/40 bg-image-scrim/30 text-on-image opacity-0 backdrop-blur transition-[opacity,background-color] duration-250 hover:bg-image-scrim/60 focus-visible:opacity-100 group-hover/hero:opacity-100 md:inline-flex lg:right-6"
           >
             <ChevronRightIcon className="size-5" aria-hidden="true" />
           </button>
@@ -171,8 +171,8 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
               >
                 <span
                   className={cn(
-                    "block h-1 rounded-full bg-bg/70 transition-[width,background-color] duration-400 ease-(--ease-standard) group-focus-visible/dot:ring-2 group-focus-visible/dot:ring-bg",
-                    i === index ? "w-8 bg-bg" : "w-2 group-hover/dot:bg-bg",
+                    "block h-1 rounded-full bg-on-image/70 transition-[width,background-color] duration-400 ease-(--ease-standard) group-focus-visible/dot:ring-2 group-focus-visible/dot:ring-on-image",
+                    i === index ? "w-8 bg-on-image" : "w-2 group-hover/dot:bg-on-image",
                   )}
                 />
               </button>

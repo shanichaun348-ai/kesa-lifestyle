@@ -6,6 +6,7 @@ import { ConsentBanner } from "@/components/analytics/consent-banner";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { Toaster } from "@/components/ui/sonner";
+import { THEME_INIT_SCRIPT } from "@/lib/theme";
 
 import "./globals.css";
 
@@ -45,7 +46,11 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fbfaf7",
+  // Browser chrome colour per OS scheme; the in-page toggle cannot update this.
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#fbfaf7" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f0e0c" },
+  ],
   width: "device-width",
   initialScale: 1,
 };
@@ -54,7 +59,13 @@ const GA4_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en-IN" className={`${inter.variable} ${fraunces.variable} h-full`}>
+    // suppressHydrationWarning: the theme script sets data-theme on <html>
+    // before React hydrates, and that attribute is expected to differ.
+    <html lang="en-IN" className={`${inter.variable} ${fraunces.variable} h-full`} suppressHydrationWarning>
+      <head>
+        {/* Applies the saved or OS theme before first paint (ADR-34). Allowed by the CSP's 'unsafe-inline'. */}
+        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+      </head>
       <body className="flex min-h-full flex-col">
         {GA4_ID ? <GoogleAnalytics measurementId={GA4_ID} /> : null}
         <a

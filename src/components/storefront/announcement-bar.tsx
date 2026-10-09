@@ -63,7 +63,7 @@ export function AnnouncementBar({ id, message, href, linkLabel = "Shop now" }: A
   if (dismissed) return null;
 
   return (
-    <div role="region" aria-label="Announcement" className="bg-ink text-bg">
+    <div role="region" aria-label="Announcement" className="bg-ink text-bg dark:border-b dark:border-line dark:bg-surface dark:text-brand">
       <div className="container-page flex min-h-10 items-center justify-center gap-3 py-2 text-center text-xs tracking-wide sm:text-sm">
         <p className="min-w-0">
           {message}
@@ -80,7 +80,7 @@ export function AnnouncementBar({ id, message, href, linkLabel = "Shop now" }: A
           type="button"
           onClick={dismiss}
           aria-label="Dismiss announcement"
-          className="-mr-2 inline-flex size-8 shrink-0 items-center justify-center rounded-full text-bg/80 hover:text-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bg"
+          className="-mr-2 inline-flex size-8 shrink-0 items-center justify-center rounded-full text-bg/80 hover:text-bg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-bg dark:text-brand/80 dark:hover:text-brand dark:focus-visible:outline-brand"
         >
           <XIcon className="size-4" aria-hidden="true" />
         </button>

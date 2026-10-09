@@ -118,21 +118,22 @@ export default function DesignSystemPage() {
         id="colors"
         number={next()}
         title="Colour"
-        description="A warm neutral palette with one deep accent. Brass appears only on ratings. Remove every brass pixel and the system still reads premium."
+        description="A warm neutral palette with one deep accent. On the light theme brass appears only on ratings; remove every brass pixel and the system still reads premium. The dark theme (toggle in the header) keeps the same token names and turns the accent gold. Each swatch shows light on the left and dark on the right."
       >
         <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
           {colorTokens.map((t) => (
             <li key={t.name} className="flex flex-col gap-2">
-              <div
-                className="aspect-[4/3] rounded-sm border border-line"
-                style={{ backgroundColor: t.hex }}
-                aria-hidden="true"
-              />
+              <div className="grid aspect-[4/3] grid-cols-2 overflow-hidden rounded-sm border border-line" aria-hidden="true">
+                <div style={{ backgroundColor: t.hex }} />
+                <div style={{ backgroundColor: t.darkHex }} />
+              </div>
               <p className="text-sm font-medium">
                 <code className="font-mono text-xs">{t.name}</code>
               </p>
               <p className="type-small text-ink-muted">{t.role}</p>
-              <p className="font-mono text-xs text-ink-subtle">{t.hex.toUpperCase()}</p>
+              <p className="font-mono text-xs text-ink-subtle">
+                {t.hex.toUpperCase()} · {t.darkHex.toUpperCase()}
+              </p>
             </li>
           ))}
         </ul>

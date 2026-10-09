@@ -242,6 +242,13 @@ Decisions that require the business owner's input (D1–D18) are listed in `01_P
 **Alternatives:** Make every page dynamic to support nonces (destroys the ISR/CDN performance model); hash every inline script (brittle across Next upgrades); a single weak policy everywhere (leaves checkout and admin less protected than they can be).
 **Why better:** Strongest protection where secrets and money move, honest and still meaningful protection on cached pages.
 
+## ADR-34 — Dark theme is a user toggle driven by one token set
+
+**Decision:** The whole site offers a dark theme selected by a header toggle (stored in `localStorage`, OS preference as the default) and applied as `data-theme="dark"` on `<html>` before first paint by an inline script. Dark values override the same `--color-*` tokens; the `dark:` Tailwind variant is bound to the attribute, not to `prefers-color-scheme`. Gold (`brand`, `highlight`, `cta`) replaces cocoa for brand accents, headings and the primary button; body text is warm ivory. Controls drawn over photographs use theme-independent `on-image` / `image-scrim` tokens.
+**Why:** The owner wants a premium dark presentation with gold text. Overriding tokens re-skins every component at once and keeps the "tokens only, no raw hex" rule intact; an inline pre-paint script avoids a light flash on a dark page; storing the choice client-side keeps the storefront cacheable (no per-user server rendering).
+**Alternatives:** `prefers-color-scheme` only (no user control); a `next-themes` dependency (does the same thing with more code and a context provider); a server-side cookie theme (would make every page dynamic).
+**Why better:** Smallest possible footprint (one script, one toggle, one CSS block) with full user control and no impact on the static rendering model.
+
 ---
 
 ## Appendix A — Decision log
@@ -249,6 +256,7 @@ Decisions that require the business owner's input (D1–D18) are listed in `01_P
 | Date | Change | Reason |
 |---|---|---|
 | 2026-10-05 | ADR-01 … ADR-28 proposed | Discovery and architecture phase |
+| 2026-10-09 | ADR-34 added: user-selectable dark theme with gold accents | Owner request |
 | 2026-10-05 | Architecture review: ADR-29 … ADR-33 added; ADR-06 amended; facet signalling, OOS handling, collection/guide keyword split, async rule collections, `locations`, `discount_targets`, `guide_section_products`, `credit_notes`, idempotency keys, `ga_client_id`, gift options, batch fulfilment, finance exports, search synonyms, size guides, OTP-first auth, Supabase SMTP, `prepare: false`, image cost controls | CTO-style review of the proposal |
 
 ## Appendix B — Owner decisions pending (summary)

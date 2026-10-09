@@ -42,7 +42,30 @@ Neutral warm palette with a single deep accent. Values are proposals to be confi
 | `--color-danger` | `#9B2C2C` | Errors, destructive |
 | `--color-overlay` | `rgb(27 25 23 / 0.5)` | Modal scrim |
 
-Dark mode: not offered on the storefront in v1 (photography is colour-graded for light surfaces). Admin supports dark mode via `prefers-color-scheme`.
+### Dark theme (added 2026-10-09, ADR-34)
+
+A user-selectable dark theme covers the whole site (storefront and admin). It is applied as `data-theme="dark"` on `<html>`; the token names stay the same and only their values change, so no component needs a second set of classes except where a block is drawn over photography or is already inverted. The choice is stored in `localStorage` (`kesa:theme`); with no choice the OS preference is used. A tiny inline script in the root layout applies it before first paint.
+
+| Token | Dark | Role on dark |
+|---|---|---|
+| `--color-bg` | `#0F0E0C` | Page background (warm near-black) |
+| `--color-surface` | `#171512` | Cards, sheets, inputs |
+| `--color-surface-muted` | `#201D19` | Section bands |
+| `--color-ink` | `#F1E8D6` | Body text (warm ivory) |
+| `--color-ink-muted` | `#BFB39D` | Secondary text |
+| `--color-ink-subtle` | `#8F8676` | Captions |
+| `--color-line` / `--color-line-strong` | `#2B2824` / `#403A33` | Borders |
+| `--color-brand` / `--color-brand-hover` | `#D4B36A` / `#E6C884` | Gold: links, focus rings, eyebrows, active states |
+| `--color-highlight` | `#E0C27C` | Gold: `h1`, `h2` and display headings (set in `@layer base`) |
+| `--color-cta` / `--color-cta-foreground` | `#D4B36A` / `#0F0E0C` | Primary button: gold fill, near-black text (ink / off-white on light) |
+| `--color-success` / `warning` / `danger` | `#7CBF9A` / `#E0B85A` / `#E58787` | Status, lifted for contrast on dark |
+| `--color-overlay` | `rgb(0 0 0 / 0.65)` | Modal scrim |
+
+Gold is for text and hairlines, never for large fills other than the primary button. Body copy stays ivory for readability; gold body text was rejected as both garish and low-contrast at small sizes.
+
+Theme-independent tokens: `--color-on-image` (`#FBFAF7`) and `--color-image-scrim` (`#1B1917`) are for controls drawn over photographs (carousel dots and arrows, video play icon). Photos do not change with the theme, so those controls must not either.
+
+Logo: `kesa-logo-black.png` on light, `kesa-logo-gold.png` on dark (same alpha mask, swapped with the `dark:` variant). Product photography is shot on white, so product images sit on a white rectangle in dark mode; this is accepted for now and can be addressed with transparent-background product shots later.
 
 Contrast: all text tokens on `bg`/`surface` meet 4.5:1; `ink-subtle` is for ≥ 18px text or non-essential captions only.
 
@@ -286,4 +309,4 @@ Default Tailwind palette classes (`text-red-500` etc.) remain available for now;
 - Header does not shrink on scroll (kept static to avoid layout shift); revisit after real-device review.
 - Lightbox for PDP gallery is specified but not built until the PDP exists (Phase 1).
 - Logo is a typographic wordmark pending brand assets (D12).
-- Dark mode intentionally absent on the storefront.
+- Dark theme (2026-10-09): product photos on white backgrounds show as white rectangles against dark surfaces; `theme-color` in the browser chrome follows the OS, not the in-page toggle.

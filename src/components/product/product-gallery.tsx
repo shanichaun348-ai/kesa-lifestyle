@@ -59,7 +59,7 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
               )}
             >
               <Image src={posterOf(item).src} alt="" fill sizes="72px" unoptimized={posterOf(item).unoptimized ?? false} className="object-cover" />
-              {item.kind === "video" ? <PlayIcon className="absolute inset-0 m-auto size-5 text-bg drop-shadow" aria-hidden="true" /> : null}
+              {item.kind === "video" ? <PlayIcon className="absolute inset-0 m-auto size-5 text-on-image drop-shadow" aria-hidden="true" /> : null}
             </button>
           </li>
         ))}

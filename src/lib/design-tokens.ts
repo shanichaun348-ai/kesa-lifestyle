@@ -9,27 +9,31 @@
 export type ColorToken = {
   /** CSS variable name without the `--color-` prefix, e.g. `ink`. */
   name: string;
+  /** Light-theme value. */
   hex: string;
+  /** Dark-theme value (`html[data-theme="dark"]`, ADR-34). */
+  darkHex: string;
   role: string;
   /** Minimum contrast requirement this token is designed to meet on `bg`. */
   contrast?: "text" | "large-text" | "non-text" | "decorative";
 };
 
 export const colorTokens: ColorToken[] = [
-  { name: "bg", hex: "#FBFAF7", role: "Page background (warm off-white)" },
-  { name: "surface", hex: "#FFFFFF", role: "Cards, sheets, inputs" },
-  { name: "surface-muted", hex: "#F3F0EA", role: "Section bands, image placeholders" },
-  { name: "ink", hex: "#1B1917", role: "Primary text, primary buttons", contrast: "text" },
-  { name: "ink-muted", hex: "#5F5A54", role: "Secondary text", contrast: "text" },
-  { name: "ink-subtle", hex: "#8C867F", role: "Captions, strikethrough prices (≥ 18px or decorative only)", contrast: "large-text" },
-  { name: "line", hex: "#E6E1D9", role: "Hairline borders, dividers", contrast: "decorative" },
-  { name: "line-strong", hex: "#CFC8BD", role: "Input borders, focusable outlines", contrast: "non-text" },
-  { name: "brand", hex: "#5B3A2E", role: "Links, focus ring, active states (deep cocoa)", contrast: "text" },
-  { name: "brand-hover", hex: "#472C23", role: "Hover state for brand", contrast: "text" },
-  { name: "highlight", hex: "#9A7B3C", role: "Rating stars and tiny accents only (deep brass). Never a fill.", contrast: "non-text" },
-  { name: "success", hex: "#2F6B4F", role: "In stock, success messages", contrast: "text" },
-  { name: "warning", hex: "#8A6A1F", role: "Low stock, caution", contrast: "text" },
-  { name: "danger", hex: "#9B2C2C", role: "Errors, destructive actions", contrast: "text" },
+  { name: "bg", hex: "#FBFAF7", darkHex: "#0F0E0C", role: "Page background (warm off-white / near-black)" },
+  { name: "surface", hex: "#FFFFFF", darkHex: "#171512", role: "Cards, sheets, inputs" },
+  { name: "surface-muted", hex: "#F3F0EA", darkHex: "#201D19", role: "Section bands, image placeholders" },
+  { name: "ink", hex: "#1B1917", darkHex: "#F1E8D6", role: "Primary text (warm ivory on dark)", contrast: "text" },
+  { name: "ink-muted", hex: "#5F5A54", darkHex: "#BFB39D", role: "Secondary text", contrast: "text" },
+  { name: "ink-subtle", hex: "#8C867F", darkHex: "#8F8676", role: "Captions, strikethrough prices (≥ 18px or decorative only)", contrast: "large-text" },
+  { name: "line", hex: "#E6E1D9", darkHex: "#2B2824", role: "Hairline borders, dividers", contrast: "decorative" },
+  { name: "line-strong", hex: "#CFC8BD", darkHex: "#403A33", role: "Input borders, focusable outlines", contrast: "non-text" },
+  { name: "brand", hex: "#5B3A2E", darkHex: "#D4B36A", role: "Links, focus ring, active states (deep cocoa / gold)", contrast: "text" },
+  { name: "brand-hover", hex: "#472C23", darkHex: "#E6C884", role: "Hover state for brand", contrast: "text" },
+  { name: "highlight", hex: "#9A7B3C", darkHex: "#E0C27C", role: "Rating stars and tiny accents on light (deep brass); page and section headings on dark (gold).", contrast: "non-text" },
+  { name: "cta", hex: "#1B1917", darkHex: "#D4B36A", role: "Primary button fill (ink / gold); its text uses cta-foreground", contrast: "non-text" },
+  { name: "success", hex: "#2F6B4F", darkHex: "#7CBF9A", role: "In stock, success messages", contrast: "text" },
+  { name: "warning", hex: "#8A6A1F", darkHex: "#E0B85A", role: "Low stock, caution", contrast: "text" },
+  { name: "danger", hex: "#9B2C2C", darkHex: "#E58787", role: "Errors, destructive actions", contrast: "text" },
 ];
 
 export const spacingScale = [4, 8, 12, 16, 24, 32, 48, 64, 96, 128] as const;

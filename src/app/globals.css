@@ -24,6 +24,13 @@
   --color-warning: #8a6a1f;
   --color-danger: #9b2c2c;
   --color-overlay: rgb(27 25 23 / 0.5);
+  /* Primary call-to-action fill. Ink in light; gold in dark (see the dark block below). */
+  --color-cta: #1b1917;
+  --color-cta-foreground: #fbfaf7;
+  /* Fixed colours for controls drawn over photography (carousel dots, play
+     icons). They do not change with the theme because the photo does not. */
+  --color-on-image: #fbfaf7;
+  --color-image-scrim: #1b1917;
 
   /* Radius ---------------------------------------------------------------- */
   --radius-sm: 2px;
@@ -99,6 +106,43 @@
 }
 
 /* ------------------------------------------------------------------------
+   Dark theme (ADR-34). Activated by `data-theme="dark"` on <html>, which the
+   inline script in `src/app/layout.tsx` sets before first paint from the
+   stored choice or `prefers-color-scheme`. Every utility reads the token
+   variables at runtime, so overriding them here re-skins the whole site:
+   near-black warm surfaces, warm-ivory body text and gold for everything
+   that carries the brand (headings, links, focus rings, primary buttons).
+   ------------------------------------------------------------------------ */
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg: #0f0e0c;
+  --color-surface: #171512;
+  --color-surface-muted: #201d19;
+  --color-ink: #f1e8d6;
+  --color-ink-muted: #bfb39d;
+  --color-ink-subtle: #8f8676;
+  --color-line: #2b2824;
+  --color-line-strong: #403a33;
+  --color-brand: #d4b36a;
+  --color-brand-hover: #e6c884;
+  --color-highlight: #e0c27c;
+  --color-success: #7cbf9a;
+  --color-warning: #e0b85a;
+  --color-danger: #e58787;
+  --color-overlay: rgb(0 0 0 / 0.65);
+  --color-cta: #d4b36a;
+  --color-cta-foreground: #0f0e0c;
+
+  --shadow-header: 0 1px 0 0 #2b2824;
+  --shadow-float: 0 8px 24px -12px rgb(0 0 0 / 0.7);
+  --shadow-overlay: 0 24px 48px -16px rgb(0 0 0 / 0.8);
+}
+
+/* `dark:` utilities follow the attribute, not the OS setting. */
+@custom-variant dark (&:where(html[data-theme="dark"], html[data-theme="dark"] *));
+
+/* ------------------------------------------------------------------------
    Variants for Radix `data-state` attributes used by the primitives
    ------------------------------------------------------------------------ */
 @custom-variant data-open (&:where([data-state="open"]));
@@ -157,6 +201,14 @@
 
   p {
     text-wrap: pretty;
+  }
+
+  /* Dark theme: page and section titles are set in gold. Sub-headings stay
+     ivory so the hierarchy still reads. A colour utility on the element
+     (e.g. `text-bg` over a photo) still wins, as utilities outrank base. */
+  html[data-theme="dark"] :is(h1, h2),
+  html[data-theme="dark"] .type-display {
+    color: var(--color-highlight);
   }
 
   img,

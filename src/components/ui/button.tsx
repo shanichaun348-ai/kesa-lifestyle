@@ -7,8 +7,9 @@ import { cn } from "@/lib/utils";
 
 /*
  * Storefront button. Sizes are touch-first: `md` is 44px, `lg` is 52px.
- * `primary` is an ink fill; `secondary` a hairline; `ghost` text-only.
- * Nothing here is gold: the design has to hold without it (docs/09 §1).
+ * `primary` is a `cta` fill (ink on the light theme, gold on the dark theme);
+ * `secondary` a hairline; `ghost` text-only. On the light theme nothing here
+ * is gold: the design has to hold without it (docs/09 §1).
  */
 const buttonVariants = cva(
   [
@@ -21,7 +22,7 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        primary: "border-ink bg-ink text-bg hover:border-brand-hover hover:bg-brand-hover",
+        primary: "border-cta bg-cta text-cta-foreground hover:border-brand-hover hover:bg-brand-hover",
         secondary: "border-ink bg-transparent text-ink hover:bg-ink hover:text-bg",
         ghost: "border-transparent bg-transparent text-ink hover:bg-surface-muted",
         link: "h-auto rounded-none border-transparent bg-transparent px-0 text-brand underline-offset-4 hover:underline",
