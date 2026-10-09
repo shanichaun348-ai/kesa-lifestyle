@@ -8,9 +8,9 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 export type HeroSlide = {
-  /** Landscape banner artwork (copy set in the image). Shown whole, never cropped. */
+  /** Landscape banner artwork, produced at 2.4:1 (2560×1067) with copy set in the image. */
   src: string;
-  /** Optional portrait version (about 1080×1350) used on phones instead of `src`. */
+  /** Optional portrait version, produced at 4:5 (1080×1350), used on phones instead of `src`. */
   mobileSrc?: string | undefined;
   /** Spoken copy for the slide — repeat the headline that is baked into the artwork. */
   alt: string;
@@ -20,13 +20,14 @@ export type HeroSlide = {
 };
 
 /**
- * The photo is scaled to fit entirely inside the slide; a blurred, enlarged
- * copy of the same photo fills whatever is left so there are never hard bars.
+ * The artwork is produced in the slide's exact shape, so it is drawn with
+ * `object-cover`: it fills the box edge to edge and, where a file is a little
+ * off-ratio, loses a sliver at the edges (the art keeps its copy away from
+ * them) rather than showing bars or a blurred fill.
  */
 function SlideImage({ src, alt, priority, className }: { src: string; alt: string; priority: boolean; className?: string }) {
   return (
     <div className={cn("absolute inset-0 overflow-hidden bg-image-scrim", className)}>
-      <Image src={src} alt="" aria-hidden="true" fill sizes="100vw" quality={40} className="scale-125 object-cover opacity-80 blur-2xl" />
       <Image
         src={src}
         alt={alt}
@@ -36,7 +37,7 @@ function SlideImage({ src, alt, priority, className }: { src: string; alt: strin
         loading={priority ? "eager" : "lazy"}
         sizes="100vw"
         quality={85}
-        className="object-contain"
+        className="object-cover object-center"
       />
     </div>
   );
@@ -122,9 +123,9 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
             className="relative w-full shrink-0 snap-start"
           >
             <Link href={slide.href} aria-label={slide.cta} className="block outline-none focus-visible:[&>div]:ring-4 focus-visible:[&>div]:ring-inset focus-visible:[&>div]:ring-on-image/70">
-              {/* Fixed shapes the artwork is produced for: 2.4:1 banners (1536×640) on tablets and up, 2:3 portrait
-                  (1024×1536) on phones when a portrait file exists. Art in these ratios fills the box exactly. */}
-              <div className={cn("relative w-full aspect-[12/5]", slide.mobileSrc && "max-sm:aspect-[2/3]")}>
+              {/* Fixed shapes the artwork is produced for: 2.4:1 banners (2560×1067) on tablets and up, 4:5 portrait
+                  (1080×1350) on phones when a portrait file exists. */}
+              <div className={cn("relative w-full aspect-[12/5]", slide.mobileSrc && "max-sm:aspect-[4/5]")}>
                 {slide.mobileSrc ? (
                   <>
                     <SlideImage src={slide.mobileSrc} alt={slide.alt} priority={i === 0} className="sm:hidden" />
