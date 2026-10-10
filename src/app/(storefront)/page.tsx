@@ -21,6 +21,8 @@ import { sortProducts } from "@/modules/catalog/listing";
 import { toCardData } from "@/modules/catalog/presenters";
 import { getCatalogRepository, siblingsFor } from "@/modules/catalog/queries";
 import type { Product } from "@/modules/catalog/types";
+import { pickLookProducts } from "@/modules/content/home-look";
+import { getHomeLook } from "@/modules/content/home-look-server";
 import {
   demoBrandStatement,
   demoCategories,
@@ -120,21 +122,26 @@ function topUp(primary: Product[], pool: Product[]): Product[] {
 
 async function homeRails() {
   const repo = getCatalogRepository();
-  const [active, arrivals, bestsellers] = await Promise.all([
+  const [active, arrivals, bestsellers, { config: look }] = await Promise.all([
     repo.getAllActiveProducts(),
     repo.getScopeCandidates({ kind: "collection", slug: "new-arrivals" }),
     repo.getScopeCandidates({ kind: "collection", slug: "bestsellers" }),
+    getHomeLook(),
   ]);
-  const newArrivals = topUp(sortProducts(arrivals, "newest"), sortProducts(active, "newest"));
+  const newest = sortProducts(active, "newest");
+  const newArrivals = topUp(sortProducts(arrivals, "newest"), newest);
   const bestSellers = topUp(bestsellers, sortProducts(active, "bestselling"));
-  const siblings = await siblingsFor([...newArrivals, ...bestSellers]);
+  // "Shop the look": the owner's picks (admin → Content → Homepage), newest live pieces until then.
+  const lookChosen = look.productSlugs.length > 0 ? await repo.getProductsBySlugs(look.productSlugs) : [];
+  const lookProducts = pickLookProducts(look, lookChosen, newest);
+  const siblings = await siblingsFor([...newArrivals, ...bestSellers, ...lookProducts]);
   const now = new Date();
   const card = (p: Product) => toCardData(p, { now, siblings: siblings.get(p.slug) });
-  return { newArrivals: newArrivals.map(card), bestSellers: bestSellers.map(card) };
+  return { newArrivals: newArrivals.map(card), bestSellers: bestSellers.map(card), look: { products: lookProducts.map(card), href: look.href } };
 }
 
 export default async function HomePage() {
-  const { newArrivals, bestSellers } = await homeRails();
+  const { newArrivals, bestSellers, look } = await homeRails();
   return (
     <>
       <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
@@ -154,7 +161,7 @@ export default async function HomePage() {
           priorityCount={4}
         />
 
-        <ShopTheLook {...demoLook} />
+        {look.products.length > 0 ? <ShopTheLook {...demoLook} products={look.products} href={look.href} /> : null}
 
         <ProductSection
           id="bestsellers"

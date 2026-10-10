@@ -172,7 +172,7 @@ The following demo/in-memory usage is **intentional** and isolated to non-produc
 ## Go-Live Checklist
 
 - [ ] Create Supabase project; set `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
-- [ ] Apply migrations: `supabase db push`
+- [ ] Apply migrations: `supabase db push` (or paste each file under `supabase/migrations/` into the Supabase SQL editor, in order). `011_site_content.sql` is what lets Admin → Content → Homepage save the "Shop the look" picks; until it is applied the page shows the newest live pieces and the editor reports the missing table.
 - [ ] Seed `product_variants` table from the catalog
 - [ ] Set `RAZORPAY_KEY_ID`, `RAZORPAY_KEY_SECRET`, `RAZORPAY_WEBHOOK_SECRET`
 - [ ] Set `NEXT_PUBLIC_RAZORPAY_KEY_ID` to the same value as `RAZORPAY_KEY_ID`
