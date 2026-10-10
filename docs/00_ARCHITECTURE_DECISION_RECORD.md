@@ -249,6 +249,13 @@ Decisions that require the business owner's input (D1–D18) are listed in `01_P
 **Alternatives:** `prefers-color-scheme` only (no user control); a `next-themes` dependency (does the same thing with more code and a context provider); a server-side cookie theme (would make every page dynamic).
 **Why better:** Smallest possible footprint (one script, one toggle, one CSS block) with full user control and no impact on the static rendering model.
 
+## ADR-35 — WhatsApp order confirmations go direct through Meta's Cloud API
+
+**Decision:** Order confirmations are sent on WhatsApp through the WhatsApp Business Platform (Meta Cloud API) with a pre-approved Utility template, alongside the Resend email. One orchestrator (`modules/notifications/order-paid.ts`) fans out to email, WhatsApp and the shop inbox after the PAID transition; each channel is independent, unconfigured channels are skipped and logged, and admins can re-send either channel from the order page. The template copy lives in Meta Business Manager; the code fills four parameters (first name, order reference, total paid, items).
+**Why:** Transactional WhatsApp messages must be templates approved by Meta whichever vendor is used. Going direct avoids a reseller margin and a second dashboard, and the first 1,000 conversations a month are free. A thin `fetch` transport mirrors the Resend one, so there is no SDK to keep current.
+**Alternatives:** A business solution provider (Interakt, WATI, Gupshup, Twilio) — simpler onboarding but a per-message markup and another vendor contract; sending from the WhatsApp Business app by hand — not automatable.
+**Why better:** Lowest running cost and the same approval process either way; the provider can be swapped by replacing one 80-line transport module.
+
 ---
 
 ## Appendix A — Decision log
@@ -257,6 +264,7 @@ Decisions that require the business owner's input (D1–D18) are listed in `01_P
 |---|---|---|
 | 2026-10-05 | ADR-01 … ADR-28 proposed | Discovery and architecture phase |
 | 2026-10-09 | ADR-34 added: user-selectable dark theme with gold accents | Owner request |
+| 2026-10-10 | ADR-35 added: WhatsApp order confirmations via Meta Cloud API templates | Owner request |
 | 2026-10-05 | Architecture review: ADR-29 … ADR-33 added; ADR-06 amended; facet signalling, OOS handling, collection/guide keyword split, async rule collections, `locations`, `discount_targets`, `guide_section_products`, `credit_notes`, idempotency keys, `ga_client_id`, gift options, batch fulfilment, finance exports, search synonyms, size guides, OTP-first auth, Supabase SMTP, `prepare: false`, image cost controls | CTO-style review of the proposal |
 
 ## Appendix B — Owner decisions pending (summary)

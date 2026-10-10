@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { auditLog } from "@/modules/admin/audit";
 import { requireAdmin } from "@/modules/admin/guard";
 import { PAID_STATUSES, setOrderStatus } from "@/modules/admin/orders-data";
-import { notifyOrderPaid } from "@/modules/email/order-notifications";
+import { notifyOrderPaid } from "@/modules/notifications/order-paid";
 import { getOrderRepository } from "@/modules/orders/queries";
 import type { OrderStatus } from "@/modules/orders/types";
 
@@ -43,10 +43,21 @@ export async function resendConfirmationEmail(orderId: string): Promise<OrderAct
   const order = await getOrderRepository().findById(orderId);
   if (!order) return { error: "Order not found." };
   if (!PAID_STATUSES.has(order.status)) return { error: "Only paid orders have a confirmation email." };
-  const result = await notifyOrderPaid(order, { customerOnly: true });
+  const result = await notifyOrderPaid(order, { only: "email" });
   if (!result.customer.ok) return { error: result.customer.error };
   auditLog(session, "order.resend_email", { orderId, to: order.customer.email });
   return { success: `Confirmation sent to ${order.customer.email}.` };
+}
+
+export async function resendConfirmationWhatsApp(orderId: string): Promise<OrderActionState> {
+  const session = await requireAdmin("orders:write");
+  const order = await getOrderRepository().findById(orderId);
+  if (!order) return { error: "Order not found." };
+  if (!PAID_STATUSES.has(order.status)) return { error: "Only paid orders have a confirmation message." };
+  const result = await notifyOrderPaid(order, { only: "whatsapp" });
+  if (!result.whatsapp || !result.whatsapp.ok) return { error: result.whatsapp?.error ?? "WhatsApp message was not sent." };
+  auditLog(session, "order.resend_whatsapp", { orderId, to: order.customer.phone });
+  return { success: `WhatsApp confirmation sent to ${order.customer.phone}.` };
 }
 
 export async function markRefunded(orderId: string): Promise<OrderActionState> {

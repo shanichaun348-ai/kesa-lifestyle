@@ -99,7 +99,7 @@ Acceptance: review loop live end-to-end; ≥ 4 journal posts and 8 guides publis
 - Loyalty (earn/redeem at checkout, tiers, expiry, reversal on refund), account rewards page.
 - Preference centre, marketing email integration (Resend Audiences or chosen ESP), abandoned-cart email with consent.
 - Returns/exchange self-service with reverse pickup via Shiprocket.
-- WhatsApp/SMS transactional notifications (provider decision), phone OTP login.
+- WhatsApp order confirmation: done (ADR-35, Meta Cloud API). Still to do: shipped/delivered templates, SMS fallback, phone OTP login.
 - Wishlist sharing; reorder; invoice download history.
 
 Acceptance: a referral converts and rewards correctly after the return window; points ledger reconciles; return flow completes with refund.

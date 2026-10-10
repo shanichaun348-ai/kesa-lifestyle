@@ -37,6 +37,16 @@ const serverSchema = z.object({
   EMAIL_FROM: z.string().min(3).optional(),
   /** Internal inbox that receives a copy of every new paid order. */
   ORDER_NOTIFY_EMAIL: z.email().optional(),
+  /** WhatsApp Business Platform (Meta Cloud API) system-user token. Server only. */
+  WHATSAPP_ACCESS_TOKEN: z.string().min(20).optional(),
+  /** Phone number ID of the sender number in WhatsApp Manager (digits). */
+  WHATSAPP_PHONE_NUMBER_ID: z.string().regex(/^\d{5,}$/).optional(),
+  /** Approved template name for the order confirmation. Defaults to "order_confirmed". */
+  WHATSAPP_ORDER_TEMPLATE: z.string().min(1).optional(),
+  /** Language code the template was approved in. Defaults to "en". */
+  WHATSAPP_TEMPLATE_LANGUAGE: z.string().min(2).optional(),
+  /** Graph API version. Defaults to v21.0. */
+  WHATSAPP_API_VERSION: z.string().regex(/^v\d+\.\d+$/).optional(),
   /** Allows the seed script to run against a non-local database. Never set in production. */
   ALLOW_SEED: z.enum(["1"]).optional(),
 });

@@ -4,7 +4,7 @@ import { useActionState } from "react";
 
 import type { OrderStatus } from "@/modules/orders/types";
 
-import { advanceOrder, cancelOrder, markRefunded, resendConfirmationEmail, type OrderActionState } from "./_actions";
+import { advanceOrder, cancelOrder, markRefunded, resendConfirmationEmail, resendConfirmationWhatsApp, type OrderActionState } from "./_actions";
 
 type Props = {
   orderId: string;
@@ -46,6 +46,10 @@ export function OrderActions({ orderId, status, canWrite, canRefund }: Props) {
     () => resendConfirmationEmail(orderId),
     null,
   );
+  const [waState, waAction, waPending] = useActionState<OrderActionState, FormData>(
+    () => resendConfirmationWhatsApp(orderId),
+    null,
+  );
 
   const showAdvance = canWrite && !!next;
   const showCancel = canWrite && CANCELLABLE.has(status);
@@ -56,7 +60,7 @@ export function OrderActions({ orderId, status, canWrite, canRefund }: Props) {
   return (
     <section className="rounded-md border border-line bg-surface p-5 space-y-3">
       <h2 className="text-sm font-medium text-ink">Actions</h2>
-      <Message state={advState ?? cancelState ?? refundState ?? emailState} />
+      <Message state={advState ?? cancelState ?? refundState ?? emailState ?? waState} />
 
       {showAdvance ? (
         <form action={advAction}>
@@ -70,6 +74,14 @@ export function OrderActions({ orderId, status, canWrite, canRefund }: Props) {
         <form action={emailAction}>
           <button disabled={emailPending} className="w-full rounded-md border border-line px-3 py-2 text-left text-sm text-ink hover:bg-surface-muted disabled:opacity-50">
             {emailPending ? "Sending…" : "Resend confirmation email"}
+          </button>
+        </form>
+      ) : null}
+
+      {showEmail ? (
+        <form action={waAction}>
+          <button disabled={waPending} className="w-full rounded-md border border-line px-3 py-2 text-left text-sm text-ink hover:bg-surface-muted disabled:opacity-50">
+            {waPending ? "Sending…" : "Resend WhatsApp confirmation"}
           </button>
         </form>
       ) : null}

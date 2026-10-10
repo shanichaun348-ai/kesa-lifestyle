@@ -1,6 +1,6 @@
 import { after, type NextRequest } from "next/server";
 
-import { notifyOrderPaid } from "@/modules/email/order-notifications";
+import { notifyOrderPaid } from "@/modules/notifications/order-paid";
 import { verifyPaymentSignature } from "@/modules/payments/razorpay-security";
 import { getOrderRepository } from "@/modules/orders/queries";
 import { transitionOrder } from "@/modules/orders/state-machine";

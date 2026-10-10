@@ -15,6 +15,7 @@ export type AuditAction =
   | "order.update_status"
   | "order.cancel"
   | "order.resend_email"
+  | "order.resend_whatsapp"
   | "order.refund"
   | "customer.update"
   | "customer.suspend"

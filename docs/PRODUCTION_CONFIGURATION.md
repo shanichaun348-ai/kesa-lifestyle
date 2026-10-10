@@ -31,6 +31,44 @@ These variables must be set before deploying to production. Missing any of them 
 
 **Behaviour when missing:** `requireRazorpayConfig()` throws at the point of use (checkout API routes). Checkout is disabled at the page level when `RAZORPAY_KEY_ID` is absent.
 
+### Order confirmations: email (Resend)
+
+| Variable | Description |
+|---|---|
+| `RESEND_API_KEY` | Resend API key |
+| `EMAIL_FROM` | Verified sender, e.g. `Kesa Lifestyle <orders@kesalifestyle.com>` (domain must be verified in Resend) |
+| `ORDER_NOTIFY_EMAIL` | Optional. Shop inbox that gets a copy of every new paid order |
+
+**Behaviour when missing:** the confirmation is skipped and a `{"event":"email","action":"skipped_unconfigured"}` line is logged. Checkout still succeeds. Admin → order → "Resend confirmation email" reports the same error.
+
+### Order confirmations: WhatsApp (Meta WhatsApp Business Platform)
+
+| Variable | Description |
+|---|---|
+| `WHATSAPP_ACCESS_TOKEN` | Permanent system-user token with `whatsapp_business_messaging` and `whatsapp_business_management` |
+| `WHATSAPP_PHONE_NUMBER_ID` | The sender number's **Phone number ID** from WhatsApp Manager (a numeric ID, not the phone number) |
+| `WHATSAPP_ORDER_TEMPLATE` | Approved template name. Default `order_confirmed` |
+| `WHATSAPP_TEMPLATE_LANGUAGE` | Language the template was approved in. Default `en` |
+| `WHATSAPP_API_VERSION` | Optional. Graph API version, default `v21.0` |
+
+Setup, once:
+
+1. In [Meta Business Suite](https://business.facebook.com/) create a WhatsApp Business account and add the shop's number as a sender (it cannot be a number already on the WhatsApp app unless you migrate it).
+2. WhatsApp Manager → Message templates → Create. Category **Utility**, name `order_confirmed`, language English. Body (four parameters, in this order):
+
+   ```
+   Hi {{1}}, thank you for shopping with Kesa Lifestyle. Your order {{2}} is confirmed and we have received your payment of {{3}} for {{4}}. We will message you again when it ships.
+   ```
+
+   Sample values for review: `Priya`, `KL-1042`, `₹1,299`, `Pearl Drop Earrings × 1`. Approval usually takes minutes to a few hours.
+3. Business Settings → System users → create a system user with Admin role, assign the WhatsApp app, and generate a **permanent** token. Set it as `WHATSAPP_ACCESS_TOKEN`.
+4. Copy the Phone number ID from WhatsApp Manager → Phone numbers into `WHATSAPP_PHONE_NUMBER_ID`.
+5. Redeploy. Test with Admin → Orders → a paid order → "Resend WhatsApp confirmation".
+
+Messages go to the mobile number the customer typed at checkout, normalised to `91XXXXXXXXXX`. Orders without a valid Indian mobile are skipped with a logged reason. The template body lives on Meta's side; the code only fills the four parameters (`src/modules/whatsapp/order-confirmation.ts`).
+
+**Behaviour when missing:** skipped and logged as `{"event":"whatsapp","action":"skipped_unconfigured"}`. Email still goes out; checkout still succeeds.
+
 ### Admin
 
 | Variable | Description |
