@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
 
+// Revalidate every 60 s so product changes appear promptly.
+// On-demand revalidatePath("/") from publish/unpublish actions fires sooner.
+export const revalidate = 60;
+
 import { BrandStatement } from "@/components/home/brand-statement";
 import { CategoryTiles } from "@/components/home/category-tiles";
 import { HeroCarousel, type HeroSlide } from "@/components/home/hero-carousel";
