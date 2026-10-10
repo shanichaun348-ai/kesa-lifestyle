@@ -102,7 +102,9 @@ export async function POST(request: NextRequest): Promise<Response> {
   );
 
   if (!pricingOutcome.ok) {
-    return Response.json({ error: pricingOutcome.error.message, code: pricingOutcome.error.code }, { status: 422 });
+    const { message, code, sku } = pricingOutcome.error;
+    // `sku` lets the checkout point at the offending bag line instead of echoing the code.
+    return Response.json({ error: message, code, ...(sku && { sku }) }, { status: 422 });
   }
 
   const pricing = pricingOutcome.result;
@@ -159,7 +161,7 @@ export async function POST(request: NextRequest): Promise<Response> {
         { status: 409 },
       );
     case "product_not_found":
-      return Response.json({ error: `Product "${createResult.sku}" not found.` }, { status: 422 });
+      return Response.json({ error: `Product "${createResult.sku}" not found.`, code: "PRODUCT_NOT_FOUND", sku: createResult.sku }, { status: 422 });
     case "idempotency_conflict":
       return Response.json({ error: "Duplicate request with different content." }, { status: 409 });
     case "idempotent": {

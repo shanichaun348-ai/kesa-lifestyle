@@ -9,40 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { formatPaise } from "@/lib/money";
-import { localCartStore } from "@/modules/cart/store";
-
-// ── Cart types (mirrors cart/store.ts CartLine) ───────────────────────────────
-
-type CartLine = {
-  sku: string;
-  name: string;
-  optionLabel?: string;
-  unitPricePaise: number;
-  quantity: number;
-  image?: { src: string; alt: string };
-};
-
-const CART_STORAGE_KEY = "kesa:cart:v1";
-
-function readCart(): CartLine[] {
-  if (typeof window === "undefined") return [];
-  try {
-    const raw = window.localStorage.getItem(CART_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed: unknown = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (l): l is CartLine =>
-        typeof l === "object" && l !== null &&
-        typeof (l as Record<string, unknown>).sku === "string" &&
-        typeof (l as Record<string, unknown>).name === "string" &&
-        typeof (l as Record<string, unknown>).unitPricePaise === "number" &&
-        typeof (l as Record<string, unknown>).quantity === "number",
-    );
-  } catch {
-    return [];
-  }
-}
+import { allPurchasable, describeLineCheck, type LineCheck } from "@/modules/cart/availability";
+import { useCart } from "@/modules/cart/use-cart";
+import { useBagAvailability } from "@/modules/cart/use-bag-availability";
 
 // ── Razorpay.js loader ────────────────────────────────────────────────────────
 
@@ -80,8 +49,12 @@ type CheckoutState = "idle" | "submitting" | "success";
 type OrderSuccess = { orderId: string; orderNumber: number | null };
 
 export function CheckoutForm() {
-  const [cart, setCart] = React.useState<CartLine[]>(() => readCart());
-  const [cartLoaded, setCartLoaded] = React.useState(() => true);
+  const bag = useCart();
+  const cart = bag.lines;
+  // What the catalogue says about each line today: price, stock, or gone.
+  const availability = useBagAvailability(cart);
+  // A line the server refused when the order was placed (e.g. sold out a moment ago).
+  const [refused, setRefused] = React.useState<{ sku: string; check: LineCheck } | null>(null);
 
   const [name, setName] = React.useState("");
   const [email, setEmail] = React.useState("");
@@ -98,7 +71,24 @@ export function CheckoutForm() {
   const [checkoutState, setCheckoutState] = React.useState<CheckoutState>("idle");
   const [orderSuccess, setOrderSuccess] = React.useState<OrderSuccess | null>(null);
 
-  const clientSubtotal = cart.reduce((s, l) => s + l.unitPricePaise * l.quantity, 0);
+  // Merge the live check with anything the server refused since; a line is only
+  // judged once the catalogue has answered for it.
+  const checks = React.useMemo(() => {
+    const merged = new Map(availability.checks);
+    if (refused && cart.some((l) => l.sku === refused.sku)) merged.set(refused.sku, refused.check);
+    return merged;
+  }, [availability.checks, refused, cart]);
+  const purchasable = allPurchasable(checks);
+  const unitPrice = (line: { sku: string; unitPricePaise: number }) => {
+    const check = checks.get(line.sku);
+    return check?.kind === "ok" ? check.unitPricePaise : line.unitPricePaise;
+  };
+  const clientSubtotal = cart.reduce((s, l) => s + unitPrice(l) * l.quantity, 0);
+
+  function removeLine(sku: string) {
+    bag.remove(sku);
+    setRefused((r) => (r?.sku === sku ? null : r));
+  }
 
   function validate(): boolean {
     const errors: Record<string, string> = {};
@@ -145,7 +135,15 @@ export function CheckoutForm() {
       });
       const json = await res.json() as Record<string, unknown>;
       if (!res.ok) {
-        toast.error((json.error as string) || "Could not create order. Please try again.");
+        // The server names the SKU it refused; point at the line instead of echoing the code.
+        const line = typeof json.sku === "string" ? cart.find((l) => l.sku === json.sku) : undefined;
+        if (line) {
+          const check: LineCheck = json.code === "OUT_OF_STOCK" || res.status === 409 ? { kind: "sold_out" } : { kind: "unavailable" };
+          setRefused({ sku: line.sku, check });
+          toast.error(`“${line.name}” ${check.kind === "sold_out" ? "just sold out" : "is no longer available"}. Remove it from your bag to continue.`);
+        } else {
+          toast.error((json.error as string) || "Could not create order. Please try again.");
+        }
         setCheckoutState("idle");
         return;
       }
@@ -189,7 +187,7 @@ export function CheckoutForm() {
           const verifyJson = await verifyRes.json() as Record<string, unknown>;
           if (verifyRes.ok && verifyJson.success) {
             // Clear cart after successful payment.
-            localCartStore.clear();
+            bag.clear();
             setOrderSuccess({
               orderId: orderData.orderId,
               orderNumber: typeof verifyJson.orderNumber === "number" ? verifyJson.orderNumber : null,
@@ -218,14 +216,6 @@ export function CheckoutForm() {
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     new window.Razorpay(options as any).open();
-  }
-
-  if (!cartLoaded) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <Spinner />
-      </div>
-    );
   }
 
   if (checkoutState === "success" && orderSuccess) {
@@ -339,17 +329,34 @@ export function CheckoutForm() {
           <section className="rounded-md border border-line-strong p-5 space-y-4">
             <h2 className="type-h3">Order summary</h2>
             <ul className="space-y-3">
-              {cart.map((line) => (
-                <li key={line.sku} className="flex items-start justify-between gap-3 text-sm">
-                  <div className="min-w-0">
-                    <p className="font-medium text-ink leading-snug">{line.name}</p>
-                    {line.optionLabel && <p className="text-ink-subtle">{line.optionLabel}</p>}
-                    <p className="text-ink-subtle">Qty: {line.quantity}</p>
-                  </div>
-                  <span className="shrink-0 font-medium text-ink">{formatPaise(line.unitPricePaise * line.quantity)}</span>
-                </li>
-              ))}
+              {cart.map((line) => {
+                const check = checks.get(line.sku);
+                const problem = check ? describeLineCheck(check) : null;
+                return (
+                  <li key={line.sku} className="flex items-start justify-between gap-3 text-sm">
+                    <div className="min-w-0">
+                      <p className={`font-medium leading-snug ${problem ? "text-ink-muted line-through" : "text-ink"}`}>{line.name}</p>
+                      {line.optionLabel && <p className="text-ink-subtle">{line.optionLabel}</p>}
+                      <p className="text-ink-subtle">Qty: {line.quantity}</p>
+                      {problem ? (
+                        <p className="mt-1 text-danger">
+                          {problem}{" "}
+                          <button type="button" onClick={() => removeLine(line.sku)} disabled={busy} className="underline underline-offset-4 hover:text-ink">
+                            Remove
+                          </button>
+                        </p>
+                      ) : null}
+                    </div>
+                    <span className={`shrink-0 font-medium ${problem ? "text-ink-muted line-through" : "text-ink"}`}>{formatPaise(unitPrice(line) * line.quantity)}</span>
+                  </li>
+                );
+              })}
             </ul>
+            {!purchasable ? (
+              <p role="alert" className="rounded-sm border border-danger/30 bg-danger/5 px-3 py-2 text-xs text-ink">
+                Some pieces in your bag can no longer be bought. Remove them to continue.
+              </p>
+            ) : null}
             <div className="border-t border-line pt-3 text-sm text-ink-subtle">
               <p>Estimated subtotal: <span className="font-medium text-ink">{formatPaise(clientSubtotal)}</span></p>
               <p className="mt-0.5 text-xs">Final price is confirmed by the server. Shipping and any discounts are applied at payment.</p>
@@ -361,8 +368,8 @@ export function CheckoutForm() {
             <Input id="coupon" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="Optional" disabled={busy} />
           </section>
 
-          <Button type="submit" variant="primary" size="lg" className="w-full" disabled={busy} aria-busy={busy}>
-            {busy ? <><Spinner className="size-4" /> Processing…</> : "Proceed to pay"}
+          <Button type="submit" variant="primary" size="lg" className="w-full" disabled={busy || availability.checking || !purchasable} aria-busy={busy || availability.checking}>
+            {busy ? <><Spinner className="size-4" /> Processing…</> : availability.checking ? <><Spinner className="size-4" /> Checking your bag…</> : "Proceed to pay"}
           </Button>
 
           <p className="text-xs text-ink-subtle text-center">
