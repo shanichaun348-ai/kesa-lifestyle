@@ -36,8 +36,9 @@ export default async function EditProductPage({ params, searchParams }: Props) {
             {canWrite && product.status !== "active" ? (
               <form action={publishProduct.bind(null, product.slug)}>
                 <button
-                  title={hasImages ? "Make this product visible in the store" : "Add at least one photo first"}
-                  className="inline-flex h-9 items-center rounded-md border border-success bg-success/10 px-3 text-sm font-medium text-success hover:bg-success hover:text-bg"
+                  disabled={!hasImages}
+                  title={hasImages ? "Make this product visible in the store" : "Upload photos and click 'Save draft' first, then Publish"}
+                  className="inline-flex h-9 items-center rounded-md border border-success bg-success/10 px-3 text-sm font-medium text-success hover:bg-success hover:text-bg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-success/10 disabled:hover:text-success"
                 >
                   Publish
                 </button>
@@ -58,7 +59,7 @@ export default async function EditProductPage({ params, searchParams }: Props) {
         </p>
       ) : null}
       {flags.published ? <p role="status" className="rounded-md border border-success/30 bg-success/5 px-4 py-3 text-sm text-success">Published — this product is now visible in the store.</p> : null}
-      {flags.error === "no-image" ? <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">Add at least one photo and save before publishing.</p> : null}
+      {flags.error === "no-image" ? <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">Add at least one photo, then click <strong>&ldquo;Save draft&rdquo;</strong> at the bottom of the form — only after saving will the Publish button become active.</p> : null}
       {flags.error === "publish-failed" || flags.error === "unpublish-failed" ? (
         <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">
           The status change could not be saved. Try again; if it keeps failing, check the server logs.
