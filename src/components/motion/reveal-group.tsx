@@ -19,18 +19,17 @@ type RevealGroupProps = {
  */
 export function RevealGroup({ className, threshold = 0.25, children }: RevealGroupProps) {
   const ref = React.useRef<HTMLDivElement>(null);
-  const [ready, setReady] = React.useState(false);
-  const [inView, setInView] = React.useState(false);
 
   React.useEffect(() => {
     const el = ref.current;
     if (!el) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    setReady(true);
+    // Attributes are toggled on the DOM node directly: no re-render is needed, the CSS reacts.
+    el.dataset.ready = "true";
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry?.isIntersecting) {
-          setInView(true);
+          el.dataset.in = "true";
           observer.disconnect();
         }
       },
@@ -41,7 +40,7 @@ export function RevealGroup({ className, threshold = 0.25, children }: RevealGro
   }, [threshold]);
 
   return (
-    <div ref={ref} className={cn("roll-in-group", className)} data-ready={ready || undefined} data-in={inView || undefined}>
+    <div ref={ref} className={cn("roll-in-group", className)}>
       {children}
     </div>
   );
