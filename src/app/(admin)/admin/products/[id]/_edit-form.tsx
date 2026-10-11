@@ -310,8 +310,15 @@ export function ProductEditForm({ product, categories }: { product: Product; cat
         <button type="submit" disabled={pending} className="inline-flex h-10 items-center rounded-md border border-ink bg-ink px-5 text-sm font-medium text-bg hover:border-brand-hover hover:bg-brand-hover disabled:opacity-50">
           {pending ? "Saving…" : status === "active" ? "Save & keep published" : "Save draft"}
         </button>
-        <a href={`/products/${product.slug}/`} target="_blank" rel="noopener" className="inline-flex h-10 items-center rounded-md border border-line bg-surface px-5 text-sm text-ink hover:bg-surface-muted">
-          Preview in store ↗
+        {/* Drafts are not served at /products/, so they open through the admin-only preview route. Save first: the preview shows what is stored. */}
+        <a
+          href={product.status === "active" ? `/products/${product.slug}/` : `/preview/products/${product.slug}/`}
+          target="_blank"
+          rel="noopener"
+          title={product.status === "active" ? "Open the live product page" : "Shows the saved draft as shoppers will see it once published"}
+          className="inline-flex h-10 items-center rounded-md border border-line bg-surface px-5 text-sm text-ink hover:bg-surface-muted"
+        >
+          {product.status === "active" ? "View in store ↗" : "Preview draft ↗"}
         </a>
       </div>
     </form>
