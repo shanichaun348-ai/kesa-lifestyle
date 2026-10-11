@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { PageHeader } from "@/components/admin/page-header";
+import { PendingButton } from "@/components/admin/pending-button";
 import { productStatusBadge } from "@/components/admin/status-badge";
 import { requireAdmin } from "@/modules/admin/guard";
 import { hasPermission } from "@/modules/admin/rbac";
@@ -35,18 +36,21 @@ export default async function EditProductPage({ params, searchParams }: Props) {
             {productStatusBadge(product.status)}
             {canWrite && product.status !== "active" ? (
               <form action={publishProduct.bind(null, product.slug)}>
-                <button
+                <PendingButton
+                  pendingLabel="Publishing…"
                   disabled={!hasImages}
                   title={hasImages ? "Make this product visible in the store" : "Upload photos and click 'Save draft' first, then Publish"}
                   className="inline-flex h-9 items-center rounded-md border border-success bg-success/10 px-3 text-sm font-medium text-success hover:bg-success hover:text-bg disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-success/10 disabled:hover:text-success"
                 >
                   Publish
-                </button>
+                </PendingButton>
               </form>
             ) : null}
             {canWrite && product.status === "active" ? (
               <form action={unpublishProduct.bind(null, product.slug)}>
-                <button className="inline-flex h-9 items-center rounded-md border border-line px-3 text-sm text-ink hover:bg-surface-muted">Unpublish</button>
+                <PendingButton pendingLabel="Unpublishing…" className="inline-flex h-9 items-center rounded-md border border-line px-3 text-sm text-ink hover:bg-surface-muted disabled:opacity-60">
+                  Unpublish
+                </PendingButton>
               </form>
             ) : null}
           </div>
@@ -67,7 +71,9 @@ export default async function EditProductPage({ params, searchParams }: Props) {
       ) : null}
 
       {canWrite ? (
-        <ProductEditForm product={product} categories={categories} />
+        // Keyed by status: after Publish redirects back here the form remounts with the new
+        // visibility instead of keeping "Draft" in its state (and unpublishing on the next save).
+        <ProductEditForm key={`${product.slug}:${product.status}`} product={product} categories={categories} />
       ) : (
         <section className="rounded-md border border-line bg-surface p-5 space-y-3 text-sm">
           <h2 className="font-medium text-ink">Summary</h2>
@@ -88,10 +94,14 @@ export default async function EditProductPage({ params, searchParams }: Props) {
           <h2 className="text-sm font-medium text-danger">Danger zone</h2>
           <div className="flex flex-wrap gap-3">
             <form action={archiveProduct.bind(null, product.slug)}>
-              <button className="rounded-md border border-warning/30 bg-warning/5 px-4 py-2 text-sm text-warning hover:bg-warning/10">Archive (discontinue)</button>
+              <PendingButton pendingLabel="Archiving…" className="rounded-md border border-warning/30 bg-warning/5 px-4 py-2 text-sm text-warning hover:bg-warning/10 disabled:opacity-60">
+                Archive (discontinue)
+              </PendingButton>
             </form>
             <form action={deleteProduct.bind(null, product.slug)}>
-              <button className="rounded-md border border-danger/30 bg-danger/5 px-4 py-2 text-sm text-danger hover:bg-danger/10">Delete permanently</button>
+              <PendingButton pendingLabel="Deleting…" className="rounded-md border border-danger/30 bg-danger/5 px-4 py-2 text-sm text-danger hover:bg-danger/10 disabled:opacity-60">
+                Delete permanently
+              </PendingButton>
             </form>
           </div>
           <p className="text-xs text-ink-subtle">Archiving keeps the product&rsquo;s history and redirects its old URL. Delete only products that were never sold.</p>

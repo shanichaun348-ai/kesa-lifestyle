@@ -92,6 +92,29 @@ export function ProductEditForm({ product, categories }: { product: Product; cat
   const categoryKnown = categories.some((c) => c.path === categoryPath);
 
   const updateImage = (k: number, patch: Partial<ImageRow>) => setImages((rows) => rows.map((r) => (r.key === k ? { ...r, ...patch } : r)));
+  const moveImage = (from: number, to: number) =>
+    setImages((rows) => {
+      if (from === to || from < 0 || to < 0 || from >= rows.length || to >= rows.length) return rows;
+      const next = [...rows];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved!);
+      return next;
+    });
+
+  // Drag a photo row by its handle to reorder; the first row is the main photo.
+  const [dragKey, setDragKey] = React.useState<number | null>(null);
+  const [overKey, setOverKey] = React.useState<number | null>(null);
+  const endDrag = () => {
+    setDragKey(null);
+    setOverKey(null);
+  };
+  const dropOn = (targetKey: number) => {
+    if (dragKey === null) return;
+    const from = images.findIndex((r) => r.key === dragKey);
+    const to = images.findIndex((r) => r.key === targetKey);
+    moveImage(from, to);
+    endDrag();
+  };
   const updateVariant = (k: number, patch: Partial<VariantRow>) => setVariants((rows) => rows.map((r) => (r.key === k ? { ...r, ...patch } : r)));
 
   const imagesJson = JSON.stringify(images.filter((i) => i.src.trim()).map(({ src, alt }) => ({ src, alt })));
@@ -191,11 +214,47 @@ export function ProductEditForm({ product, categories }: { product: Product; cat
             <button type="button" onClick={() => setImages((rows) => [...rows, { key: key(), src: "", alt: "" }])} className="text-xs text-brand hover:underline">+ Add by URL</button>
           </div>
         </div>
-        <p className={HINT + " -mt-2"}>JPEG, PNG or WebP up to 8 MB each. Use portrait photos at 4:5 — 1200×1500 px (or 1600×2000) — with the piece in the middle; listings crop a little off the top and bottom. The first photo is the main one shown in listings — use &ldquo;Make main&rdquo; to reorder.</p>
+        <p className={HINT + " -mt-2"}>JPEG, PNG or WebP up to 8 MB each. Use portrait photos at 4:5 — 1200×1500 px (or 1600×2000) — with the piece in the middle; listings crop a little off the top and bottom. The first photo is the main one shown in listings — drag a photo by its handle (or use the arrows) to reorder.</p>
         {uploadError ? <p role="alert" className="rounded-sm border border-danger/30 bg-danger/5 px-3 py-2 text-xs text-danger">{uploadError}</p> : null}
         <ul className="space-y-3">
           {images.map((img, idx) => (
-            <li key={img.key} className="flex flex-col gap-3 rounded-md border border-line p-3 sm:flex-row sm:items-start">
+            <li
+              key={img.key}
+              onDragOver={(e) => {
+                if (dragKey === null || dragKey === img.key) return;
+                e.preventDefault();
+                e.dataTransfer.dropEffect = "move";
+                if (overKey !== img.key) setOverKey(img.key);
+              }}
+              onDragLeave={() => {
+                if (overKey === img.key) setOverKey(null);
+              }}
+              onDrop={(e) => {
+                e.preventDefault();
+                dropOn(img.key);
+              }}
+              className={cn(
+                "flex flex-col gap-3 rounded-md border p-3 transition-colors sm:flex-row sm:items-start",
+                overKey === img.key && dragKey !== img.key ? "border-brand bg-brand/5" : "border-line",
+                dragKey === img.key && "opacity-50",
+              )}
+            >
+              {images.length > 1 ? (
+                <span
+                  draggable={!pending}
+                  onDragStart={(e) => {
+                    setDragKey(img.key);
+                    e.dataTransfer.effectAllowed = "move";
+                    e.dataTransfer.setData("text/plain", String(img.key));
+                  }}
+                  onDragEnd={endDrag}
+                  title="Drag to reorder"
+                  aria-hidden="true"
+                  className="hidden shrink-0 cursor-grab select-none self-center text-lg leading-none text-ink-subtle hover:text-ink active:cursor-grabbing sm:block"
+                >
+                  ⋮⋮
+                </span>
+              ) : null}
               <div className="relative size-20 shrink-0 overflow-hidden rounded-sm border border-line bg-surface-muted">
                 {img.src.trim() ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -215,9 +274,15 @@ export function ProductEditForm({ product, categories }: { product: Product; cat
                   <input value={img.alt} onChange={(e) => updateImage(img.key, { alt: e.target.value })} disabled={pending} placeholder="e.g. Gold hoop earrings on a model" className={INPUT} />
                 </div>
               </div>
-              <div className="flex shrink-0 gap-3 sm:flex-col sm:items-end sm:pt-5">
+              <div className="flex shrink-0 flex-wrap gap-3 sm:flex-col sm:items-end sm:pt-5">
+                {images.length > 1 ? (
+                  <span className="flex gap-1">
+                    <button type="button" onClick={() => moveImage(idx, idx - 1)} disabled={pending || idx === 0} aria-label="Move photo up" className="inline-flex size-7 items-center justify-center rounded-sm border border-line text-xs text-ink hover:bg-surface-muted disabled:opacity-40">↑</button>
+                    <button type="button" onClick={() => moveImage(idx, idx + 1)} disabled={pending || idx === images.length - 1} aria-label="Move photo down" className="inline-flex size-7 items-center justify-center rounded-sm border border-line text-xs text-ink hover:bg-surface-muted disabled:opacity-40">↓</button>
+                  </span>
+                ) : null}
                 {idx > 0 ? (
-                  <button type="button" onClick={() => setImages((rows) => [img, ...rows.filter((r) => r.key !== img.key)])} className="text-sm text-brand hover:underline">Make main</button>
+                  <button type="button" onClick={() => moveImage(idx, 0)} className="text-sm text-brand hover:underline">Make main</button>
                 ) : null}
                 {images.length > 1 ? (
                   <button type="button" onClick={() => setImages((rows) => rows.filter((r) => r.key !== img.key))} className="text-sm text-danger hover:underline">Remove</button>
