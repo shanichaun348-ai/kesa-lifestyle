@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
+import { Tilt } from "@/components/motion/tilt";
 import { Price } from "@/components/storefront/price";
 import { QuickAddButton } from "@/components/storefront/quick-add-button";
 import { QuickViewButton } from "@/components/storefront/quick-view-button";
@@ -62,7 +63,7 @@ export function ProductCard({ product, priority = false, className }: ProductCar
 
   return (
     <article className={cn("group/card relative flex flex-col", className)}>
-      <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-surface-muted">
+      <Tilt className="sheen relative aspect-[3/4] overflow-hidden rounded-sm bg-surface-muted">
         <Image
           src={product.image.src}
           alt={product.image.alt}
@@ -125,7 +126,7 @@ export function ProductCard({ product, priority = false, className }: ProductCar
             )}
           />
         ) : null}
-      </div>
+      </Tilt>
 
       <div className="mt-3 flex flex-col gap-1">
         <h3 className="line-clamp-2 font-sans text-sm leading-snug font-normal text-ink">

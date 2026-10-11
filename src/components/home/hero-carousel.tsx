@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 
+import { Parallax } from "@/components/motion/tilt";
 import { cn } from "@/lib/utils";
 
 export type HeroSlide = {
@@ -37,7 +38,7 @@ function SlideImage({ src, alt, priority, className }: { src: string; alt: strin
         loading={priority ? "eager" : "lazy"}
         sizes="100vw"
         quality={85}
-        className="object-cover object-center"
+        className="parallax-layer object-cover object-center"
       />
     </div>
   );
@@ -125,7 +126,7 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
             <Link href={slide.href} aria-label={slide.cta} className="block outline-none focus-visible:[&>div]:ring-4 focus-visible:[&>div]:ring-inset focus-visible:[&>div]:ring-on-image/70">
               {/* Fixed shapes the artwork is produced for: 2.4:1 banners (2560×1067) on tablets and up, 4:5 portrait
                   (1080×1350) on phones when a portrait file exists. */}
-              <div className={cn("relative w-full aspect-[12/5]", slide.mobileSrc && "max-sm:aspect-[4/5]")}>
+              <Parallax className={cn("relative w-full aspect-[12/5]", slide.mobileSrc && "max-sm:aspect-[4/5]")}>
                 {slide.mobileSrc ? (
                   <>
                     <SlideImage src={slide.mobileSrc} alt={slide.alt} priority={i === 0} className="sm:hidden" />
@@ -134,7 +135,7 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
                 ) : (
                   <SlideImage src={slide.src} alt={slide.alt} priority={i === 0} />
                 )}
-              </div>
+              </Parallax>
             </Link>
           </li>
         ))}
