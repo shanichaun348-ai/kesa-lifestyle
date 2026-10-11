@@ -57,13 +57,6 @@ export const metadata: Metadata = {
  */
 const HERO_SLIDES: readonly HeroSlide[] = [
   {
-    src: "/images/hero/style-that-feels-like-you-desktop.png",
-    mobileSrc: "/images/hero/style-that-feels-like-you-mobile-4x5.jpg",
-    alt: "Kesa Lifestyle — Style that feels like you. A model in an embroidered cream saree wearing a gold-tone crystal flower necklace and matching drop earrings.",
-    href: "/women/",
-    cta: "Shop the collection",
-  },
-  {
     src: "/images/hero/necklace-showcase.jpg",
     alt: "A model in a black embroidered saree wearing a gold-tone crystal pendant necklace, beside gold-tone crystal lariat necklaces and an Om pendant on display stands.",
     href: "/women/necklaces/",
