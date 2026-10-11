@@ -35,7 +35,7 @@ export function CategoryTiles({ categories }: { categories: readonly Category[] 
               href={c.href}
               className="group/cat flex flex-col items-center gap-3 outline-none focus-visible:[&>span:first-child]:ring-2 focus-visible:[&>span:first-child]:ring-brand focus-visible:[&>span:first-child]:ring-offset-4"
             >
-              <span className="relative block aspect-[5/8] w-full overflow-hidden rounded-t-full rounded-b-md bg-surface-muted ring-1 ring-line transition-[transform,box-shadow,ring-color] duration-400 ease-(--ease-standard) motion-safe:group-hover/cat:-translate-y-1.5 group-hover/cat:shadow-(--shadow-float) group-hover/cat:ring-ink/40">
+              <span className="relative block aspect-[4/5] w-full overflow-hidden rounded-t-full rounded-b-md bg-surface-muted ring-1 ring-line transition-[transform,box-shadow,ring-color] duration-400 ease-(--ease-standard) motion-safe:group-hover/cat:-translate-y-1.5 group-hover/cat:shadow-(--shadow-float) group-hover/cat:ring-ink/40">
                 <Image
                   src={c.image.src}
                   alt=""
