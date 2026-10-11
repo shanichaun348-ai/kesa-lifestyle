@@ -39,6 +39,7 @@ export const sampleHeaderMenus: NavMenu[] = [
         heading: "Shop by type",
         links: [
           { label: "Necklaces", href: "/women/necklaces/" },
+          { label: "Pendants", href: "/women/pendants/" },
           { label: "Earrings", href: "/women/earrings/" },
           { label: "Rings", href: "/women/rings/" },
           { label: "Bracelets", href: "/women/bracelets/" },

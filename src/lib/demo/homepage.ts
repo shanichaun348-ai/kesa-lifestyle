@@ -35,6 +35,7 @@ export const demoGenderTiles = [
 export const demoCategories = [
   { label: "Earrings", href: "/women/earrings/", image: { src: "/images/categories/earrings.jpg", alt: "" } },
   { label: "Necklaces", href: "/women/necklaces/", image: { src: "/images/categories/necklace.jpg", alt: "" } },
+  { label: "Pendants", href: "/women/pendants/", image: { src: "/images/categories/pendant.jpg", alt: "" } },
   { label: "Bracelets", href: "/women/bracelets/", image: { src: "/images/categories/bracelet.jpg", alt: "" } },
   // No dedicated mangalsutra category yet; they live under necklaces.
   { label: "Mangalsutra", href: "/women/necklaces/", image: { src: "/images/categories/mangalsutra.jpg", alt: "" } },

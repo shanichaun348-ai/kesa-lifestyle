@@ -27,7 +27,7 @@ describe("development seed", () => {
     expect(summary.products).toBe(seedProducts.length);
     expect(summary.variants).toBe(seedProducts.reduce((n, p) => n + p.variants.length, 0));
     expect(summary.images).toBe(seedProducts.reduce((n, p) => n + p.images.length, 0));
-    expect(summary.categories).toBe(12);
+    expect(summary.categories).toBe(13);
     expect(summary.collections).toBe(7);
     expect(summary.navigationItems).toBeGreaterThan(20);
   });

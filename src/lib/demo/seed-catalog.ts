@@ -135,6 +135,24 @@ const categorySpecs: CategorySpec[] = [
   },
   {
     gender: "women",
+    slug: "pendants",
+    name: "Pendants",
+    titleNoun: "Pendants for Women",
+    intro: "Pendants with and without chains: stone-set, floral, lockets and minimal drops in gold tone and silver tone.",
+    body: [
+      "A pendant is the easiest piece to wear every day: one chain, one focal point. Choose a small pendant for a high neckline and a longer drop for a V-neck or an open collar.",
+      "Each listing says whether the chain is included and what length it is. Pendants with a plain bail fit most 1–2 mm chains you already own.",
+    ],
+    faq: [
+      { question: "Does the pendant come with a chain?", answer: "Each product page says so under the price. Where a chain is included its length is listed; otherwise the bail size tells you which chains will fit." },
+      { question: "Which chain length suits a pendant?", answer: "18 inch sits just below the collarbone and suits most pendants; go 20–22 inch for a longer drop over a kurta or a deep neckline." },
+    ],
+    image: placeholder(2, ""),
+    dimensions: "Pendant 2 cm; chain 45 cm where included",
+    stylingTips: ["One pendant, no other necklace: let it be the focal point.", "Match the pendant metal to your earrings, not to your outfit.", "A small pendant on a short chain suits high necklines; a drop pendant suits a V-neck."],
+  },
+  {
+    gender: "women",
     slug: "earrings",
     name: "Earrings",
     titleNoun: "Earrings for Women",
