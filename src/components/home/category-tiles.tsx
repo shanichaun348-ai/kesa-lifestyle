@@ -26,7 +26,7 @@ export function CategoryTiles({ categories }: { categories: readonly Category[] 
         className="mb-8"
       />
       <ul
-        className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-[repeat(var(--cols),minmax(0,1fr))] md:gap-8 md:overflow-visible md:px-0 lg:mx-auto lg:max-w-5xl"
+        className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-[repeat(var(--cols),minmax(0,1fr))] md:gap-8 md:overflow-visible md:px-0 lg:gap-10"
         style={{ "--cols": categories.length } as CSSProperties}
       >
         {categories.map((c, i) => (
@@ -41,7 +41,7 @@ export function CategoryTiles({ categories }: { categories: readonly Category[] 
                   alt=""
                   fill
                   priority={i < 2}
-                  sizes="(min-width: 1024px) 200px, (min-width: 768px) 18vw, 38vw"
+                  sizes="(min-width: 1280px) 220px, (min-width: 768px) 18vw, 38vw"
                   unoptimized={c.image.unoptimized ?? false}
                   className="object-cover transition-transform duration-700 ease-(--ease-standard) motion-safe:group-hover/cat:scale-110"
                 />
