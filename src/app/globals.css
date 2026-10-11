@@ -480,4 +480,33 @@ html[data-theme="dark"] {
     transform: translate3d(calc(var(--px, 0) * -10px), calc(var(--py, 0) * -8px), 0) scale(1.03);
     transition: transform 700ms var(--ease-standard);
   }
+
+  /* Staggered "roll in" entrance (src/components/motion/reveal-group.tsx).
+     Items are hidden only once the group has mounted, and animate the first
+     time it scrolls into view; each item sets --i for its delay. */
+  .roll-in-group[data-ready] .roll-in-item {
+    opacity: 0;
+  }
+  .roll-in-group[data-in] .roll-in-item {
+    animation: roll-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(var(--i, 0) * 130ms);
+  }
+}
+
+@keyframes roll-in {
+  0% {
+    opacity: 0;
+    transform: translateX(-80px) rotate(-22deg) scale(0.82);
+  }
+  65% {
+    opacity: 1;
+    transform: translateX(10px) rotate(3deg) scale(1.03);
+  }
+  85% {
+    transform: translateX(-3px) rotate(-1deg) scale(0.995);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
 }
