@@ -12,8 +12,8 @@ type Category = {
 };
 
 /**
- * Shop by category as a row of circular bubbles. Horizontal snap rail on
- * phones, evenly spaced on desktop. Images are decorative (empty alt); the
+ * Shop by category as a row of tall arches (rounded top, square base).
+ * Horizontal snap rail on phones, evenly spaced on desktop. Images are decorative (empty alt); the
  * label carries the meaning. The first two tiles load with priority.
  */
 export function CategoryTiles({ categories }: { categories: readonly Category[] }) {
@@ -26,22 +26,22 @@ export function CategoryTiles({ categories }: { categories: readonly Category[] 
         className="mb-8"
       />
       <ul
-        className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-[repeat(var(--cols),minmax(0,1fr))] md:gap-8 md:overflow-visible md:px-0 lg:mx-auto lg:max-w-4xl"
+        className="no-scrollbar -mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-[repeat(var(--cols),minmax(0,1fr))] md:gap-8 md:overflow-visible md:px-0 lg:mx-auto lg:max-w-5xl"
         style={{ "--cols": categories.length } as CSSProperties}
       >
         {categories.map((c, i) => (
-          <li key={c.href} className="w-[34vw] shrink-0 snap-start sm:w-[22vw] md:w-auto">
+          <li key={c.href} className="w-[38vw] shrink-0 snap-start sm:w-[24vw] md:w-auto">
             <Link
               href={c.href}
               className="group/cat flex flex-col items-center gap-3 outline-none focus-visible:[&>span:first-child]:ring-2 focus-visible:[&>span:first-child]:ring-brand focus-visible:[&>span:first-child]:ring-offset-4"
             >
-              <span className="relative block aspect-square w-full overflow-hidden rounded-full bg-surface-muted ring-1 ring-line transition-[transform,box-shadow,ring-color] duration-400 ease-(--ease-standard) motion-safe:group-hover/cat:-translate-y-1.5 group-hover/cat:shadow-(--shadow-float) group-hover/cat:ring-ink/40">
+              <span className="relative block aspect-[5/8] w-full overflow-hidden rounded-t-full rounded-b-md bg-surface-muted ring-1 ring-line transition-[transform,box-shadow,ring-color] duration-400 ease-(--ease-standard) motion-safe:group-hover/cat:-translate-y-1.5 group-hover/cat:shadow-(--shadow-float) group-hover/cat:ring-ink/40">
                 <Image
                   src={c.image.src}
                   alt=""
                   fill
                   priority={i < 2}
-                  sizes="(min-width: 768px) 16vw, 30vw"
+                  sizes="(min-width: 1024px) 200px, (min-width: 768px) 18vw, 38vw"
                   unoptimized={c.image.unoptimized ?? false}
                   className="object-cover transition-transform duration-700 ease-(--ease-standard) motion-safe:group-hover/cat:scale-110"
                 />
