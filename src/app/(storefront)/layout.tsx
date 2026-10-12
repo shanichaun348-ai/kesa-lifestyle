@@ -26,7 +26,8 @@ export default function StorefrontLayout({ children }: LayoutProps<"/">) {
         linkLabel="Shop new in"
       />
       <SiteHeader menus={sampleHeaderMenus} secondaryLinks={secondaryLinks} />
-      <main id="main" className="flex-1">
+      {/* overflow-x-clip: a stray wide element can never widen the page on a phone; sticky still works since clip is not a scroll container. */}
+      <main id="main" className="flex-1 overflow-x-clip">
         {children}
       </main>
       <SiteFooter columns={sampleFooterColumns} />

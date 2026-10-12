@@ -33,7 +33,7 @@ export default function GrievanceOfficerPage() {
               If you have a complaint about an order, a product, a refund or anything else relating to
               your experience with {site.name}, you can contact our Grievance Officer directly.
             </p>
-            <dl className="mt-4 grid gap-x-6 gap-y-3 rounded-md border border-line bg-surface p-5 text-sm sm:grid-cols-[140px_1fr]">
+            <dl className="mt-4 grid grid-cols-1 gap-x-6 gap-y-3 rounded-md border border-line bg-surface p-5 text-sm sm:grid-cols-[140px_minmax(0,1fr)]">
               <dt className="text-ink-subtle">Name</dt>
               <dd className="text-ink">{officer.name}</dd>
               <dt className="text-ink-subtle">Designation</dt>

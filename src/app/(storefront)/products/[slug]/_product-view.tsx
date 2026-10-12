@@ -120,7 +120,7 @@ export async function ProductView({ product, requestedSku, preview = false }: Pr
       ) : null}
       <Breadcrumbs items={breadcrumbs} />
 
-      <article className="mt-5 grid gap-8 lg:mt-8 lg:grid-cols-12 lg:gap-12">
+      <article className="mt-5 grid grid-cols-1 gap-8 lg:mt-8 lg:grid-cols-12 lg:gap-12">
         <div className="lg:col-span-7">
           <ProductGallery productName={product.name} items={galleryItems} />
         </div>

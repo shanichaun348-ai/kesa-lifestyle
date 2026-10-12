@@ -15,7 +15,7 @@ type BrandStatementProps = {
 export function BrandStatement({ eyebrow, statement, body, link, image }: BrandStatementProps) {
   return (
     <section aria-labelledby="brand-title" className="bg-surface-muted/70 py-14 lg:py-24">
-      <div className="container-page reveal grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-16">
+      <div className="container-page reveal grid grid-cols-1 gap-10 lg:grid-cols-12 lg:items-center lg:gap-16">
         <div className="flex flex-col gap-6 lg:col-span-7">
           <p className="type-eyebrow text-ink-subtle">{eyebrow}</p>
           <h2 id="brand-title" className="type-h1 max-w-2xl">

@@ -179,7 +179,7 @@ export function CheckoutForm({ initialCart, razorpayKeyId, codEnabled, retry }: 
   const err = (key: string) => fieldErrors[key];
 
   return (
-    <div className="grid gap-10 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-16">
+    <div className="grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_24rem] lg:gap-16">
       <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-10" noValidate aria-busy={busy}>
         {message ? (
           <Alert variant={stage === "failed" || stage === "form" ? "danger" : "warning"}>

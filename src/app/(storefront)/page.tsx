@@ -6,7 +6,7 @@ export const revalidate = 60;
 
 import { BrandStatement } from "@/components/home/brand-statement";
 import { CategoryTiles } from "@/components/home/category-tiles";
-import { HeroCarousel, type HeroSlide } from "@/components/home/hero-carousel";
+import { HeroCarousel } from "@/components/home/hero-carousel";
 import { JournalPreview } from "@/components/home/journal-preview";
 import { NewsletterBand } from "@/components/home/newsletter-band";
 import { ProductSection } from "@/components/home/product-section";
@@ -34,6 +34,7 @@ import {
   demoUgcPosts,
   demoWhyKesa,
 } from "@/lib/demo/homepage";
+import { HERO_SLIDES } from "@/lib/hero-slides";
 import { homeReel } from "@/lib/home-reel";
 import { site } from "@/lib/site";
 import { organizationJsonLd, websiteJsonLd } from "@/modules/seo/structured-data";
@@ -58,55 +59,6 @@ export const metadata: Metadata = {
  * dismissal, wishlist and quick-add buttons). In Phase 1 the section list and
  * its content come from `homepage_sections`; today it is demo data.
  */
-const HERO_SLIDES: readonly HeroSlide[] = [
-  {
-    src: "/images/hero/necklace-showcase.jpg",
-    alt: "A model in a black embroidered saree wearing a gold-tone crystal pendant necklace, beside gold-tone crystal lariat necklaces and an Om pendant on display stands.",
-    href: "/women/necklaces/",
-    cta: "Shop necklaces",
-  },
-  {
-    src: "/images/hero/necklace-edit.jpg",
-    alt: "Kesa Lifestyle new collection — The Necklace Edit. Grace you can wear, every day. Gold-tone crystal pendant necklaces on display stands and a model wearing one.",
-    href: "/women/necklaces/",
-    cta: "Shop The Necklace Edit",
-  },
-  {
-    src: "/images/hero/everyday-grace-desktop.jpg",
-    mobileSrc: "/images/hero/everyday-grace-mobile.jpg",
-    alt: "New launch — Everyday Grace. Crafted to shine with you. Crystal Drop Edit. A model in black velvet wearing a gold-tone crystal drop necklace.",
-    href: "/collections/new-arrivals/",
-    cta: "Shop the Crystal Drop Edit",
-  },
-  {
-    src: "/images/hero/golden-bloom-desktop.jpg",
-    mobileSrc: "/images/hero/golden-bloom-mobile.jpg",
-    alt: "Festive Edit — Golden Bloom. Light up every celebration. A gold-tone crystal flower pendant necklace on a black display bust.",
-    href: "/occasion/festive-jewellery/",
-    cta: "Shop the Festive Edit",
-  },
-  {
-    src: "/images/hero/midnight-in-bloom-desktop.jpg",
-    mobileSrc: "/images/hero/midnight-in-bloom-mobile.jpg",
-    alt: "New launch — Midnight in Bloom. Petal Sparkle. A gold-tone crystal pendant necklace on midnight-blue satin with a white orchid.",
-    href: "/collections/new-arrivals/",
-    cta: "Shop Petal Sparkle",
-  },
-  {
-    src: "/images/hero/soft-glow-desktop.jpg",
-    mobileSrc: "/images/hero/soft-glow-mobile.jpg",
-    alt: "Kesa Lifestyle everyday luxe — Soft Glow. Light pieces, lasting shine. A gold-tone crystal flower pendant necklace on a cream display bust.",
-    href: "/women/necklaces/",
-    cta: "Shop Soft Glow",
-  },
-  {
-    src: "/images/hero/gift-her-sparkle-desktop.jpg",
-    mobileSrc: "/images/hero/gift-her-sparkle-mobile.jpg",
-    alt: "The Gift Edit — Gift her sparkle. Wrapped and ready to treasure. A gold-tone crystal pendant necklace draped over a black gift box.",
-    href: "/occasion/gifting/",
-    cta: "Shop gifts",
-  },
-];
 
 const RAIL_SIZE = 4;
 

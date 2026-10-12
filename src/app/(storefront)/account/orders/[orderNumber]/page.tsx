@@ -32,7 +32,7 @@ export default async function OrderDetailPage(props: PageProps<"/account/orders/
         {order.status === "pending_payment" ? <p className="type-small text-ink-muted">If you closed the payment window, place the order again from your bag.</p> : null}
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
+      <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section aria-labelledby="items-title">
           <h2 id="items-title" className="type-h3 mb-3">
             Items

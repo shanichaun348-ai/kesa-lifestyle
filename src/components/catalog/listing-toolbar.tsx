@@ -40,12 +40,12 @@ export function ListingToolbar({ basePath, params, facets, total, defaultSort, c
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 border-b border-line pb-4">
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
       <p className="type-small text-ink-muted" aria-live="polite">
         {total} {total === 1 ? "product" : "products"}
       </p>
 
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         <Sheet open={open} onOpenChange={setOpen}>
           <SheetTrigger asChild>
             <Button variant="secondary" size="sm" className="lg:hidden">
@@ -73,14 +73,14 @@ export function ListingToolbar({ basePath, params, facets, total, defaultSort, c
           </SheetContent>
         </Sheet>
 
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex min-w-0 items-center gap-2 text-sm">
           <span className="sr-only sm:not-sr-only sm:text-ink-muted">Sort</span>
           <select
             name="sort"
             value={currentSort}
             onChange={onSortChange}
             aria-label="Sort products"
-            className="h-9 rounded-sm border border-line-strong bg-surface px-2.5 text-sm text-ink outline-none focus-visible:border-brand focus-visible:ring-3 focus-visible:ring-brand/20"
+            className="h-9 min-w-0 rounded-sm border border-line-strong bg-surface px-2.5 text-sm text-ink outline-none focus-visible:border-brand focus-visible:ring-3 focus-visible:ring-brand/20"
           >
             {SORT_KEYS.map((key) => (
               <option key={key} value={key}>

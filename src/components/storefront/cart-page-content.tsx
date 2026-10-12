@@ -40,7 +40,7 @@ export function CartPageContent() {
   }
 
   return (
-    <div className="mt-8 grid gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
+    <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-16">
       <ul className="divide-y divide-line border-y border-line">
         {cart.lines.map((line) => {
           const check = availability.checks.get(line.sku);

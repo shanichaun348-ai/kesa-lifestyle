@@ -18,7 +18,7 @@ export function SiteFooter({ columns }: SiteFooterProps) {
   return (
     <footer className="mt-24 border-t border-line bg-surface-muted/60">
       <div className="container-page py-12 lg:py-16">
-        <div className="grid gap-10 lg:grid-cols-[repeat(3,minmax(0,1fr))_minmax(0,1.4fr)] lg:gap-12">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[repeat(3,minmax(0,1fr))_minmax(0,1.4fr)] lg:gap-12">
           {columns.map((col) => (
             <details key={col.heading} className="group border-b border-line lg:border-0 lg:[&>summary]:pointer-events-none" open>
               <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between text-sm font-medium text-ink lg:mb-4 lg:min-h-0 lg:cursor-default [&::-webkit-details-marker]:hidden">

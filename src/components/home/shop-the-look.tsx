@@ -25,8 +25,8 @@ type ShopTheLookProps = {
 export function ShopTheLook({ eyebrow, title, description, showCopy = true, image, products, href }: ShopTheLookProps) {
   return (
     <section aria-labelledby="look-title" className="container-page">
-      <div className="reveal grid gap-8 lg:grid-cols-12 lg:items-center lg:gap-12">
-        <figure className="relative aspect-[4/5] overflow-hidden rounded-sm bg-surface-muted lg:col-span-7">
+      <div className="reveal grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center lg:gap-12">
+        <figure className="relative min-w-0 aspect-[4/5] overflow-hidden rounded-sm bg-surface-muted lg:col-span-7">
           <Image
             src={image.src}
             alt={image.alt}
@@ -37,7 +37,7 @@ export function ShopTheLook({ eyebrow, title, description, showCopy = true, imag
           />
         </figure>
 
-        <div className="flex flex-col gap-6 lg:col-span-5">
+        <div className="flex min-w-0 flex-col gap-6 lg:col-span-5">
           {showCopy ? (
             <div className="flex flex-col gap-2">
               {eyebrow ? <p className="type-eyebrow text-ink-subtle">{eyebrow}</p> : null}
@@ -70,7 +70,7 @@ export function ShopTheLook({ eyebrow, title, description, showCopy = true, imag
                     />
                   </span>
                   <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="truncate text-sm text-ink group-hover/piece:underline group-hover/piece:underline-offset-4">
+                    <span className="line-clamp-2 text-sm text-ink group-hover/piece:underline group-hover/piece:underline-offset-4">
                       {p.name}
                     </span>
                     <Price pricePaise={p.pricePaise} compareAtPaise={p.compareAtPaise} size="sm" />

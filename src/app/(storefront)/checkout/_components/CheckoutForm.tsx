@@ -252,7 +252,7 @@ export function CheckoutForm() {
   return (
     <>
       <Toaster position="top-center" />
-      <form onSubmit={handleSubmit} noValidate className="grid gap-8 lg:grid-cols-[1fr_380px]">
+      <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
 
         {/* ── Left: customer + address ─────────────────────────────────── */}
         <div className="space-y-8">

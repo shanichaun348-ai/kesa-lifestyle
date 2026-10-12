@@ -50,7 +50,7 @@ export function QuickViewButton({ product, className }: QuickViewButtonProps) {
         </button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-2xl">
-        <div className="grid gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">
           <div className="relative aspect-[3/4] overflow-hidden rounded-sm bg-surface-muted">
             <Image
               src={product.image.src}
