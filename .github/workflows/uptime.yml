@@ -10,7 +10,7 @@ permissions:
   issues: write
 
 env:
-  SITE_URL: https://kesa-lifestyle.vercel.app
+  SITE_URL: ${{ vars.SITE_URL || 'https://kesa-lifestyle.vercel.app' }}
 
 jobs:
   probe:

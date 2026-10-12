@@ -57,6 +57,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  // Self-contained server bundle for the Docker image (deploy/README.md). Harmless on Vercel.
+  output: "standalone",
   // Canonical URLs end with a slash (decision D18, ADR-22).
   trailingSlash: true,
   images: {

@@ -1,0 +1,75 @@
+# Kesa Lifestyle on a single server. See deploy/README.md.
+#
+#   app        Next.js (standalone) on an internal port
+#   caddy      HTTPS reverse proxy with automatic Let's Encrypt certificates
+#   scheduler  calls the job routes on a schedule (abandoned carts hourly, nightly jobs)
+#
+# Required beside this file on the server: deploy/.env.production (copy of
+# deploy/.env.production.example with real values). Never commit it.
+
+name: kesa-lifestyle
+
+services:
+  app:
+    build:
+      context: .
+      args:
+        APP_COMMIT_SHA: ${APP_COMMIT_SHA:-unknown}
+      secrets:
+        - app_env
+    image: kesa-lifestyle/app:latest
+    env_file: deploy/.env.production
+    restart: unless-stopped
+    expose:
+      - "3000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:3000/api/health/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      SITE_DOMAIN: ${SITE_DOMAIN:?set SITE_DOMAIN in deploy/.env.production}
+      ACME_EMAIL: ${ACME_EMAIL:-admin@example.com}
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "5" }
+
+  scheduler:
+    image: curlimages/curl:8.11.1
+    restart: unless-stopped
+    depends_on:
+      app:
+        condition: service_healthy
+    environment:
+      CRON_SECRET: ${CRON_SECRET:?set CRON_SECRET in deploy/.env.production}
+      APP_URL: http://app:3000
+    entrypoint: ["/bin/sh", "/scheduler.sh"]
+    volumes:
+      - ./deploy/scheduler.sh:/scheduler.sh:ro
+
+secrets:
+  app_env:
+    file: deploy/.env.production
+
+volumes:
+  caddy_data:
+  caddy_config:

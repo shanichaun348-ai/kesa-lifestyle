@@ -1,0 +1,14 @@
+.git
+.github
+.next
+node_modules
+coverage
+drizzle
+docs
+tests
+supabase/.temp
+*.log
+.env*
+!.env.example
+deploy/*.env*
+README.md

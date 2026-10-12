@@ -1,0 +1,57 @@
+name: Deploy to server
+
+# Deploys main to the company server over SSH. Does nothing until the
+# DEPLOY_HOST / DEPLOY_USER / DEPLOY_SSH_KEY secrets exist, so Vercel keeps
+# deploying meanwhile. See deploy/README.md.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-server
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+      DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/opt/kesa-lifestyle' }}
+      DEPLOY_PORT: ${{ vars.DEPLOY_PORT || '22' }}
+    steps:
+      - name: Skip until the server secrets are configured
+        if: env.DEPLOY_HOST == '' || env.DEPLOY_USER == ''
+        run: echo "::notice::DEPLOY_HOST/DEPLOY_USER not set — skipping server deploy (Vercel still deploys)."
+
+      - name: Prepare SSH
+        if: env.DEPLOY_HOST != '' && env.DEPLOY_USER != ''
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -p "$DEPLOY_PORT" -H "$DEPLOY_HOST" >> ~/.ssh/known_hosts 2>/dev/null
+
+      - name: Pull and deploy on the server
+        if: env.DEPLOY_HOST != '' && env.DEPLOY_USER != ''
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" \
+            "cd '$DEPLOY_PATH' && ./deploy/deploy.sh --pull"
+
+      - name: Verify the live commit
+        if: env.DEPLOY_HOST != '' && env.DEPLOY_USER != ''
+        run: |
+          url="${{ vars.SITE_URL }}"
+          [ -n "$url" ] || { echo "::notice::SITE_URL repo variable not set; skipping verification"; exit 0; }
+          for i in $(seq 1 12); do
+            commit=$(curl -fsS --max-time 20 "$url/api/health/" | jq -r '.commit // empty' || true)
+            [ "$commit" = "$GITHUB_SHA" ] && { echo "Live: $commit"; exit 0; }
+            sleep 10
+          done
+          echo "::error::server is not serving $GITHUB_SHA"; exit 1

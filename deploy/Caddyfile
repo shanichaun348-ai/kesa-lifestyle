@@ -1,0 +1,24 @@
+# Automatic HTTPS for the site domain. Caddy obtains and renews the
+# certificate itself; ports 80 and 443 must reach this container.
+{
+	email {$ACME_EMAIL}
+}
+
+{$SITE_DOMAIN} {
+	encode zstd gzip
+
+	header {
+		# The app sets its own security headers (next.config.ts); these only add transport hints.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		-Server
+	}
+
+	# Long-lived caching for hashed static assets and public images.
+	@static path /_next/static/* /images/* /videos/* /placeholders/* /favicon.ico
+	header @static Cache-Control "public, max-age=31536000, immutable"
+
+	reverse_proxy app:3000 {
+		header_up X-Forwarded-Proto {scheme}
+		header_up X-Real-IP {remote_host}
+	}
+}

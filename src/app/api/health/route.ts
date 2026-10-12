@@ -29,8 +29,9 @@ export async function GET(): Promise<Response> {
       status: healthy ? "ok" : "degraded",
       database,
       ...(detail ? { detail } : {}),
-      commit: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
-      env: process.env.VERCEL_ENV ?? process.env.NODE_ENV,
+      // Vercel sets VERCEL_GIT_COMMIT_SHA; the Docker image sets APP_COMMIT_SHA at build time.
+      commit: process.env.APP_COMMIT_SHA ?? process.env.VERCEL_GIT_COMMIT_SHA ?? null,
+      env: process.env.VERCEL_ENV ?? (process.env.APP_COMMIT_SHA ? "server" : process.env.NODE_ENV),
       latencyMs: Date.now() - startedAt,
       time: new Date().toISOString(),
     },

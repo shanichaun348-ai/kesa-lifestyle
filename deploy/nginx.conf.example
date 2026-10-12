@@ -1,0 +1,40 @@
+# Use this INSTEAD of the caddy service when the server already runs nginx on
+# ports 80/443 (e.g. other sites live there). Remove the `caddy` service from
+# docker-compose.yml, publish the app on 127.0.0.1:3000, and get a certificate
+# with certbot: `certbot --nginx -d kesa.dev-build.in`.
+#
+# /etc/nginx/sites-available/kesa.dev-build.in
+
+server {
+    listen 80;
+    server_name kesa.dev-build.in;
+    return 301 https://$host$request_uri;
+}
+
+server {
+    listen 443 ssl http2;
+    server_name kesa.dev-build.in;
+
+    # certbot fills these in
+    ssl_certificate     /etc/letsencrypt/live/kesa.dev-build.in/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/kesa.dev-build.in/privkey.pem;
+
+    client_max_body_size 2m;   # uploads go straight to Supabase Storage, not through the app
+    gzip on;
+    gzip_types text/plain text/css application/json application/javascript image/svg+xml;
+
+    location /_next/static/ {
+        proxy_pass http://127.0.0.1:3000;
+        add_header Cache-Control "public, max-age=31536000, immutable";
+    }
+
+    location / {
+        proxy_pass http://127.0.0.1:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_read_timeout 60s;
+    }
+}
