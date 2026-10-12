@@ -45,8 +45,9 @@ export function useZoomTracking<T extends HTMLElement>(enabled: boolean) {
 /** A large rendition for the magnified layer: through the image optimiser unless the source is a local placeholder. */
 export function zoomSource(image: ImageRef): string {
   if (image.unoptimized) return image.src;
-  // Trailing slash matches what next/image itself emits under `trailingSlash: true`.
-  return `/_next/image/?url=${encodeURIComponent(image.src)}&w=1440&q=80`;
+  // Trailing slash and q=75 match what next/image itself emits: the optimiser
+  // rejects any width or quality outside its configured set with a 400.
+  return `/_next/image/?url=${encodeURIComponent(image.src)}&w=1440&q=75`;
 }
 
 type ZoomStageProps = {
