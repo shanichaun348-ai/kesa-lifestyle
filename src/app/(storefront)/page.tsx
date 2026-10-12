@@ -7,17 +7,14 @@ export const revalidate = 60;
 import { BrandStatement } from "@/components/home/brand-statement";
 import { CategoryTiles } from "@/components/home/category-tiles";
 import { HeroCarousel } from "@/components/home/hero-carousel";
-import { JournalPreview } from "@/components/home/journal-preview";
 import { NewsletterBand } from "@/components/home/newsletter-band";
 import { ProductSection } from "@/components/home/product-section";
 import { Reviews, type HomeReview } from "@/components/home/reviews";
 import { ShopTheLook } from "@/components/home/shop-the-look";
 import { TrustMarquee } from "@/components/home/trust-marquee";
-import { UgcGrid } from "@/components/home/ugc-grid";
 import { VideoReel } from "@/components/home/video-reel";
 import { WhyKesa } from "@/components/home/why-kesa";
 import { JsonLd } from "@/components/seo/json-ld";
-import { DEMO_CONTENT_NOTICE } from "@/lib/demo/catalog";
 import { sortProducts } from "@/modules/catalog/listing";
 import { toCardData } from "@/modules/catalog/presenters";
 import { getCatalogRepository, siblingsFor } from "@/modules/catalog/queries";
@@ -29,10 +26,8 @@ import { getReviewShowcase } from "@/modules/reviews/queries";
 import {
   demoBrandStatement,
   demoCategories,
-  demoJournalPosts,
   demoLook,
   demoReviews,
-  demoUgcPosts,
   demoWhyKesa,
 } from "@/lib/demo/homepage";
 import { HERO_SLIDES } from "@/lib/hero-slides";
@@ -149,13 +144,7 @@ export default async function HomePage() {
 
         <Reviews reviews={reviews.reviews} notice={reviews.notice} />
 
-        <UgcGrid handle="kesalifestyle" posts={demoUgcPosts} />
-
-        <JournalPreview posts={demoJournalPosts} />
-
         <NewsletterBand />
-
-        <p className="container-page type-small text-ink-subtle">{DEMO_CONTENT_NOTICE}</p>
       </div>
     </>
   );
