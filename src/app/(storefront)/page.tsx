@@ -14,6 +14,7 @@ import { Reviews } from "@/components/home/reviews";
 import { ShopTheLook } from "@/components/home/shop-the-look";
 import { TrustMarquee } from "@/components/home/trust-marquee";
 import { UgcGrid } from "@/components/home/ugc-grid";
+import { VideoReel } from "@/components/home/video-reel";
 import { WhyKesa } from "@/components/home/why-kesa";
 import { JsonLd } from "@/components/seo/json-ld";
 import { DEMO_CONTENT_NOTICE } from "@/lib/demo/catalog";
@@ -33,6 +34,7 @@ import {
   demoUgcPosts,
   demoWhyKesa,
 } from "@/lib/demo/homepage";
+import { homeReel } from "@/lib/home-reel";
 import { site } from "@/lib/site";
 import { organizationJsonLd, websiteJsonLd } from "@/modules/seo/structured-data";
 
@@ -159,6 +161,8 @@ export default async function HomePage() {
           viewAll={{ label: "View all bestsellers", href: "/collections/bestsellers/" }}
           products={bestSellers}
         />
+
+        <VideoReel items={homeReel} />
 
         <BrandStatement {...demoBrandStatement} />
 

@@ -65,6 +65,8 @@ const nextConfig: NextConfig = {
     // Small fixed set of widths keeps optimisation cost predictable (docs/12 §4).
     deviceSizes: [360, 640, 828, 1080, 1440],
     imageSizes: [80, 160, 288],
+    // Next 16 serves only allow-listed qualities (others are coerced to the nearest); the hero asks for 85.
+    qualities: [75, 85],
     minimumCacheTTL: 60 * 60 * 24 * 30,
   },
   async headers() {

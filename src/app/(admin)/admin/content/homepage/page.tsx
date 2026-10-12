@@ -15,6 +15,7 @@ const SECTIONS = [
   "New arrivals (newest live products)",
   "Shop the look (editable below)",
   "Bestsellers (best-selling live products)",
+  "Kesa in motion (four product films, part of the site design)",
   "Brand statement",
   "Why Kesa",
   "Reviews",

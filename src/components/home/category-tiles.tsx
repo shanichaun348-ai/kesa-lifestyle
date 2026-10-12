@@ -33,7 +33,7 @@ export function CategoryTiles({ categories }: { categories: readonly Category[] 
         style={{ "--cols": categories.length } as CSSProperties}
       >
         {categories.map((c, i) => (
-          <li key={c.href} className="roll-in-item w-[38vw] shrink-0 snap-start sm:w-[24vw] md:w-auto" style={{ "--i": i } as CSSProperties}>
+          <li key={`${c.href}#${c.label}`} className="roll-in-item w-[38vw] shrink-0 snap-start sm:w-[24vw] md:w-auto" style={{ "--i": i } as CSSProperties}>
             <Link
               href={c.href}
               className="group/cat flex flex-col items-center gap-3 outline-none focus-visible:[&>span:first-child]:ring-2 focus-visible:[&>span:first-child]:ring-brand focus-visible:[&>span:first-child]:ring-offset-4"
