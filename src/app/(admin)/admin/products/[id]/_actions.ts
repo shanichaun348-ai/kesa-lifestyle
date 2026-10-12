@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { auditLog } from "@/modules/admin/audit";
 import { requireAdmin } from "@/modules/admin/guard";
 import { getSupabaseServiceClient } from "@/lib/supabase";
+import { validateSubmittedVideos } from "@/modules/catalog/videos";
 import { getHomeLook, setLookMembership } from "@/modules/content/home-look-server";
 import { withRailTags } from "@/modules/content/home-placements";
 
@@ -58,6 +59,11 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
   }
   if (status === "active" && images.length === 0) return { error: "Add at least one product image before publishing. Save as draft if the photos are not ready yet." };
 
+  let videosRaw: unknown = [];
+  try { videosRaw = JSON.parse(text(formData.get("videosJson")) || "[]"); } catch { return { error: "Video data was malformed — reload the page and try again." }; }
+  const videosResult = validateSubmittedVideos(videosRaw);
+  if (!videosResult.ok) return { error: videosResult.error };
+
   let variants: SubmittedVariant[] = [];
   try { variants = JSON.parse(text(formData.get("variantsJson")) || "[]"); } catch { return { error: "Variant data was malformed — reload the page and try again." }; }
   variants = variants.map((v) => ({ ...v, sku: v.sku.trim().toUpperCase(), optionValue: v.optionValue.trim() }));
@@ -102,6 +108,7 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
       care: text(formData.get("care")),
       highlights: lines(formData.get("highlights")),
       images,
+      videos: videosResult.videos,
       status,
       published_at: status === "active" ? (existing.published_at ?? new Date().toISOString()) : existing.published_at,
       hsn_code: text(formData.get("hsnCode")) || "71171990",

@@ -101,6 +101,7 @@ export function toCardData(product: Product, opts: ToCardOptions): ProductCardDa
       ? { sku: product.variants[0]!.sku, unitPricePaise: product.variants[0]!.pricePaise }
       : undefined,
     soldOut: !inStock,
+    hasVideo: (product.videos?.length ?? 0) > 0,
   };
   if (opts.quickView) card.quickView = toQuickView(product);
   return card;

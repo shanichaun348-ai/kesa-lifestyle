@@ -6,6 +6,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
 import { getRatingsBySlug } from "@/modules/reviews/supabase-reviews";
 
 import { isInStock, matchesFilters, runListing, sortProducts } from "./listing";
+import { normaliseProductVideos } from "./videos";
 import type { CatalogRepository } from "./repository";
 import { seedAttributes, seedCategories, seedCollections } from "@/lib/demo/seed-catalog";
 import type {
@@ -51,6 +52,8 @@ type CatProductRow = {
   faq: Array<{ question: string; answer: string }>;
   discontinued_redirect_path: string | null;
   images: ImageRef[];
+  /** JSON column added in migration 017; absent on rows read before it existed. */
+  videos?: unknown;
   published_at: string | null;
   archived_at: string | null;
   sales_30d: number;
@@ -76,6 +79,7 @@ type InventoryRow = {
 // ── Mapper ────────────────────────────────────────────────────────────────────
 
 function toProduct(row: CatProductRow, inventory: Map<string, number>): Product {
+  const videos = normaliseProductVideos(row.videos);
   const variants: ProductVariant[] = row.cat_variants
     .sort((a, b) => a.position - b.position)
     .map((v) => ({
@@ -101,6 +105,7 @@ function toProduct(row: CatProductRow, inventory: Map<string, number>): Product 
     attributes: row.attributes,
     variants,
     images: row.images,
+    ...(videos.length > 0 && { videos }),
     shortDescription: row.short_description,
     description: row.description,
     highlights: row.highlights,

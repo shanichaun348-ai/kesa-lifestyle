@@ -145,7 +145,8 @@ function VideoStage({ video }: { video: ProductVideo }) {
     );
   }
   if (video.kind === "hosted") {
-    return <video src={video.src} poster={video.poster.src} controls autoPlay playsInline preload="metadata" className="absolute inset-0 size-full object-cover" aria-label={video.title} />;
+    // Landscape clips sit letterboxed on a dark field inside the 4:5 frame rather than being cropped.
+    return <video src={video.src} poster={video.poster.src} controls autoPlay playsInline preload="metadata" className="absolute inset-0 size-full bg-ink object-contain" aria-label={video.title} />;
   }
   return (
     <iframe

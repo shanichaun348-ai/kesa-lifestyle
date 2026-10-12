@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { PlayIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Tilt } from "@/components/motion/tilt";
@@ -37,6 +38,8 @@ export type ProductCardData = {
   /** Single-variant products can be added straight from the card. */
   quickAdd?: { sku: string; unitPricePaise: number } | undefined;
   soldOut?: boolean | undefined;
+  /** Product page has at least one video; shows a small chip on the card. */
+  hasVideo?: boolean | undefined;
   /** When present, a quick-view control is rendered on pointer devices. */
   quickView?: QuickViewProduct | undefined;
 };
@@ -98,6 +101,13 @@ export function ProductCard({ product, priority = false, className }: ProductCar
           <Badge variant={product.badge.variant ?? "outline"} className="absolute bottom-3 left-3">
             {product.badge.label}
           </Badge>
+        ) : null}
+
+        {product.hasVideo ? (
+          <span className="absolute top-2 left-1/2 z-[6] inline-flex -translate-x-1/2 items-center gap-1 rounded-full bg-ink/70 px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider text-bg backdrop-blur-sm" aria-label="Has video">
+            <PlayIcon className="size-3" aria-hidden="true" />
+            Video
+          </span>
         ) : null}
 
         <WishlistButton productSlug={product.slug} productName={product.name} className="absolute top-2 right-2 z-10" />

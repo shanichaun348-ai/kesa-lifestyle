@@ -4,6 +4,7 @@ import * as React from "react";
 import { useActionState } from "react";
 
 import type { Product } from "@/modules/catalog/types";
+import { MAX_PRODUCT_VIDEOS, parseYouTubeId, SITE_FILMS, youtubePoster } from "@/modules/catalog/videos";
 import { railFlags } from "@/modules/content/home-placements";
 
 import { getBrowserSupabase } from "@/lib/supabase-browser";
@@ -11,11 +12,14 @@ import { cn } from "@/lib/utils";
 
 import type { CategoryOption } from "../_category-options";
 import { PlacementsFields, type LookFieldState } from "../_placements-fields";
-import { prepareProductUploads } from "../_upload-action";
+import { prepareProductUploads, prepareProductVideoUploads } from "../_upload-action";
 import { updateProduct, type ProductEditState } from "./_actions";
 
 type VariantRow = { key: number; sku: string; optionValue: string; priceRupees: string; compareAtRupees: string; stock: string };
 type ImageRow = { key: number; src: string; alt: string };
+type VideoRow = { key: number; kind: "hosted" | "youtube"; src: string; videoId: string; poster: string; title: string };
+
+const fileTitle = (name: string) => name.replace(/\.[a-z0-9]+$/i, "").replace(/[-_]+/g, " ").trim();
 
 const INPUT = "h-10 w-full rounded-sm border border-line-strong bg-surface px-3 text-sm text-ink outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20 disabled:opacity-50";
 const TEXTAREA = "w-full rounded-sm border border-line-strong bg-surface px-3 py-2 text-sm text-ink outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20 disabled:opacity-50";
@@ -52,6 +56,90 @@ export function ProductEditForm({ product, categories, look }: Props) {
   const [uploading, setUploading] = React.useState(false);
   const [uploadError, setUploadError] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const [videos, setVideos] = React.useState<VideoRow[]>(() =>
+    (product.videos ?? []).map((v) =>
+      v.kind === "hosted"
+        ? { key: key(), kind: "hosted", src: v.src, videoId: "", poster: v.poster.src, title: v.title }
+        : { key: key(), kind: "youtube", src: "", videoId: v.videoId, poster: v.poster.src, title: v.title },
+    ),
+  );
+  const [videoUploading, setVideoUploading] = React.useState(false);
+  const [videoError, setVideoError] = React.useState<string | null>(null);
+  const [youtubeUrl, setYoutubeUrl] = React.useState("");
+  const videoInputRef = React.useRef<HTMLInputElement>(null);
+
+  const firstPhoto = () => images.find((i) => i.src.trim())?.src ?? "";
+  const updateVideo = (k: number, patch: Partial<VideoRow>) => setVideos((rows) => rows.map((r) => (r.key === k ? { ...r, ...patch } : r)));
+  const moveVideo = (from: number, to: number) =>
+    setVideos((rows) => {
+      if (to < 0 || to >= rows.length) return rows;
+      const next = [...rows];
+      const [row] = next.splice(from, 1);
+      next.splice(to, 0, row!);
+      return next;
+    });
+
+  function addYouTube() {
+    const id = parseYouTubeId(youtubeUrl);
+    if (!id) {
+      setVideoError("That does not look like a YouTube link.");
+      return;
+    }
+    if (videos.length >= MAX_PRODUCT_VIDEOS) {
+      setVideoError(`Up to ${MAX_PRODUCT_VIDEOS} videos per product.`);
+      return;
+    }
+    setVideoError(null);
+    setVideos((rows) => [...rows, { key: key(), kind: "youtube", src: "", videoId: id, poster: youtubePoster(id), title: product.name }]);
+    setYoutubeUrl("");
+  }
+
+  function addSiteFilm(src: string) {
+    if (!src || videos.length >= MAX_PRODUCT_VIDEOS) return;
+    const film = SITE_FILMS.find((f) => f.src === src);
+    setVideos((rows) => [...rows, { key: key(), kind: "hosted", src, videoId: "", poster: firstPhoto(), title: film?.label ?? product.name }]);
+  }
+
+  async function onVideosChosen(list: FileList | null) {
+    if (!list || list.length === 0) return;
+    const files = Array.from(list);
+    if (videos.length + files.length > MAX_PRODUCT_VIDEOS) {
+      setVideoError(`Up to ${MAX_PRODUCT_VIDEOS} videos per product.`);
+      if (videoInputRef.current) videoInputRef.current.value = "";
+      return;
+    }
+    setVideoUploading(true);
+    setVideoError(null);
+    try {
+      const prep = await prepareProductVideoUploads(product.slug, files.map((f) => ({ name: f.name, type: f.type, size: f.size })));
+      if (!prep.ok) {
+        setVideoError(prep.error);
+        return;
+      }
+      const supabase = getBrowserSupabase();
+      if (!supabase) {
+        setVideoError("Uploads are not configured on this site (missing public Supabase keys).");
+        return;
+      }
+      const added: VideoRow[] = [];
+      for (const [i, target] of prep.targets.entries()) {
+        const file = files[i]!;
+        const { error } = await supabase.storage.from(target.bucket).uploadToSignedUrl(target.path, target.token, file, { contentType: file.type, cacheControl: "31536000" });
+        if (error) {
+          setVideoError(`Could not upload "${file.name}": ${error.message}`);
+          break;
+        }
+        added.push({ key: key(), kind: "hosted", src: target.publicUrl, videoId: "", poster: firstPhoto(), title: fileTitle(file.name) || product.name });
+      }
+      if (added.length > 0) setVideos((rows) => [...rows, ...added]);
+    } catch {
+      setVideoError("Upload failed — check your connection and try again.");
+    } finally {
+      setVideoUploading(false);
+      if (videoInputRef.current) videoInputRef.current.value = "";
+    }
+  }
 
   async function onFilesChosen(list: FileList | null) {
     if (!list || list.length === 0) return;
@@ -126,6 +214,10 @@ export function ProductEditForm({ product, categories, look }: Props) {
     variants.map((v) => ({ sku: v.sku, optionValue: v.optionValue, pricePaise: toPaise(v.priceRupees) ?? 0, compareAtPaise: toPaise(v.compareAtRupees), stock: parseInt(v.stock, 10) || 0 })),
   );
   const previewSrc = images.find((i) => i.src.trim())?.src;
+  const videosJson = JSON.stringify(
+    videos.map((v) => (v.kind === "youtube" ? { kind: "youtube", videoId: v.videoId, poster: v.poster, title: v.title } : { kind: "hosted", src: v.src, poster: v.poster, title: v.title })),
+  );
+  const photoChoices = images.filter((i) => i.src.trim());
 
   return (
     <form action={action} className="space-y-6">
@@ -135,6 +227,7 @@ export function ProductEditForm({ product, categories, look }: Props) {
 
       <input type="hidden" name="imagesJson" value={imagesJson} />
       <input type="hidden" name="variantsJson" value={variantsJson} />
+      <input type="hidden" name="videosJson" value={videosJson} />
 
       <section className={SECTION}>
         <h2 className={SECTION_TITLE}>Basic information</h2>
@@ -308,6 +401,122 @@ export function ProductEditForm({ product, categories, look }: Props) {
           ))}
         </ul>
         {!previewSrc ? <p className="text-xs text-warning">No photos yet — the product cannot be published until it has at least one.</p> : null}
+      </section>
+
+      <section className={SECTION}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h2 className={SECTION_TITLE}>Videos</h2>
+          <div className="flex flex-wrap items-center gap-3">
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept="video/mp4,video/webm"
+              multiple
+              className="sr-only"
+              id="ep-video-upload"
+              disabled={pending || videoUploading || videos.length >= MAX_PRODUCT_VIDEOS}
+              onChange={(e) => onVideosChosen(e.target.files)}
+            />
+            <label
+              htmlFor="ep-video-upload"
+              className={cn(
+                "inline-flex h-9 cursor-pointer items-center rounded-md border border-ink bg-ink px-4 text-sm font-medium text-bg hover:bg-brand-hover",
+                (pending || videoUploading || videos.length >= MAX_PRODUCT_VIDEOS) && "pointer-events-none opacity-50",
+              )}
+            >
+              {videoUploading ? "Uploading…" : "Upload video"}
+            </label>
+            <select
+              aria-label="Add a site film"
+              value=""
+              onChange={(e) => addSiteFilm(e.target.value)}
+              disabled={pending || videos.length >= MAX_PRODUCT_VIDEOS}
+              className="h-9 rounded-md border border-line bg-surface px-2 text-sm text-ink disabled:opacity-50"
+            >
+              <option value="">Add a site film…</option>
+              {SITE_FILMS.map((f) => (
+                <option key={f.src} value={f.src}>{f.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <p className={HINT + " -mt-2"}>Up to {MAX_PRODUCT_VIDEOS} videos, shown after the photos. MP4 or WebM up to 40 MB, or paste a YouTube link. Every video needs a title and a poster image.</p>
+        <div className="flex flex-col gap-2 sm:flex-row">
+          <input
+            value={youtubeUrl}
+            onChange={(e) => setYoutubeUrl(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addYouTube(); } }}
+            disabled={pending || videos.length >= MAX_PRODUCT_VIDEOS}
+            placeholder="https://www.youtube.com/watch?v=…"
+            aria-label="YouTube link"
+            className={INPUT}
+          />
+          <button type="button" onClick={addYouTube} disabled={pending || !youtubeUrl.trim() || videos.length >= MAX_PRODUCT_VIDEOS} className="h-10 shrink-0 rounded-md border border-line bg-surface px-4 text-sm text-ink hover:bg-surface-muted disabled:opacity-50">
+            Add YouTube video
+          </button>
+        </div>
+        {videoError ? <p role="alert" className="rounded-sm border border-danger/30 bg-danger/5 px-3 py-2 text-xs text-danger">{videoError}</p> : null}
+        {videos.length === 0 ? (
+          <p className={HINT}>No videos yet.</p>
+        ) : (
+          <ul className="space-y-3">
+            {videos.map((v, idx) => {
+              const posterIsPhoto = photoChoices.some((p) => p.src === v.poster);
+              return (
+                <li key={v.key} className="flex flex-col gap-3 rounded-md border border-line p-3 sm:flex-row sm:items-start">
+                  <div className="relative size-20 shrink-0 overflow-hidden rounded-sm border border-line bg-surface-muted">
+                    {v.poster ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={v.poster} alt="" className="size-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.visibility = "hidden"; }} />
+                    ) : (
+                      <span className="flex size-full items-center justify-center text-[10px] text-ink-subtle">No poster</span>
+                    )}
+                    <span className="absolute inset-x-0 bottom-0 bg-ink/80 py-0.5 text-center text-[10px] font-medium uppercase tracking-wider text-bg">{v.kind === "youtube" ? "YouTube" : "Video"}</span>
+                  </div>
+                  <div className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2">
+                    <div>
+                      <span className={LABEL}>Title</span>
+                      <input value={v.title} onChange={(e) => updateVideo(v.key, { title: e.target.value })} disabled={pending} placeholder="e.g. See it on the hand" className={INPUT} />
+                    </div>
+                    <div>
+                      <span className={LABEL}>Poster image</span>
+                      <select
+                        value={posterIsPhoto ? v.poster : v.kind === "youtube" && v.poster === youtubePoster(v.videoId) ? "__youtube" : "__custom"}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === "__custom") updateVideo(v.key, { poster: "" });
+                          else if (val === "__youtube") updateVideo(v.key, { poster: youtubePoster(v.videoId) });
+                          else updateVideo(v.key, { poster: val });
+                        }}
+                        disabled={pending}
+                        className={INPUT}
+                      >
+                        {photoChoices.map((p, i) => (
+                          <option key={p.key} value={p.src}>Photo {i + 1}{i === 0 ? " (main)" : ""}</option>
+                        ))}
+                        {v.kind === "youtube" ? <option value="__youtube">YouTube thumbnail</option> : null}
+                        <option value="__custom">Custom URL…</option>
+                      </select>
+                      {!posterIsPhoto && !(v.kind === "youtube" && v.poster === youtubePoster(v.videoId)) ? (
+                        <input value={v.poster} onChange={(e) => updateVideo(v.key, { poster: e.target.value })} disabled={pending} placeholder="https://…" className={INPUT + " mt-2"} />
+                      ) : null}
+                    </div>
+                    <p className="truncate text-xs text-ink-subtle sm:col-span-2">{v.kind === "youtube" ? `youtube.com/watch?v=${v.videoId}` : v.src}</p>
+                  </div>
+                  <div className="flex shrink-0 gap-3 sm:flex-col sm:items-end sm:pt-5">
+                    {videos.length > 1 ? (
+                      <span className="flex gap-1">
+                        <button type="button" onClick={() => moveVideo(idx, idx - 1)} disabled={pending || idx === 0} aria-label="Move video up" className="inline-flex size-7 items-center justify-center rounded-sm border border-line text-xs text-ink hover:bg-surface-muted disabled:opacity-40">↑</button>
+                        <button type="button" onClick={() => moveVideo(idx, idx + 1)} disabled={pending || idx === videos.length - 1} aria-label="Move video down" className="inline-flex size-7 items-center justify-center rounded-sm border border-line text-xs text-ink hover:bg-surface-muted disabled:opacity-40">↓</button>
+                      </span>
+                    ) : null}
+                    <button type="button" onClick={() => setVideos((rows) => rows.filter((r) => r.key !== v.key))} className="text-sm text-danger hover:underline">Remove</button>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        )}
       </section>
 
       <section className={SECTION}>

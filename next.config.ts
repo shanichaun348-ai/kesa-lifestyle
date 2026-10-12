@@ -39,9 +39,10 @@ const securityHeaders = [
       // XHR/fetch: self + GA + Razorpay + Supabase (direct photo uploads to Storage). Dev adds ws://* for Turbopack HMR.
       `connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://api.razorpay.com https://lumberjack.razorpay.com https://*.supabase.co${isDev ? " ws://localhost:* wss://localhost:*" : ""}`,
       // Embedded media (audio/video).
-      "media-src 'self'",
+      // Product clips stream from Supabase Storage; blob: covers in-browser previews.
+      "media-src 'self' https://*.supabase.co blob:",
       // Razorpay payment modal opens in an iframe from api.razorpay.com.
-      "frame-src 'self' https://api.razorpay.com",
+      "frame-src 'self' https://api.razorpay.com https://www.youtube-nocookie.com",
       // Objects (Flash, plugins) — none.
       "object-src 'none'",
       // Base URI lockdown.
@@ -61,7 +62,11 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
     // Product photos uploaded from the admin live in Supabase Storage.
-    remotePatterns: [{ protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" }],
+    remotePatterns: [
+      { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/public/**" },
+      // YouTube thumbnails used as default posters for linked product videos.
+      { protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" },
+    ],
     // Small fixed set of widths keeps optimisation cost predictable (docs/12 §4).
     deviceSizes: [360, 640, 828, 1080, 1440],
     imageSizes: [80, 160, 288],
