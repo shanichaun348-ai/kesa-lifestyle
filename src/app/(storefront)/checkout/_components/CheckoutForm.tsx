@@ -12,6 +12,7 @@ import { formatPaise } from "@/lib/money";
 import { allPurchasable, describeLineCheck, type LineCheck } from "@/modules/cart/availability";
 import { useCart } from "@/modules/cart/use-cart";
 import { useBagAvailability } from "@/modules/cart/use-bag-availability";
+import { COD_FEE_PAISE, COD_FEE_WAIVER_PAISE, codAvailability, type PaymentMethod } from "@/modules/checkout/cod";
 
 // ── Razorpay.js loader ────────────────────────────────────────────────────────
 
@@ -46,7 +47,11 @@ const INDIAN_STATES = [
 
 type CheckoutState = "idle" | "submitting" | "success";
 
-type OrderSuccess = { orderId: string; orderNumber: number | null };
+type OrderSuccess = { orderId: string; orderNumber: number | null; paymentMethod: PaymentMethod; amountPaise: number | null };
+
+type OrderResponse =
+  | { paymentMethod: "cod"; orderId: string; orderNumber: number | null; amount: number }
+  | { paymentMethod?: "razorpay"; orderId: string; razorpayOrderId: string; razorpayKeyId: string; amount: number; currency: string };
 
 export function CheckoutForm() {
   const bag = useCart();
@@ -66,6 +71,7 @@ export function CheckoutForm() {
   const [state, setState] = React.useState("");
   const [pincode, setPincode] = React.useState("");
   const [couponCode, setCouponCode] = React.useState("");
+  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>("razorpay");
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
 
   const [checkoutState, setCheckoutState] = React.useState<CheckoutState>("idle");
@@ -84,6 +90,12 @@ export function CheckoutForm() {
     return check?.kind === "ok" ? check.unitPricePaise : line.unitPricePaise;
   };
   const clientSubtotal = cart.reduce((s, l) => s + unitPrice(l) * l.quantity, 0);
+
+  // Preview only — the server re-derives eligibility and the fee from its own pricing.
+  const cod = codAvailability(clientSubtotal);
+  // If the bag changes and COD stops being available, fall back to online payment without a re-render loop.
+  const effectiveMethod: PaymentMethod = paymentMethod === "cod" && cod.allowed ? "cod" : "razorpay";
+  const codSelected = effectiveMethod === "cod";
 
   function removeLine(sku: string) {
     bag.remove(sku);
@@ -114,6 +126,7 @@ export function CheckoutForm() {
     const orderBody = {
       lines: cart.map((l) => ({ sku: l.sku, quantity: l.quantity })),
       ...(couponCode.trim() && { couponCode: couponCode.trim() }),
+      paymentMethod: effectiveMethod,
       customer: { name: name.trim(), email: email.trim(), phone: phone.trim() },
       shippingAddress: {
         name: addrName.trim(),
@@ -125,7 +138,7 @@ export function CheckoutForm() {
       },
     };
 
-    let orderData: { orderId: string; razorpayOrderId: string; razorpayKeyId: string; amount: number; currency: string };
+    let orderData: OrderResponse;
 
     try {
       const res = await fetch("/api/checkout/orders", {
@@ -142,15 +155,24 @@ export function CheckoutForm() {
           setRefused({ sku: line.sku, check });
           toast.error(`“${line.name}” ${check.kind === "sold_out" ? "just sold out" : "is no longer available"}. Remove it from your bag to continue.`);
         } else {
+          if (json.code === "COD_UNAVAILABLE") setPaymentMethod("razorpay");
           toast.error((json.error as string) || "Could not create order. Please try again.");
         }
         setCheckoutState("idle");
         return;
       }
-      orderData = json as typeof orderData;
+      orderData = json as unknown as OrderResponse;
     } catch {
       toast.error("Network error. Please try again.");
       setCheckoutState("idle");
+      return;
+    }
+
+    // Cash on delivery: the order is confirmed as soon as it is placed.
+    if (orderData.paymentMethod === "cod") {
+      bag.clear();
+      setOrderSuccess({ orderId: orderData.orderId, orderNumber: orderData.orderNumber, paymentMethod: "cod", amountPaise: orderData.amount });
+      setCheckoutState("success");
       return;
     }
 
@@ -163,11 +185,12 @@ export function CheckoutForm() {
       return;
     }
 
+    const paid = orderData;
     const options: Record<string, unknown> = {
-      key: orderData.razorpayKeyId,
-      amount: orderData.amount,
-      currency: orderData.currency,
-      order_id: orderData.razorpayOrderId,
+      key: paid.razorpayKeyId,
+      amount: paid.amount,
+      currency: paid.currency,
+      order_id: paid.razorpayOrderId,
       name: "Kesa Lifestyle",
       description: "Jewellery Order",
       prefill: { name: name.trim(), email: email.trim(), contact: phone.trim() },
@@ -178,7 +201,7 @@ export function CheckoutForm() {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              orderId: orderData.orderId,
+              orderId: paid.orderId,
               razorpayOrderId: response.razorpay_order_id,
               razorpayPaymentId: response.razorpay_payment_id,
               razorpaySignature: response.razorpay_signature,
@@ -189,8 +212,10 @@ export function CheckoutForm() {
             // Clear cart after successful payment.
             bag.clear();
             setOrderSuccess({
-              orderId: orderData.orderId,
+              orderId: paid.orderId,
               orderNumber: typeof verifyJson.orderNumber === "number" ? verifyJson.orderNumber : null,
+              paymentMethod: "razorpay",
+              amountPaise: paid.amount,
             });
             setCheckoutState("success");
           } else {
@@ -219,13 +244,19 @@ export function CheckoutForm() {
   }
 
   if (checkoutState === "success" && orderSuccess) {
+    const ref = orderSuccess.orderNumber ? `KL-${orderSuccess.orderNumber}` : orderSuccess.orderId;
     return (
       <div className="mx-auto max-w-xl space-y-4 py-10">
         <p className="type-eyebrow text-ink-subtle">Order confirmed</p>
         <h1 className="type-h1">Thank you for your order!</h1>
         <p className="text-ink-subtle">
-          Your order <span className="font-medium text-ink">{orderSuccess.orderNumber ? `KL-${orderSuccess.orderNumber}` : orderSuccess.orderId}</span> has been placed. A confirmation email is on its way to <span className="font-medium text-ink">{email.trim()}</span>.
+          Your order <span className="font-medium text-ink">{ref}</span> has been placed. A confirmation email is on its way to <span className="font-medium text-ink">{email.trim()}</span>.
         </p>
+        {orderSuccess.paymentMethod === "cod" && orderSuccess.amountPaise !== null ? (
+          <p className="rounded-md border border-line bg-surface p-4 text-sm text-ink">
+            Please keep <span className="font-medium">{formatPaise(orderSuccess.amountPaise)}</span> ready to pay in cash when your order arrives. We&rsquo;ll message you when it ships.
+          </p>
+        ) : null}
         <div className="flex gap-3">
           <Button variant="primary" asChild>
             <Link href="/">Continue shopping</Link>
@@ -248,13 +279,14 @@ export function CheckoutForm() {
   }
 
   const busy = checkoutState === "submitting";
+  const codFeeLabel = cod.allowed ? (cod.feePaise === 0 ? "free on this order" : `+${formatPaise(cod.feePaise)}`) : "unavailable";
 
   return (
     <>
       <Toaster position="top-center" />
       <form onSubmit={handleSubmit} noValidate className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
 
-        {/* ── Left: customer + address ─────────────────────────────────── */}
+        {/* ── Left: customer + address + payment ───────────────────────── */}
         <div className="space-y-8">
           <section className="space-y-4">
             <h2 className="type-h3">Contact information</h2>
@@ -322,6 +354,31 @@ export function CheckoutForm() {
               </div>
             </div>
           </section>
+
+          <section className="space-y-4">
+            <h2 className="type-h3">Payment</h2>
+            <fieldset className="space-y-3" disabled={busy}>
+              <legend className="sr-only">Payment method</legend>
+              <label className={`flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors ${!codSelected ? "border-ink bg-surface" : "border-line hover:border-ink-muted"}`}>
+                <input type="radio" name="paymentMethod" value="razorpay" checked={!codSelected} onChange={() => setPaymentMethod("razorpay")} className="mt-1 accent-ink" />
+                <span className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium text-ink">Pay online</span>
+                  <span className="type-small text-ink-muted">UPI, cards, netbanking and wallets via Razorpay.</span>
+                </span>
+              </label>
+              <label className={`flex items-start gap-3 rounded-md border p-4 transition-colors ${!cod.allowed ? "cursor-not-allowed opacity-60" : codSelected ? "cursor-pointer border-ink bg-surface" : "cursor-pointer border-line hover:border-ink-muted"}`}>
+                <input type="radio" name="paymentMethod" value="cod" checked={codSelected} onChange={() => setPaymentMethod("cod")} disabled={!cod.allowed} className="mt-1 accent-ink" />
+                <span className="flex flex-col gap-0.5">
+                  <span className="text-sm font-medium text-ink">Cash on delivery <span className="font-normal text-ink-muted">({codFeeLabel})</span></span>
+                  <span className="type-small text-ink-muted">
+                    {cod.allowed
+                      ? `Pay in cash when your order arrives. ${formatPaise(COD_FEE_PAISE)} handling fee, free on orders of ${formatPaise(COD_FEE_WAIVER_PAISE)} or more.`
+                      : cod.reason}
+                  </span>
+                </span>
+              </label>
+            </fieldset>
+          </section>
         </div>
 
         {/* ── Right: order summary + coupon + pay ──────────────────────── */}
@@ -357,9 +414,12 @@ export function CheckoutForm() {
                 Some pieces in your bag can no longer be bought. Remove them to continue.
               </p>
             ) : null}
-            <div className="border-t border-line pt-3 text-sm text-ink-subtle">
+            <div className="border-t border-line pt-3 text-sm text-ink-subtle space-y-0.5">
               <p>Estimated subtotal: <span className="font-medium text-ink">{formatPaise(clientSubtotal)}</span></p>
-              <p className="mt-0.5 text-xs">Final price is confirmed by the server. Shipping and any discounts are applied at payment.</p>
+              {codSelected && cod.allowed ? (
+                <p>Cash on delivery fee: <span className="font-medium text-ink">{cod.feePaise === 0 ? "Free" : formatPaise(cod.feePaise)}</span></p>
+              ) : null}
+              <p className="mt-0.5 text-xs">Final price is confirmed by the server. Shipping and any discounts are applied at {codSelected ? "order confirmation" : "payment"}.</p>
             </div>
           </section>
 
@@ -369,11 +429,11 @@ export function CheckoutForm() {
           </section>
 
           <Button type="submit" variant="primary" size="lg" className="w-full" disabled={busy || availability.checking || !purchasable} aria-busy={busy || availability.checking}>
-            {busy ? <><Spinner className="size-4" /> Processing…</> : availability.checking ? <><Spinner className="size-4" /> Checking your bag…</> : "Proceed to pay"}
+            {busy ? <><Spinner className="size-4" /> {codSelected ? "Placing order…" : "Processing…"}</> : availability.checking ? <><Spinner className="size-4" /> Checking your bag…</> : codSelected ? "Place order" : "Proceed to pay"}
           </Button>
 
           <p className="text-xs text-ink-subtle text-center">
-            Payments powered by Razorpay. Your card details are never shared with us.
+            {codSelected ? "You pay the courier in cash when your order is delivered." : "Payments powered by Razorpay. Your card details are never shared with us."}
           </p>
         </aside>
       </form>

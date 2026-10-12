@@ -43,6 +43,8 @@ const serverSchema = z.object({
   WHATSAPP_PHONE_NUMBER_ID: z.string().regex(/^\d{5,}$/).optional(),
   /** Approved template name for the order confirmation. Defaults to "order_confirmed". */
   WHATSAPP_ORDER_TEMPLATE: z.string().min(1).optional(),
+  /** Approved Utility template for cash-on-delivery confirmations (same 4 parameters; "pay on delivery" wording). */
+  WHATSAPP_COD_ORDER_TEMPLATE: z.string().min(1).optional(),
   /** Language code the template was approved in. Defaults to "en". */
   WHATSAPP_TEMPLATE_LANGUAGE: z.string().min(2).optional(),
   /** Graph API version. Defaults to v21.0. */

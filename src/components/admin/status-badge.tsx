@@ -62,6 +62,8 @@ export function paymentStatusBadge(status: string) {
     paid: { label: "Paid", variant: "success" },
     failed: { label: "Failed", variant: "danger" },
     cancelled: { label: "Cancelled", variant: "danger" },
+    cod_pending: { label: "COD · pay on delivery", variant: "info" },
+    cod_collected: { label: "COD · collected", variant: "success" },
     refunded: { label: "Refunded", variant: "neutral" },
     partially_refunded: { label: "Partial Refund", variant: "warning" },
   };

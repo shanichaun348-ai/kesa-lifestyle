@@ -143,6 +143,8 @@ export class SupabaseOrderRepository implements OrderRepository {
         ...(order.razorpayPaymentId !== undefined && {
           razorpay_payment_id: order.razorpayPaymentId,
         }),
+        ...(order.paymentMethod !== undefined && { payment_method: order.paymentMethod }),
+        ...(order.codFeePaise !== undefined && { cod_fee_paise: order.codFeePaise }),
         ...(order.paidAt !== undefined && { paid_at: order.paidAt }),
         updated_at: new Date().toISOString(),
       })
@@ -239,6 +241,10 @@ export class SupabaseOrderRepository implements OrderRepository {
       gstPaise: row.gst_paise as number,
       totalPaise: row.total_paise as number,
       coupon: row.coupon as Order["coupon"],
+      ...(row.payment_method === "cod" || row.payment_method === "razorpay"
+        ? { paymentMethod: row.payment_method }
+        : {}),
+      ...(row.cod_fee_paise !== null && row.cod_fee_paise !== undefined && { codFeePaise: Number(row.cod_fee_paise) }),
       razorpayOrderId: row.razorpay_order_id as string,
       ...(row.razorpay_payment_id !== null &&
         row.razorpay_payment_id !== undefined && {

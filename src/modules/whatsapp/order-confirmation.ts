@@ -10,12 +10,20 @@
  *   We will message you again when it ships.
  *
  * Parameters, in order: first name, order reference, total paid, items.
+ *
+ * Cash-on-delivery orders use a second template (WHATSAPP_COD_ORDER_TEMPLATE)
+ * with the same four parameters, worded for payment at the door:
+ *
+ *   Hi {{1}}, thank you for shopping with Kesa Lifestyle. Your order {{2}}
+ *   is confirmed. Please keep {{3}} ready to pay in cash when {{4}} arrives.
+ *   We will message you again when it ships.
  */
 import { formatPaise } from "@/lib/money";
 import { orderReference } from "@/modules/email/order-confirmation";
 import type { Order } from "@/modules/orders/types";
 
 export const DEFAULT_ORDER_TEMPLATE = "order_confirmed";
+export const DEFAULT_COD_ORDER_TEMPLATE = "order_confirmed_cod";
 export const DEFAULT_TEMPLATE_LANGUAGE = "en";
 
 /** Longest a single template parameter is allowed to be; keeps the message readable. */

@@ -5,6 +5,7 @@ import { orderStatusBadge, paymentStatusBadge } from "@/components/admin/status-
 import { requireAdmin } from "@/modules/admin/guard";
 import { formatOrderNumber, getOrder, paymentStatusOf } from "@/modules/admin/orders-data";
 import { hasPermission } from "@/modules/admin/rbac";
+import { isCod } from "@/modules/orders/types";
 import { formatPaise } from "@/lib/money";
 
 import { OrderActions } from "./_order-actions";
@@ -20,6 +21,7 @@ export default async function OrderDetailPage({ params }: Props) {
   const canWrite = hasPermission(session.role, "orders:write");
   const canRefund = hasPermission(session.role, "orders:refund");
   const addr = order.shippingAddress;
+  const cod = isCod(order);
 
   return (
     <div className="space-y-6">
@@ -30,7 +32,7 @@ export default async function OrderDetailPage({ params }: Props) {
         actions={
           <div className="flex gap-2">
             {orderStatusBadge(order.status)}
-            {paymentStatusBadge(paymentStatusOf(order.status))}
+            {paymentStatusBadge(paymentStatusOf(order))}
           </div>
         }
       />
@@ -75,8 +77,14 @@ export default async function OrderDetailPage({ params }: Props) {
                   <span>− {formatPaise(order.discountPaise)}</span>
                 </div>
               ) : null}
+              {cod ? (
+                <div className="flex justify-between text-ink-muted">
+                  <span>Cash on delivery fee</span>
+                  {(order.codFeePaise ?? 0) > 0 ? <span>{formatPaise(order.codFeePaise ?? 0)}</span> : <span className="text-success">Waived</span>}
+                </div>
+              ) : null}
               <div className="flex justify-between border-t border-line pt-2 text-base font-medium text-ink">
-                <span>Total</span><span>{formatPaise(order.totalPaise)}</span>
+                <span>{cod && order.status !== "DELIVERED" ? "To collect on delivery" : "Total"}</span><span>{formatPaise(order.totalPaise)}</span>
               </div>
               <p className="text-xs text-ink-subtle">Includes {formatPaise(order.gstPaise)} GST.</p>
             </div>
@@ -111,7 +119,10 @@ export default async function OrderDetailPage({ params }: Props) {
           <section className="rounded-md border border-line bg-surface p-5 space-y-3">
             <h2 className="text-sm font-medium text-ink">Payment</h2>
             <div className="space-y-1.5 text-sm">
-              <div className="flex justify-between"><span className="text-ink-subtle">Method</span><span className="text-ink">Razorpay</span></div>
+              <div className="flex justify-between"><span className="text-ink-subtle">Method</span><span className="text-ink">{cod ? "Cash on delivery" : "Razorpay"}</span></div>
+              {cod ? (
+                <div className="flex justify-between"><span className="text-ink-subtle">Cash status</span><span className="text-ink">{order.status === "DELIVERED" ? "Collected by courier" : order.status === "CANCELLED" ? "Not collected" : "Collect on delivery"}</span></div>
+              ) : null}
               {order.razorpayOrderId ? (
                 <div className="flex justify-between gap-3"><span className="text-ink-subtle">Order ID</span><span className="break-all font-mono text-xs text-ink-muted">{order.razorpayOrderId}</span></div>
               ) : null}
@@ -119,12 +130,12 @@ export default async function OrderDetailPage({ params }: Props) {
                 <div className="flex justify-between gap-3"><span className="text-ink-subtle">Payment ID</span><span className="break-all font-mono text-xs text-ink-muted">{order.razorpayPaymentId}</span></div>
               ) : null}
               {order.paidAt ? (
-                <div className="flex justify-between"><span className="text-ink-subtle">Paid at</span><span className="text-ink">{new Date(order.paidAt).toLocaleString("en-IN")}</span></div>
+                <div className="flex justify-between"><span className="text-ink-subtle">{cod ? "Cash collected" : "Paid at"}</span><span className="text-ink">{new Date(order.paidAt).toLocaleString("en-IN")}</span></div>
               ) : null}
             </div>
           </section>
 
-          <OrderActions orderId={order.id} status={order.status} canWrite={canWrite} canRefund={canRefund} />
+          <OrderActions orderId={order.id} status={order.status} paymentMethod={cod ? "cod" : "razorpay"} canWrite={canWrite} canRefund={canRefund} />
         </div>
       </div>
     </div>

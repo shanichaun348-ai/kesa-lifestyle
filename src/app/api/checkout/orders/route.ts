@@ -1,9 +1,11 @@
 import { createHash, randomUUID } from "node:crypto";
-import { type NextRequest } from "next/server";
+import { after, type NextRequest } from "next/server";
 
 import { getSessionUser } from "@/lib/auth/session";
 import { getCatalogRepository } from "@/modules/catalog/queries";
+import { codAvailability, isPaymentMethod, type PaymentMethod } from "@/modules/checkout/cod";
 import { computeOrderPricing } from "@/modules/checkout/pricing";
+import { notifyOrderPaid } from "@/modules/notifications/order-paid";
 import type { Order, OrderItem } from "@/modules/orders/types";
 import { getOrderRepository } from "@/modules/orders/queries";
 import { transitionOrder } from "@/modules/orders/state-machine";
@@ -35,6 +37,8 @@ function validateBody(body: unknown): ValidationResult {
     if (!isNonEmptyString(l.sku)) return { ok: false, message: "Each cart line must have a SKU." };
     if (!Number.isInteger(l.quantity) || (l.quantity as number) < 1) return { ok: false, message: "Invalid quantity." };
   }
+
+  if (b.paymentMethod !== undefined && !isPaymentMethod(b.paymentMethod)) return { ok: false, message: "Unknown payment method." };
 
   const c = b.customer as Record<string, unknown> | undefined;
   if (!c || typeof c !== "object") return { ok: false, message: "Customer details are required." };
@@ -73,6 +77,7 @@ export async function POST(request: NextRequest): Promise<Response> {
   const b = body as Record<string, unknown>;
   const rawLines = b.lines as Array<{ sku: string; quantity: number }>;
   const couponCode = typeof b.couponCode === "string" ? b.couponCode : undefined;
+  const paymentMethod: PaymentMethod = isPaymentMethod(b.paymentMethod) ? b.paymentMethod : "razorpay";
   const customerRaw = b.customer as Record<string, string>;
   const addrRaw = b.shippingAddress as Record<string, string>;
 
@@ -109,6 +114,15 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   const pricing = pricingOutcome.result;
 
+  // COD eligibility and fee come from server-side pricing, never from the client.
+  let codFeePaise = 0;
+  if (paymentMethod === "cod") {
+    const cod = codAvailability(pricing.subtotalPaise - pricing.discountPaise);
+    if (!cod.allowed) return Response.json({ error: cod.reason, code: "COD_UNAVAILABLE" }, { status: 422 });
+    codFeePaise = cod.feePaise;
+  }
+  const totalPaise = pricing.totalPaise + codFeePaise;
+
   // ── 2. Build immutable order snapshot ────────────────────────────────────
   const now = new Date().toISOString();
   const orderId = `ord_${randomUUID().replace(/-/g, "")}`;
@@ -135,9 +149,11 @@ export async function POST(request: NextRequest): Promise<Response> {
     discountPaise: pricing.discountPaise,
     shippingPaise: pricing.shippingPaise,
     gstPaise: pricing.gstPaise,
-    totalPaise: pricing.totalPaise,
+    totalPaise,
     coupon: pricing.coupon,
-    razorpayOrderId: "", // assigned after Razorpay order creation below
+    paymentMethod,
+    codFeePaise,
+    razorpayOrderId: "", // assigned after Razorpay order creation below; stays empty for COD
     currency: "INR",
     createdAt: now,
     updatedAt: now,
@@ -145,7 +161,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   // Request hash allows idempotency check to detect tampered retries.
   const requestHash = createHash("sha256")
-    .update(JSON.stringify({ lines: rawLines, couponCode, total: pricing.totalPaise }))
+    .update(JSON.stringify({ lines: rawLines, couponCode, paymentMethod, total: totalPaise }))
     .digest("hex");
 
   // ── 3. Atomically reserve inventory + persist order snapshot ─────────────
@@ -167,16 +183,20 @@ export async function POST(request: NextRequest): Promise<Response> {
     case "idempotent": {
       // Same idempotency key seen before — return existing order data if usable.
       const existing = createResult.order;
+      if (existing.paymentMethod === "cod" && existing.status === "PROCESSING") {
+        return Response.json({ orderId: existing.id, orderNumber: existing.orderNumber ?? null, paymentMethod: "cod" as const, amount: existing.totalPaise });
+      }
       if (existing.status === "PAYMENT_PENDING" && existing.razorpayOrderId) {
         return Response.json({
           orderId: existing.id,
+          paymentMethod: "razorpay" as const,
           razorpayOrderId: existing.razorpayOrderId,
           razorpayKeyId: getRazorpayKeyId(),
           amount: existing.totalPaise,
           currency: "INR" as const,
         });
       }
-      // Previous attempt failed at the Razorpay step — client should retry with a new key.
+      // Previous attempt failed at the payment step — client should retry with a new key.
       return Response.json(
         { error: "Previous checkout attempt failed. Please retry." },
         { status: 503 },
@@ -184,12 +204,38 @@ export async function POST(request: NextRequest): Promise<Response> {
     }
   }
 
-  const createdOrder = createResult.order;
+  // The RPC persists the snapshot with its own defaults; carry the payment fields forward
+  // so the update below writes them.
+  const createdOrder: Order = { ...createResult.order, paymentMethod, codFeePaise };
 
-  // ── 4. Create Razorpay order (external — outside DB transaction) ──────────
+  // ── 4a. Cash on delivery: nothing to collect now — confirm and start fulfilment ──
+  if (paymentMethod === "cod") {
+    const processing = transitionOrder(createdOrder, "PROCESSING");
+    await orderRepo.update(processing);
+
+    // Same confirmation the verify route sends once an online payment lands.
+    after(() => notifyOrderPaid(processing));
+
+    console.log(
+      JSON.stringify({
+        level: "info",
+        event: "checkout",
+        action: "order.created",
+        orderId,
+        paymentMethod: "cod",
+        amount: totalPaise,
+        codFeePaise,
+        ts: now,
+      }),
+    );
+
+    return Response.json({ orderId, orderNumber: processing.orderNumber ?? null, paymentMethod: "cod" as const, amount: totalPaise });
+  }
+
+  // ── 4b. Create Razorpay order (external — outside DB transaction) ─────────
   let razorpayOrder: { id: string; amount: number; currency: string };
   try {
-    razorpayOrder = await createRazorpayOrder(pricing.totalPaise, orderId, {
+    razorpayOrder = await createRazorpayOrder(totalPaise, orderId, {
       internal_order_id: orderId,
       customer_email: customer.email,
     });
@@ -203,14 +249,14 @@ export async function POST(request: NextRequest): Promise<Response> {
   }
 
   // ── 5. Amount integrity assertion ─────────────────────────────────────────
-  if (!verifyPaymentAmount(razorpayOrder.amount, pricing.totalPaise)) {
+  if (!verifyPaymentAmount(razorpayOrder.amount, totalPaise)) {
     console.error(
       JSON.stringify({
         level: "error",
         event: "checkout_security",
         action: "razorpay_amount_mismatch",
         orderId,
-        expected: pricing.totalPaise,
+        expected: totalPaise,
         received: razorpayOrder.amount,
         ts: now,
       }),
@@ -235,8 +281,9 @@ export async function POST(request: NextRequest): Promise<Response> {
       event: "checkout",
       action: "order.created",
       orderId,
+      paymentMethod: "razorpay",
       razorpayOrderId: razorpayOrder.id,
-      amount: pricing.totalPaise,
+      amount: totalPaise,
       ts: now,
     }),
   );
@@ -244,9 +291,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   // Return only what the client needs to open the Razorpay checkout modal.
   return Response.json({
     orderId,
+    paymentMethod: "razorpay" as const,
     razorpayOrderId: razorpayOrder.id,
     razorpayKeyId: getRazorpayKeyId(),
-    amount: pricing.totalPaise,
+    amount: totalPaise,
     currency: "INR" as const,
   });
 }

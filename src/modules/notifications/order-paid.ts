@@ -2,9 +2,9 @@ import "server-only";
 
 import { adminNewOrderEmail, customerConfirmationEmail } from "@/modules/email/order-confirmation";
 import { sendEmail, type SendEmailResult } from "@/modules/email/resend";
-import type { Order } from "@/modules/orders/types";
+import { isCod, type Order } from "@/modules/orders/types";
 import { sendWhatsAppTemplate, type SendWhatsAppResult } from "@/modules/whatsapp/cloud-api";
-import { DEFAULT_ORDER_TEMPLATE, DEFAULT_TEMPLATE_LANGUAGE, orderConfirmedParams, toWhatsAppNumber } from "@/modules/whatsapp/order-confirmation";
+import { DEFAULT_COD_ORDER_TEMPLATE, DEFAULT_ORDER_TEMPLATE, DEFAULT_TEMPLATE_LANGUAGE, orderConfirmedParams, toWhatsAppNumber } from "@/modules/whatsapp/order-confirmation";
 
 export type OrderPaidNotifyResult = {
   /** Customer confirmation email. */
@@ -28,9 +28,12 @@ const NOT_SENT: SendEmailResult = { ok: false, error: "Not requested.", skipped:
 export async function sendOrderConfirmedWhatsApp(order: Order): Promise<SendWhatsAppResult> {
   const to = toWhatsAppNumber(order.customer.phone);
   if (!to) return { ok: false, error: `"${order.customer.phone}" is not a mobile number WhatsApp can deliver to.`, skipped: true };
+  const template = isCod(order)
+    ? process.env.WHATSAPP_COD_ORDER_TEMPLATE || DEFAULT_COD_ORDER_TEMPLATE
+    : process.env.WHATSAPP_ORDER_TEMPLATE || DEFAULT_ORDER_TEMPLATE;
   return sendWhatsAppTemplate({
     to,
-    template: process.env.WHATSAPP_ORDER_TEMPLATE || DEFAULT_ORDER_TEMPLATE,
+    template,
     language: process.env.WHATSAPP_TEMPLATE_LANGUAGE || DEFAULT_TEMPLATE_LANGUAGE,
     bodyParams: orderConfirmedParams(order),
   });
@@ -39,8 +42,9 @@ export async function sendOrderConfirmedWhatsApp(order: Order): Promise<SendWhat
 /**
  * Tell the customer their order is confirmed, by email and WhatsApp, and
  * (unless customer-only) alert the shop inbox. Callers invoke this exactly
- * once, right after the order transitions to PAID. Each channel is
- * independent and unconfigured channels are skipped. Never throws.
+ * once, right after the order transitions to PAID (online) or PROCESSING
+ * (cash on delivery). Each channel is independent and unconfigured channels
+ * are skipped. Never throws.
  */
 export async function notifyOrderPaid(order: Order, opts: NotifyOptions = {}): Promise<OrderPaidNotifyResult> {
   const wantEmail = opts.only !== "whatsapp";

@@ -4,10 +4,10 @@ import { revalidatePath } from "next/cache";
 
 import { auditLog } from "@/modules/admin/audit";
 import { requireAdmin } from "@/modules/admin/guard";
-import { PAID_STATUSES, setOrderStatus } from "@/modules/admin/orders-data";
+import { getOrder, isConfirmed, setOrderStatus } from "@/modules/admin/orders-data";
 import { notifyOrderPaid } from "@/modules/notifications/order-paid";
 import { getOrderRepository } from "@/modules/orders/queries";
-import type { OrderStatus } from "@/modules/orders/types";
+import { isCod, type OrderStatus } from "@/modules/orders/types";
 
 export type OrderActionState = { error: string } | { success: string } | null;
 
@@ -27,6 +27,10 @@ export async function advanceOrder(orderId: string, to: OrderStatus): Promise<Or
 
 export async function cancelOrder(orderId: string): Promise<OrderActionState> {
   const session = await requireAdmin("orders:write");
+  const order = await getOrder(orderId);
+  if (!order) return { error: "Order not found." };
+  // Online orders that have been paid are refunded, never cancelled; COD has nothing charged until delivery.
+  if (!isCod(order) && order.status === "PROCESSING") return { error: "This order is paid — refund it instead of cancelling." };
   const result = await setOrderStatus(orderId, "CANCELLED");
   if (!result.ok) return { error: result.error };
   // Unpaid orders still hold reserved stock — give it back.
@@ -42,7 +46,7 @@ export async function resendConfirmationEmail(orderId: string): Promise<OrderAct
   const session = await requireAdmin("orders:write");
   const order = await getOrderRepository().findById(orderId);
   if (!order) return { error: "Order not found." };
-  if (!PAID_STATUSES.has(order.status)) return { error: "Only paid orders have a confirmation email." };
+  if (!isConfirmed(order)) return { error: "Only confirmed orders have a confirmation email." };
   const result = await notifyOrderPaid(order, { only: "email" });
   if (!result.customer.ok) return { error: result.customer.error };
   auditLog(session, "order.resend_email", { orderId, to: order.customer.email });
@@ -53,7 +57,7 @@ export async function resendConfirmationWhatsApp(orderId: string): Promise<Order
   const session = await requireAdmin("orders:write");
   const order = await getOrderRepository().findById(orderId);
   if (!order) return { error: "Order not found." };
-  if (!PAID_STATUSES.has(order.status)) return { error: "Only paid orders have a confirmation message." };
+  if (!isConfirmed(order)) return { error: "Only confirmed orders have a confirmation message." };
   const result = await notifyOrderPaid(order, { only: "whatsapp" });
   if (!result.whatsapp || !result.whatsapp.ok) return { error: result.whatsapp?.error ?? "WhatsApp message was not sent." };
   auditLog(session, "order.resend_whatsapp", { orderId, to: order.customer.phone });

@@ -3,7 +3,7 @@ import "server-only";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { INDIAN_STATES } from "@/lib/india-states";
 import { formatOrderNumber, listOrdersForCustomer, type AdminOrder } from "@/modules/admin/orders-data";
-import type { OrderStatus } from "@/modules/orders/types";
+import { paymentMethodOf, type OrderStatus, type PaymentMethod } from "@/modules/orders/types";
 
 import { AccountError } from "./errors";
 
@@ -67,6 +67,9 @@ export type AccountOrder = AccountOrderSummary & {
   gstPaise: number;
   couponCode: string | null;
   shippingAddress: AdminOrder["shippingAddress"];
+  paymentMethod: PaymentMethod;
+  /** Cash-on-delivery fee included in the total; 0 when paid online or waived. */
+  codFeePaise: number;
   razorpayPaymentId: string | null;
   paidAt: string | null;
 };
@@ -195,6 +198,8 @@ export function createSupabaseAccountService() {
           gstPaise: o.gstPaise,
           couponCode: o.coupon?.code ?? null,
           shippingAddress: o.shippingAddress,
+          paymentMethod: paymentMethodOf(o),
+          codFeePaise: o.codFeePaise ?? 0,
           razorpayPaymentId: o.razorpayPaymentId ?? null,
           paidAt: o.paidAt ?? null,
         };

@@ -74,7 +74,7 @@ export default async function OrdersPage({ searchParams }: Props) {
                   </td>
                   <td className="hidden px-4 py-3 text-ink-muted lg:table-cell">{order.items.reduce((s, i) => s + i.quantity, 0)}</td>
                   <td className="px-4 py-3 font-medium text-ink">{formatPaise(order.totalPaise)}</td>
-                  <td className="hidden px-4 py-3 md:table-cell">{paymentStatusBadge(paymentStatusOf(order.status))}</td>
+                  <td className="hidden px-4 py-3 md:table-cell">{paymentStatusBadge(paymentStatusOf(order))}</td>
                   <td className="px-4 py-3">{orderStatusBadge(order.status)}</td>
                   <td className="px-4 py-3 text-right">
                     <Link href={`/admin/orders/${order.id}/`} className="text-sm text-brand hover:underline">View</Link>

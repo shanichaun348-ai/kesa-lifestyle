@@ -2,7 +2,7 @@ import "server-only";
 
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { canTransition } from "@/modules/orders/state-machine";
-import type { Order, OrderStatus, ShippingAddress } from "@/modules/orders/types";
+import { isCod, type Order, type OrderStatus, type ShippingAddress } from "@/modules/orders/types";
 
 export type AdminOrder = Order & { orderNumber: number };
 
@@ -18,14 +18,34 @@ export type AdminCustomer = {
   lastOrderAt: string;
 };
 
+/** Online orders whose payment has been received. */
 export const PAID_STATUSES: ReadonlySet<OrderStatus> = new Set(["PAID", "PROCESSING", "SHIPPED", "DELIVERED"]);
+/** COD orders that are confirmed (nothing collected until delivery). */
+const COD_CONFIRMED_STATUSES: ReadonlySet<OrderStatus> = new Set(["PROCESSING", "SHIPPED", "DELIVERED"]);
 export const NEEDS_ACTION_STATUSES: ReadonlySet<OrderStatus> = new Set(["PAID", "PROCESSING"]);
 
-export function paymentStatusOf(status: OrderStatus): "paid" | "pending" | "failed" | "refunded" | "cancelled" {
-  if (PAID_STATUSES.has(status)) return "paid";
+type PaymentAware = Pick<Order, "status" | "paymentMethod" | "totalPaise">;
+
+/** The order is real and should be fulfilled: paid online, or confirmed for cash on delivery. */
+export function isConfirmed(order: Pick<Order, "status" | "paymentMethod">): boolean {
+  return isCod(order) ? COD_CONFIRMED_STATUSES.has(order.status) : PAID_STATUSES.has(order.status);
+}
+
+/** Money actually received: online payments once PAID, cash only once DELIVERED. */
+export function collectedPaise(order: PaymentAware): number {
+  if (isCod(order)) return order.status === "DELIVERED" ? order.totalPaise : 0;
+  return PAID_STATUSES.has(order.status) ? order.totalPaise : 0;
+}
+
+export type PaymentStatus = "paid" | "pending" | "failed" | "refunded" | "cancelled" | "cod_pending" | "cod_collected";
+
+export function paymentStatusOf(order: Pick<Order, "status" | "paymentMethod">): PaymentStatus {
+  const { status } = order;
   if (status === "REFUNDED") return "refunded";
-  if (status === "PAYMENT_FAILED") return "failed";
   if (status === "CANCELLED") return "cancelled";
+  if (isCod(order)) return status === "DELIVERED" ? "cod_collected" : "cod_pending";
+  if (PAID_STATUSES.has(status)) return "paid";
+  if (status === "PAYMENT_FAILED") return "failed";
   return "pending";
 }
 
@@ -62,6 +82,8 @@ function rowToAdminOrder(row: Record<string, unknown>): AdminOrder {
     gstPaise: Number(row.gst_paise),
     totalPaise: Number(row.total_paise),
     coupon: (row.coupon as Order["coupon"]) ?? null,
+    paymentMethod: row.payment_method === "cod" ? "cod" : "razorpay",
+    codFeePaise: Number(row.cod_fee_paise ?? 0),
     razorpayOrderId: (row.razorpay_order_id as string | null) ?? "",
     ...(row.razorpay_payment_id ? { razorpayPaymentId: row.razorpay_payment_id as string } : {}),
     currency: "INR",
@@ -107,7 +129,7 @@ export async function listCustomers(): Promise<AdminCustomer[]> {
   const byEmail = new Map<string, AdminCustomer>();
   for (const o of orders) {
     const key = o.customer.email.trim().toLowerCase();
-    const paid = PAID_STATUSES.has(o.status) ? o.totalPaise : 0;
+    const paid = collectedPaise(o);
     const existing = byEmail.get(key);
     if (existing) {
       existing.orderCount += 1;
@@ -138,7 +160,7 @@ export async function getCustomer(key: string): Promise<{ customer: AdminCustome
   const orders = await listOrdersForCustomer(key);
   if (orders.length === 0) return null;
   const latest = orders[0]!;
-  const paidTotal = orders.filter((o) => PAID_STATUSES.has(o.status)).reduce((s, o) => s + o.totalPaise, 0);
+  const paidTotal = orders.reduce((s, o) => s + collectedPaise(o), 0);
   return {
     customer: {
       key,
@@ -161,8 +183,9 @@ export async function dashboardStats(): Promise<{
   recent: AdminOrder[];
 }> {
   const orders = await listOrders();
-  const revenuePaise = orders.filter((o) => PAID_STATUSES.has(o.status)).reduce((s, o) => s + o.totalPaise, 0);
-  const needsAction = orders.filter((o) => NEEDS_ACTION_STATUSES.has(o.status)).length;
+  const revenuePaise = orders.reduce((s, o) => s + collectedPaise(o), 0);
+  // Paid-online orders waiting to be processed/shipped, plus confirmed COD orders not yet shipped.
+  const needsAction = orders.filter((o) => isConfirmed(o) && NEEDS_ACTION_STATUSES.has(o.status)).length;
   const customers = new Set(orders.map((o) => o.customer.email.trim().toLowerCase())).size;
   return { revenuePaise, needsAction, customers, recent: orders.slice(0, 5) };
 }
@@ -171,9 +194,12 @@ export async function setOrderStatus(id: string, to: OrderStatus): Promise<{ ok:
   const order = await getOrder(id);
   if (!order) return { ok: false, error: "Order not found." };
   if (!canTransition(order.status, to)) return { ok: false, error: `Cannot move an order from ${order.status} to ${to}.` };
+  const now = new Date().toISOString();
+  // Cash is collected at the door, so delivery is the payment moment for COD.
+  const cashCollected = to === "DELIVERED" && isCod(order) && !order.paidAt;
   const { error } = await getSupabaseServiceClient()
     .from("orders")
-    .update({ status: to, updated_at: new Date().toISOString() })
+    .update({ status: to, updated_at: now, ...(cashCollected && { paid_at: now }) })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
   return { ok: true };

@@ -23,6 +23,7 @@ export default async function OrderDetailPage(props: PageProps<"/account/orders/
   const order = await service.orders.get(user.id, orderNumber, user.emailConfirmed ? user.email : null);
   if (!order) notFound();
   const addr = order.shippingAddress;
+  const cod = order.paymentMethod === "cod";
 
   return (
     <>
@@ -70,13 +71,26 @@ export default async function OrderDetailPage(props: PageProps<"/account/orders/
                 <dt className="text-ink-muted">Shipping</dt>
                 <dd className="type-price">{order.shippingPaise === 0 ? "Free" : formatPaise(order.shippingPaise)}</dd>
               </div>
+              {cod ? (
+                <div className="flex justify-between">
+                  <dt className="text-ink-muted">Cash on delivery fee</dt>
+                  <dd className="type-price">{order.codFeePaise === 0 ? "Waived" : formatPaise(order.codFeePaise)}</dd>
+                </div>
+              ) : null}
               <div className="flex justify-between border-t border-line pt-1.5 text-base">
-                <dt className="text-ink">Total</dt>
+                <dt className="text-ink">{cod && order.status !== "delivered" ? "To pay on delivery" : "Total"}</dt>
                 <dd className="type-price">{formatPaise(order.totalPaise)}</dd>
               </div>
             </dl>
             <p className="type-small mt-2 text-ink-subtle">
-              Paid online via Razorpay · includes {formatPaise(order.gstPaise)} GST
+              {cod
+                ? order.status === "delivered"
+                  ? "Paid in cash on delivery"
+                  : order.status === "cancelled"
+                    ? "Cash on delivery · nothing was charged"
+                    : `Cash on delivery · keep ${formatPaise(order.totalPaise)} ready when it arrives`
+                : "Paid online via Razorpay"}
+              {" · "}includes {formatPaise(order.gstPaise)} GST
               {order.paidAt ? ` · ${dateTime.format(new Date(order.paidAt))}` : ""}
             </p>
             {order.razorpayPaymentId ? <p className="type-small mt-1 break-all font-mono text-ink-subtle">Payment ref {order.razorpayPaymentId}</p> : null}

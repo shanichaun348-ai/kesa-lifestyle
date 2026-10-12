@@ -2,6 +2,9 @@
  * Order domain types. These are the authoritative shapes for the checkout
  * flow — all monetary fields are server-calculated, never from the client.
  */
+import type { PaymentMethod } from "@/modules/checkout/cod";
+
+export type { PaymentMethod };
 
 export type OrderStatus =
   | "CREATED"
@@ -72,14 +75,27 @@ export type Order = {
   /** Authoritative total; equals Razorpay order amount. */
   totalPaise: number;
   coupon: OrderCoupon | null;
-  /** Set during order creation; must match totalPaise exactly. */
+  /** How the customer pays. Absent on orders from before COD existed, which were all Razorpay. */
+  paymentMethod?: PaymentMethod;
+  /** Cash-on-delivery handling fee, already included in totalPaise; 0 for online payment. */
+  codFeePaise?: number;
+  /** Set during order creation; must match totalPaise exactly. Empty for COD. */
   razorpayOrderId: string;
   razorpayPaymentId?: string;
   currency: "INR";
   createdAt: string;
   updatedAt: string;
+  /** Online: when Razorpay confirmed payment. COD: when the courier collected the cash (delivery). */
   paidAt?: string;
 };
+
+export function paymentMethodOf(order: Pick<Order, "paymentMethod">): PaymentMethod {
+  return order.paymentMethod ?? "razorpay";
+}
+
+export function isCod(order: Pick<Order, "paymentMethod">): boolean {
+  return paymentMethodOf(order) === "cod";
+}
 
 export type CreateOrderInput = {
   customer: CheckoutCustomer;
