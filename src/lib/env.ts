@@ -49,6 +49,8 @@ const serverSchema = z.object({
   WHATSAPP_SHIPPED_TEMPLATE: z.string().min(1).optional(),
   /** Approved Utility template: order delivered (first name, order ref). */
   WHATSAPP_DELIVERED_TEMPLATE: z.string().min(1).optional(),
+  /** Approved Marketing template: bag reminder (items, subtotal, resume link). Unset = email only. */
+  WHATSAPP_CART_TEMPLATE: z.string().min(1).optional(),
   /** Language code the template was approved in. Defaults to "en". */
   WHATSAPP_TEMPLATE_LANGUAGE: z.string().min(2).optional(),
   /** Graph API version. Defaults to v21.0. */

@@ -1,6 +1,7 @@
 {
   "crons": [
     { "path": "/api/jobs/release-stale-reservations/", "schedule": "0 2 * * *" },
-    { "path": "/api/jobs/reconcile-payments/", "schedule": "0 3 * * *" }
+    { "path": "/api/jobs/reconcile-payments/", "schedule": "0 3 * * *" },
+    { "path": "/api/jobs/abandoned-carts/", "schedule": "30 3 * * *" }
   ]
 }

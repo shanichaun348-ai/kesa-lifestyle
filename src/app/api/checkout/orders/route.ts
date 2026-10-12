@@ -2,6 +2,8 @@ import { createHash, randomUUID } from "node:crypto";
 import { after, type NextRequest } from "next/server";
 
 import { getSessionUser } from "@/lib/auth/session";
+import { markCartConverted } from "@/modules/abandoned-cart/store";
+import { CART_COOKIE } from "@/modules/abandoned-cart/types";
 import { getCatalogRepository } from "@/modules/catalog/queries";
 import { codAvailability, isPaymentMethod, type PaymentMethod } from "@/modules/checkout/cod";
 import { computeOrderPricing } from "@/modules/checkout/pricing";
@@ -207,6 +209,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   // The RPC persists the snapshot with its own defaults; carry the payment fields forward
   // so the update below writes them.
   const createdOrder: Order = { ...createResult.order, paymentMethod, codFeePaise };
+
+  // The saved bag (cookie-identified) has converted: stop any reminder for it.
+  const cartToken = request.cookies.get(CART_COOKIE)?.value;
+  if (cartToken && /^[a-f0-9]{32}$/.test(cartToken)) after(() => markCartConverted(cartToken, orderId));
 
   // ── 4a. Cash on delivery: nothing to collect now — confirm and start fulfilment ──
   if (paymentMethod === "cod") {

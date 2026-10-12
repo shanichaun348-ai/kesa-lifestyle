@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { formatPaise } from "@/lib/money";
+import { postCartSync } from "@/modules/abandoned-cart/client";
 import { allPurchasable, describeLineCheck, type LineCheck } from "@/modules/cart/availability";
 import { useCart } from "@/modules/cart/use-cart";
 import { useBagAvailability } from "@/modules/cart/use-bag-availability";
@@ -78,6 +79,27 @@ export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
   const [couponCode, setCouponCode] = React.useState("");
   const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>("razorpay");
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
+  // Bag-reminder consent: unchecked by default; only a ticked box ever attaches the email to the saved bag.
+  const [remindMe, setRemindMe] = React.useState(false);
+  const consentSent = React.useRef(false);
+
+  React.useEffect(() => {
+    const validEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+    const validPhone = /^[6-9]\d{9}$/.test(phone.trim());
+    if (cart.length === 0) return;
+    if (remindMe && validEmail) {
+      const id = window.setTimeout(() => {
+        consentSent.current = true;
+        void postCartSync({ items: [...cart], email: email.trim(), ...(validPhone ? { phone: phone.trim() } : {}), consent: true });
+      }, 1500);
+      return () => window.clearTimeout(id);
+    }
+    if (!remindMe && consentSent.current) {
+      consentSent.current = false;
+      void postCartSync({ items: [...cart], consent: false });
+    }
+    return undefined;
+  }, [remindMe, email, phone, cart]);
 
   const [checkoutState, setCheckoutState] = React.useState<CheckoutState>("idle");
   const [orderSuccess, setOrderSuccess] = React.useState<OrderSuccess | null>(null);
@@ -305,6 +327,19 @@ export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" aria-invalid={!!fieldErrors.email} disabled={busy} />
                 {fieldErrors.email && <p className="text-sm text-danger">{fieldErrors.email}</p>}
+                <label className="flex items-start gap-2 pt-1 text-xs text-ink-muted">
+                  <input
+                    type="checkbox"
+                    checked={remindMe}
+                    onChange={(e) => setRemindMe(e.target.checked)}
+                    disabled={busy}
+                    className="mt-0.5 size-3.5 shrink-0 accent-ink"
+                  />
+                  <span>
+                    Email me a reminder if I leave items in my bag. We keep a copy of your bag for up to 7 days; every reminder has a stop link.{" "}
+                    <Link href="/privacy-policy/" className="underline underline-offset-2 hover:text-ink">Privacy</Link>
+                  </span>
+                </label>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="phone">Mobile number</Label>

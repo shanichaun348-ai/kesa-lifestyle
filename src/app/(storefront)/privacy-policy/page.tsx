@@ -30,6 +30,7 @@ export default function PrivacyPolicyPage() {
             <li>To send order confirmation and shipping updates</li>
             <li>To respond to customer service enquiries</li>
             <li>To send marketing communications (only with your consent)</li>
+            <li>To remind you about items left in your bag — only if you tick the reminder box at checkout. We keep that copy of your bag for up to 7 days, send at most two reminders, and every reminder has a one-click stop link</li>
             <li>To comply with legal obligations</li>
           </ul>
         </section>
