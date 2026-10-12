@@ -2,9 +2,10 @@
 
 import * as React from "react";
 import Image from "next/image";
-import { ChevronLeftIcon, ChevronRightIcon, PlayIcon, ZoomInIcon } from "lucide-react";
+import { ChevronLeftIcon, ChevronRightIcon, PlayIcon } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { useFinePointer, useZoomTracking, ZoomStage, zoomSource } from "@/components/product/zoom-stage";
 import type { ImageRef, ProductVideo } from "@/modules/catalog/types";
 import { cn } from "@/lib/utils";
 
@@ -77,31 +78,16 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
             <li key={i} className="w-full shrink-0 snap-center px-4 lg:px-0">
               <figure className="relative aspect-[4/5] overflow-hidden rounded-sm bg-surface-muted">
                 {item.kind === "image" ? (
-                  <>
-                    <Image
-                      src={item.image.src}
-                      alt={item.image.alt}
-                      fill
-                      priority={i === 0}
-                      fetchPriority={i === 0 ? "high" : "auto"}
-                      sizes={STAGE_SIZES}
-                      unoptimized={item.image.unoptimized ?? false}
-                      className="object-cover"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setActive(i);
-                        setOpen(true);
-                      }}
-                      aria-label={`Zoom image ${i + 1} of ${items.length}`}
-                      className="absolute inset-0 cursor-zoom-in outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-brand"
-                    >
-                      <span className="absolute right-3 bottom-3 inline-flex size-9 items-center justify-center rounded-full bg-surface/90 text-ink backdrop-blur-sm">
-                        <ZoomInIcon className="size-4" aria-hidden="true" />
-                      </span>
-                    </button>
-                  </>
+                  <ZoomStage
+                    image={item.image}
+                    priority={i === 0}
+                    sizes={STAGE_SIZES}
+                    label={`Open image ${i + 1} of ${items.length} full screen`}
+                    onOpen={() => {
+                      setActive(i);
+                      setOpen(true);
+                    }}
+                  />
                 ) : (
                   <VideoStage video={item.video} />
                 )}
@@ -181,9 +167,14 @@ type LightboxProps = {
   productName: string;
 };
 
-/** Full-screen viewer. Click or double-tap toggles 2.5× zoom; scroll to pan. */
+/**
+ * Full-screen viewer. Click toggles 2.5× zoom: with a mouse the magnified
+ * area follows the cursor; on touch the image becomes a pannable 250% canvas.
+ */
 function Lightbox({ open, onOpenChange, items, index, setIndex, productName }: LightboxProps) {
   const [zoomed, setZoomed] = React.useState(false);
+  const fine = useFinePointer();
+  const { ref: zoomRef, handlers: zoomHandlers } = useZoomTracking<HTMLDivElement>(fine && zoomed);
   const images = items.filter((i): i is Extract<GalleryItem, { kind: "image" }> => i.kind === "image");
   const current = images[Math.min(index, images.length - 1)];
 
@@ -211,17 +202,38 @@ function Lightbox({ open, onOpenChange, items, index, setIndex, productName }: L
         <DialogTitle className="sr-only">{productName} images</DialogTitle>
         <DialogDescription className="sr-only">Use the arrow keys to move between images. Click an image to zoom.</DialogDescription>
 
-        <div className={cn("relative size-full", zoomed ? "overflow-auto" : "overflow-hidden")}>
-          <button
-            type="button"
-            onClick={() => setZoomed((z) => !z)}
-            aria-label={zoomed ? "Zoom out" : "Zoom in"}
-            aria-pressed={zoomed}
-            className={cn("relative block outline-none", zoomed ? "h-[250%] w-[250%] cursor-zoom-out" : "size-full cursor-zoom-in")}
-          >
-            <Image src={current.image.src} alt={current.image.alt} fill sizes="100vw" unoptimized={current.image.unoptimized ?? false} className="object-contain" />
-          </button>
-        </div>
+        {fine ? (
+          <div ref={zoomRef} className="group/lb relative size-full overflow-hidden" {...zoomHandlers}>
+            <button
+              type="button"
+              onClick={() => setZoomed((z) => !z)}
+              aria-label={zoomed ? "Zoom out" : "Zoom in"}
+              aria-pressed={zoomed}
+              className={cn("relative block size-full outline-none", zoomed ? "cursor-zoom-out" : "cursor-zoom-in")}
+            >
+              <Image src={current.image.src} alt={current.image.alt} fill sizes="100vw" unoptimized={current.image.unoptimized ?? false} className="object-contain" />
+              {zoomed ? (
+                <span
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-surface bg-no-repeat opacity-0 transition-opacity duration-150 group-data-[active=true]/lb:opacity-100"
+                  style={{ backgroundImage: `url("${zoomSource(current.image)}")`, backgroundSize: "250%", backgroundPosition: "var(--zx, 50%) var(--zy, 50%)" }}
+                />
+              ) : null}
+            </button>
+          </div>
+        ) : (
+          <div className={cn("relative size-full", zoomed ? "overflow-auto" : "overflow-hidden")}>
+            <button
+              type="button"
+              onClick={() => setZoomed((z) => !z)}
+              aria-label={zoomed ? "Zoom out" : "Zoom in"}
+              aria-pressed={zoomed}
+              className={cn("relative block outline-none", zoomed ? "h-[250%] w-[250%] cursor-zoom-out" : "size-full cursor-zoom-in")}
+            >
+              <Image src={current.image.src} alt={current.image.alt} fill sizes="100vw" unoptimized={current.image.unoptimized ?? false} className="object-contain" />
+            </button>
+          </div>
+        )}
 
         {images.length > 1 ? (
           <>
