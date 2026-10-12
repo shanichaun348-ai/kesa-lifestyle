@@ -2,6 +2,7 @@ import Link from "next/link";
 
 import { PageHeader } from "@/components/admin/page-header";
 import { orderStatusBadge, paymentStatusBadge } from "@/components/admin/status-badge";
+import { courierName } from "@/modules/shipping/couriers";
 import { requireAdmin } from "@/modules/admin/guard";
 import { formatOrderNumber, listOrders, paymentStatusOf } from "@/modules/admin/orders-data";
 import type { OrderStatus } from "@/modules/orders/types";
@@ -75,7 +76,14 @@ export default async function OrdersPage({ searchParams }: Props) {
                   <td className="hidden px-4 py-3 text-ink-muted lg:table-cell">{order.items.reduce((s, i) => s + i.quantity, 0)}</td>
                   <td className="px-4 py-3 font-medium text-ink">{formatPaise(order.totalPaise)}</td>
                   <td className="hidden px-4 py-3 md:table-cell">{paymentStatusBadge(paymentStatusOf(order))}</td>
-                  <td className="px-4 py-3">{orderStatusBadge(order.status)}</td>
+                  <td className="px-4 py-3">
+                    {orderStatusBadge(order.status)}
+                    {order.trackingNumber && (order.status === "SHIPPED" || order.status === "DELIVERED") ? (
+                      <p className="mt-1 text-xs text-ink-subtle">
+                        {courierName(order.courier)} · <span className="font-mono">{order.trackingNumber}</span>
+                      </p>
+                    ) : null}
+                  </td>
                   <td className="px-4 py-3 text-right">
                     <Link href={`/admin/orders/${order.id}/`} className="text-sm text-brand hover:underline">View</Link>
                   </td>

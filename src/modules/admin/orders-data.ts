@@ -90,7 +90,24 @@ function rowToAdminOrder(row: Record<string, unknown>): AdminOrder {
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     ...(row.paid_at ? { paidAt: row.paid_at as string } : {}),
+    ...(typeof row.courier === "string" ? { courier: row.courier } : {}),
+    ...(typeof row.tracking_number === "string" ? { trackingNumber: row.tracking_number } : {}),
+    ...(typeof row.tracking_url === "string" ? { trackingUrl: row.tracking_url } : {}),
+    ...(typeof row.shipped_at === "string" ? { shippedAt: row.shipped_at } : {}),
+    ...(typeof row.delivered_at === "string" ? { deliveredAt: row.delivered_at } : {}),
+    ...(typeof row.cancelled_at === "string" ? { cancelledAt: row.cancelled_at } : {}),
   };
+}
+
+/** One order by its public number (KL-{n}); null when unknown. */
+export async function getOrderByNumber(orderNumber: number): Promise<AdminOrder | null> {
+  const { data, error } = await getSupabaseServiceClient()
+    .from("orders")
+    .select("*, order_items(*)")
+    .eq("order_number", orderNumber)
+    .maybeSingle();
+  if (error || !data) return null;
+  return rowToAdminOrder(data as Record<string, unknown>);
 }
 
 export async function listOrders(status?: OrderStatus): Promise<AdminOrder[]> {
@@ -199,7 +216,37 @@ export async function setOrderStatus(id: string, to: OrderStatus): Promise<{ ok:
   const cashCollected = to === "DELIVERED" && isCod(order) && !order.paidAt;
   const { error } = await getSupabaseServiceClient()
     .from("orders")
-    .update({ status: to, updated_at: now, ...(cashCollected && { paid_at: now }) })
+    .update({
+      status: to,
+      updated_at: now,
+      ...(cashCollected && { paid_at: now }),
+      ...(to === "SHIPPED" && { shipped_at: now }),
+      ...(to === "DELIVERED" && { delivered_at: now }),
+      ...(to === "CANCELLED" && { cancelled_at: now }),
+    })
+    .eq("id", id);
+  if (error) return { ok: false, error: error.message };
+  return { ok: true };
+}
+
+export type ShipmentInput = { courier: string; trackingNumber: string; trackingUrl: string | null };
+
+/** Record the consignment and move the order to SHIPPED in one write. */
+export async function recordShipment(id: string, shipment: ShipmentInput): Promise<{ ok: true } | { ok: false; error: string }> {
+  const order = await getOrder(id);
+  if (!order) return { ok: false, error: "Order not found." };
+  if (!canTransition(order.status, "SHIPPED")) return { ok: false, error: `Cannot ship an order that is ${order.status}.` };
+  const now = new Date().toISOString();
+  const { error } = await getSupabaseServiceClient()
+    .from("orders")
+    .update({
+      status: "SHIPPED",
+      courier: shipment.courier,
+      tracking_number: shipment.trackingNumber,
+      tracking_url: shipment.trackingUrl,
+      shipped_at: now,
+      updated_at: now,
+    })
     .eq("id", id);
   if (error) return { ok: false, error: error.message };
   return { ok: true };

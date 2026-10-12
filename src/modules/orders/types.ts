@@ -87,6 +87,13 @@ export type Order = {
   updatedAt: string;
   /** Online: when Razorpay confirmed payment. COD: when the courier collected the cash (delivery). */
   paidAt?: string;
+  /** Shipment, recorded when the order is marked shipped. */
+  courier?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
+  shippedAt?: string;
+  deliveredAt?: string;
+  cancelledAt?: string;
 };
 
 export function paymentMethodOf(order: Pick<Order, "paymentMethod">): PaymentMethod {

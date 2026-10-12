@@ -4,15 +4,24 @@ import { revalidatePath } from "next/cache";
 
 import { auditLog } from "@/modules/admin/audit";
 import { requireAdmin } from "@/modules/admin/guard";
-import { getOrder, isConfirmed, setOrderStatus } from "@/modules/admin/orders-data";
+import { getOrder, isConfirmed, recordShipment, setOrderStatus } from "@/modules/admin/orders-data";
+import { notifyOrderDelivered } from "@/modules/notifications/order-delivered";
 import { notifyOrderPaid } from "@/modules/notifications/order-paid";
-import { sendReviewRequest } from "@/modules/notifications/review-request";
+import { notifyOrderShipped } from "@/modules/notifications/order-shipped";
 import { getOrderRepository } from "@/modules/orders/queries";
 import { isCod, type OrderStatus } from "@/modules/orders/types";
+import { isCourierId, resolveTrackingUrl } from "@/modules/shipping/couriers";
 
 export type OrderActionState = { error: string } | { success: string } | null;
 
-const FULFILMENT_STEPS: ReadonlySet<OrderStatus> = new Set(["PROCESSING", "SHIPPED", "DELIVERED"]);
+/** Steps that need no extra data; SHIPPED goes through `shipOrder` so the consignment is recorded. */
+const FULFILMENT_STEPS: ReadonlySet<OrderStatus> = new Set(["PROCESSING", "DELIVERED"]);
+
+function revalidateOrder(orderId: string) {
+  revalidatePath(`/admin/orders/${orderId}/`);
+  revalidatePath("/admin/orders/");
+  revalidatePath("/admin/");
+}
 
 export async function advanceOrder(orderId: string, to: OrderStatus): Promise<OrderActionState> {
   const session = await requireAdmin("orders:write");
@@ -21,14 +30,39 @@ export async function advanceOrder(orderId: string, to: OrderStatus): Promise<Or
   if (!result.ok) return { error: result.error };
   auditLog(session, "order.update_status", { orderId, newStatus: to });
   if (to === "DELIVERED") {
-    // Ask for reviews once the pieces are in the customer's hands. Never blocks the status change.
-    const sent = await sendReviewRequest(orderId);
-    if (sent) auditLog(session, "order.review_request", { orderId });
+    // One "delivered" message per channel; the email carries the review links. Never blocks the status change.
+    const order = await getOrderRepository().findById(orderId);
+    if (order) {
+      const sent = await notifyOrderDelivered(order);
+      if (sent.email.ok) auditLog(session, "order.review_request", { orderId });
+    }
   }
-  revalidatePath(`/admin/orders/${orderId}/`);
-  revalidatePath("/admin/orders/");
-  revalidatePath("/admin/");
+  revalidateOrder(orderId);
   return { success: `Order marked as ${to.toLowerCase()}.` };
+}
+
+const TRACKING_RE = /^[A-Za-z0-9][A-Za-z0-9 /_-]{3,60}$/;
+
+/** Record courier + consignment, move to SHIPPED and tell the customer. */
+export async function shipOrder(orderId: string, _prev: OrderActionState, formData: FormData): Promise<OrderActionState> {
+  const session = await requireAdmin("orders:write");
+  const courier = formData.get("courier");
+  const trackingNumber = String(formData.get("trackingNumber") ?? "").trim();
+  const trackingUrlInput = String(formData.get("trackingUrl") ?? "").trim();
+  if (!isCourierId(courier)) return { error: "Choose the courier." };
+  if (!TRACKING_RE.test(trackingNumber)) return { error: "Enter the tracking / AWB number (letters, digits, dashes)." };
+  if (trackingUrlInput && !/^https?:\/\//i.test(trackingUrlInput)) return { error: "The tracking link must start with https://." };
+  const trackingUrl = resolveTrackingUrl(courier, trackingNumber, trackingUrlInput || null);
+
+  const result = await recordShipment(orderId, { courier, trackingNumber, trackingUrl });
+  if (!result.ok) return { error: result.error };
+  auditLog(session, "order.ship", { orderId, courier, trackingNumber });
+
+  const order = await getOrderRepository().findById(orderId);
+  const notice = order ? await notifyOrderShipped(order) : null;
+  revalidateOrder(orderId);
+  const channels = notice ? [notice.email.ok ? "email" : null, notice.whatsapp.ok ? "WhatsApp" : null].filter(Boolean) : [];
+  return { success: channels.length > 0 ? `Marked as shipped — customer notified by ${channels.join(" and ")}.` : "Marked as shipped." };
 }
 
 export async function cancelOrder(orderId: string): Promise<OrderActionState> {

@@ -4,6 +4,7 @@ import { getSupabaseServiceClient } from "@/lib/supabase";
 import { INDIAN_STATES } from "@/lib/india-states";
 import { formatOrderNumber, listOrdersForCustomer, type AdminOrder } from "@/modules/admin/orders-data";
 import { paymentMethodOf, type OrderStatus, type PaymentMethod } from "@/modules/orders/types";
+import { courierName } from "@/modules/shipping/couriers";
 
 import { AccountError } from "./errors";
 
@@ -72,6 +73,13 @@ export type AccountOrder = AccountOrderSummary & {
   codFeePaise: number;
   razorpayPaymentId: string | null;
   paidAt: string | null;
+  /** Shipment details once dispatched; courier is the display name. */
+  courier: string | null;
+  trackingNumber: string | null;
+  trackingUrl: string | null;
+  shippedAt: string | null;
+  deliveredAt: string | null;
+  cancelledAt: string | null;
 };
 
 const STATUS: Record<OrderStatus, AccountOrderStatus> = {
@@ -202,6 +210,12 @@ export function createSupabaseAccountService() {
           codFeePaise: o.codFeePaise ?? 0,
           razorpayPaymentId: o.razorpayPaymentId ?? null,
           paidAt: o.paidAt ?? null,
+          courier: courierName(o.courier),
+          trackingNumber: o.trackingNumber ?? null,
+          trackingUrl: o.trackingUrl ?? null,
+          shippedAt: o.shippedAt ?? null,
+          deliveredAt: o.deliveredAt ?? null,
+          cancelledAt: o.cancelledAt ?? null,
         };
       },
     },

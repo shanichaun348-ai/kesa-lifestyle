@@ -6,6 +6,7 @@ import { requireAdmin } from "@/modules/admin/guard";
 import { formatOrderNumber, getOrder, paymentStatusOf } from "@/modules/admin/orders-data";
 import { hasPermission } from "@/modules/admin/rbac";
 import { isCod } from "@/modules/orders/types";
+import { courierName } from "@/modules/shipping/couriers";
 import { formatPaise } from "@/lib/money";
 
 import { OrderActions } from "./_order-actions";
@@ -115,6 +116,36 @@ export default async function OrderDetailPage({ params }: Props) {
               <p>{addr.phone}</p>
             </address>
           </section>
+
+          {order.shippedAt || order.deliveredAt || order.cancelledAt || order.trackingNumber ? (
+            <section className="rounded-md border border-line bg-surface p-5 space-y-3">
+              <h2 className="text-sm font-medium text-ink">Shipment</h2>
+              <div className="space-y-1.5 text-sm">
+                {order.courier ? (
+                  <div className="flex justify-between"><span className="text-ink-subtle">Courier</span><span className="text-ink">{courierName(order.courier)}</span></div>
+                ) : null}
+                {order.trackingNumber ? (
+                  <div className="flex justify-between gap-3">
+                    <span className="text-ink-subtle">Tracking</span>
+                    {order.trackingUrl ? (
+                      <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" className="break-all font-mono text-xs text-brand hover:underline">{order.trackingNumber} ↗</a>
+                    ) : (
+                      <span className="break-all font-mono text-xs text-ink-muted">{order.trackingNumber}</span>
+                    )}
+                  </div>
+                ) : null}
+                {order.shippedAt ? (
+                  <div className="flex justify-between"><span className="text-ink-subtle">Shipped</span><span className="text-ink">{new Date(order.shippedAt).toLocaleString("en-IN")}</span></div>
+                ) : null}
+                {order.deliveredAt ? (
+                  <div className="flex justify-between"><span className="text-ink-subtle">Delivered</span><span className="text-ink">{new Date(order.deliveredAt).toLocaleString("en-IN")}</span></div>
+                ) : null}
+                {order.cancelledAt ? (
+                  <div className="flex justify-between"><span className="text-ink-subtle">Cancelled</span><span className="text-ink">{new Date(order.cancelledAt).toLocaleString("en-IN")}</span></div>
+                ) : null}
+              </div>
+            </section>
+          ) : null}
 
           <section className="rounded-md border border-line bg-surface p-5 space-y-3">
             <h2 className="text-sm font-medium text-ink">Payment</h2>

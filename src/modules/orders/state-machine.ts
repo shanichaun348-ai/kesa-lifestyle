@@ -29,7 +29,8 @@ export function canTransition(from: OrderStatus, to: OrderStatus): boolean {
  * Return a new Order with `status` updated to `to`.
  * Throws if the transition is invalid (prevents corrupted state in DB).
  * Sets `paidAt` when payment is received: on PAID for online orders, on
- * DELIVERED for cash on delivery (the courier collected the cash).
+ * DELIVERED for cash on delivery (the courier collected the cash). Stamps
+ * `shippedAt`, `deliveredAt` and `cancelledAt` on the matching transitions.
  */
 export function transitionOrder(order: Order, to: OrderStatus): Order {
   if (!canTransition(order.status, to)) {
@@ -42,5 +43,8 @@ export function transitionOrder(order: Order, to: OrderStatus): Order {
     status: to,
     updatedAt: now,
     ...(paidNow && { paidAt: now }),
+    ...(to === "SHIPPED" && { shippedAt: now }),
+    ...(to === "DELIVERED" && { deliveredAt: now }),
+    ...(to === "CANCELLED" && { cancelledAt: now }),
   };
 }

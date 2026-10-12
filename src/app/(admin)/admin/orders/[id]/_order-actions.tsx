@@ -3,8 +3,12 @@
 import { useActionState } from "react";
 
 import type { OrderStatus, PaymentMethod } from "@/modules/orders/types";
+import { COURIERS } from "@/modules/shipping/couriers";
 
-import { advanceOrder, cancelOrder, markRefunded, resendConfirmationEmail, resendConfirmationWhatsApp, type OrderActionState } from "./_actions";
+import { advanceOrder, cancelOrder, markRefunded, resendConfirmationEmail, resendConfirmationWhatsApp, shipOrder, type OrderActionState } from "./_actions";
+
+const INPUT = "h-10 w-full rounded-sm border border-line-strong bg-surface px-3 text-sm text-ink outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20 disabled:opacity-50";
+const LABEL = "mb-1 block text-xs font-medium text-ink-subtle";
 
 type Props = {
   orderId: string;
@@ -14,9 +18,9 @@ type Props = {
   canRefund: boolean;
 };
 
+/** One-click steps. PROCESSING → SHIPPED is the ship form below instead. */
 const NEXT_STEP: Partial<Record<OrderStatus, { to: OrderStatus; label: string }>> = {
   PAID: { to: "PROCESSING", label: "Start processing" },
-  PROCESSING: { to: "SHIPPED", label: "Mark as shipped" },
   SHIPPED: { to: "DELIVERED", label: "Mark as delivered" },
 };
 
@@ -66,17 +70,45 @@ export function OrderActions({ orderId, status, paymentMethod, canWrite, canRefu
     () => resendConfirmationWhatsApp(orderId),
     null,
   );
+  const [shipState, shipAction, shipPending] = useActionState<OrderActionState, FormData>(shipOrder.bind(null, orderId), null);
 
+  const showShip = canWrite && status === "PROCESSING";
   const showAdvance = canWrite && !!next;
   const showCancel = canWrite && rules.cancellable.has(status);
   const showRefund = canRefund && rules.refundable.has(status);
   const showResend = canWrite && rules.confirmed.has(status);
-  if (!showAdvance && !showCancel && !showRefund && !showResend) return null;
+  if (!showShip && !showAdvance && !showCancel && !showRefund && !showResend) return null;
 
   return (
     <section className="rounded-md border border-line bg-surface p-5 space-y-3">
       <h2 className="text-sm font-medium text-ink">Actions</h2>
-      <Message state={advState ?? cancelState ?? refundState ?? emailState ?? waState} />
+      <Message state={shipState ?? advState ?? cancelState ?? refundState ?? emailState ?? waState} />
+
+      {showShip ? (
+        <form action={shipAction} className="space-y-3 rounded-md border border-line p-3">
+          <p className="text-sm font-medium text-ink">Mark as shipped</p>
+          <div>
+            <label htmlFor="ship-courier" className={LABEL}>Courier</label>
+            <select id="ship-courier" name="courier" required defaultValue="delhivery" disabled={shipPending} className={INPUT}>
+              {COURIERS.map((c) => (
+                <option key={c.id} value={c.id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label htmlFor="ship-tracking" className={LABEL}>Tracking / AWB number</label>
+            <input id="ship-tracking" name="trackingNumber" required disabled={shipPending} placeholder="e.g. 1234567890123" className={INPUT + " font-mono"} autoComplete="off" />
+          </div>
+          <div>
+            <label htmlFor="ship-url" className={LABEL}>Tracking link (optional)</label>
+            <input id="ship-url" name="trackingUrl" type="url" disabled={shipPending} placeholder="Filled in automatically for known couriers" className={INPUT} />
+          </div>
+          <button disabled={shipPending} className="w-full rounded-md border border-ink bg-ink px-3 py-2 text-left text-sm font-medium text-bg hover:bg-brand-hover disabled:opacity-50">
+            {shipPending ? "Saving…" : "Save & notify customer"}
+          </button>
+          <p className="text-xs text-ink-subtle">Sends the shipped email and WhatsApp (where configured) with the tracking details.</p>
+        </form>
+      ) : null}
 
       {showAdvance ? (
         <form action={advAction}>

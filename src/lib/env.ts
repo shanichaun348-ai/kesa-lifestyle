@@ -45,6 +45,10 @@ const serverSchema = z.object({
   WHATSAPP_ORDER_TEMPLATE: z.string().min(1).optional(),
   /** Approved Utility template for cash-on-delivery confirmations (same 4 parameters; "pay on delivery" wording). */
   WHATSAPP_COD_ORDER_TEMPLATE: z.string().min(1).optional(),
+  /** Approved Utility template: order shipped (first name, order ref, courier, tracking). */
+  WHATSAPP_SHIPPED_TEMPLATE: z.string().min(1).optional(),
+  /** Approved Utility template: order delivered (first name, order ref). */
+  WHATSAPP_DELIVERED_TEMPLATE: z.string().min(1).optional(),
   /** Language code the template was approved in. Defaults to "en". */
   WHATSAPP_TEMPLATE_LANGUAGE: z.string().min(2).optional(),
   /** Graph API version. Defaults to v21.0. */

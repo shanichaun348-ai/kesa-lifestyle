@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { AccountHeading, AccountNotConfigured } from "@/components/account/not-configured";
+import { OrderTimeline } from "@/components/orders/order-timeline";
 import { requireUser } from "@/lib/auth/guard";
 import { formatPaise } from "@/lib/money";
 import { getAccountService } from "@/modules/account/server";
@@ -32,6 +33,13 @@ export default async function OrderDetailPage(props: PageProps<"/account/orders/
         <Badge variant={order.status === "cancelled" || order.status === "failed" ? "danger" : order.status === "delivered" ? "success" : "muted"}>{orderStatusLabel(order.status)}</Badge>
         {order.status === "pending_payment" ? <p className="type-small text-ink-muted">If you closed the payment window, place the order again from your bag.</p> : null}
       </div>
+
+      <section aria-labelledby="progress-title" className="mb-8 rounded-md border border-line bg-surface p-4 sm:p-5">
+        <h2 id="progress-title" className="type-eyebrow mb-4 text-ink-subtle">
+          Progress
+        </h2>
+        <OrderTimeline order={order} />
+      </section>
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section aria-labelledby="items-title">

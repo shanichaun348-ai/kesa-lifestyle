@@ -146,6 +146,12 @@ export class SupabaseOrderRepository implements OrderRepository {
         ...(order.paymentMethod !== undefined && { payment_method: order.paymentMethod }),
         ...(order.codFeePaise !== undefined && { cod_fee_paise: order.codFeePaise }),
         ...(order.paidAt !== undefined && { paid_at: order.paidAt }),
+        ...(order.courier !== undefined && { courier: order.courier }),
+        ...(order.trackingNumber !== undefined && { tracking_number: order.trackingNumber }),
+        ...(order.trackingUrl !== undefined && { tracking_url: order.trackingUrl }),
+        ...(order.shippedAt !== undefined && { shipped_at: order.shippedAt }),
+        ...(order.deliveredAt !== undefined && { delivered_at: order.deliveredAt }),
+        ...(order.cancelledAt !== undefined && { cancelled_at: order.cancelledAt }),
         updated_at: new Date().toISOString(),
       })
       .eq("id", order.id);
@@ -255,6 +261,12 @@ export class SupabaseOrderRepository implements OrderRepository {
       updatedAt: row.updated_at as string,
       ...(row.paid_at !== null &&
         row.paid_at !== undefined && { paidAt: row.paid_at as string }),
+      ...(typeof row.courier === "string" && { courier: row.courier }),
+      ...(typeof row.tracking_number === "string" && { trackingNumber: row.tracking_number }),
+      ...(typeof row.tracking_url === "string" && { trackingUrl: row.tracking_url }),
+      ...(typeof row.shipped_at === "string" && { shippedAt: row.shipped_at }),
+      ...(typeof row.delivered_at === "string" && { deliveredAt: row.delivered_at }),
+      ...(typeof row.cancelled_at === "string" && { cancelledAt: row.cancelled_at }),
     };
   }
 }
