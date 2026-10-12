@@ -29,6 +29,7 @@ function toRow(product: Product, lookSlugs: readonly string[]): ProductRow {
     slug: product.slug,
     name: product.name,
     thumb: product.images[0]?.src ?? null,
+    skus: product.variants.map((v) => v.sku),
     category: product.primaryCategoryPath,
     extraCategories: product.categoryPaths.filter((p) => p !== product.primaryCategoryPath),
     placements,

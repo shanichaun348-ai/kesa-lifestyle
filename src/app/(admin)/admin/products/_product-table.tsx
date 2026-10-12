@@ -12,6 +12,8 @@ export type ProductRow = {
   slug: string;
   name: string;
   thumb: string | null;
+  /** Variant SKUs in position order; the first is the main one. */
+  skus: string[];
   category: string;
   /** Other categories the product is also listed under. */
   extraCategories: string[];
@@ -155,6 +157,7 @@ export function ProductTable({ rows, canWrite, canDelete }: Props) {
                   </th>
                 ) : null}
                 <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-subtle">Product</th>
+                <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-subtle md:table-cell">SKU</th>
                 <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-subtle md:table-cell">Category</th>
                 <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-subtle sm:table-cell">Price</th>
                 <th className="hidden px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-ink-subtle lg:table-cell">Stock</th>
@@ -187,6 +190,18 @@ export function ProductTable({ rows, canWrite, canDelete }: Props) {
                           <p className="truncate text-xs text-ink-subtle">{product.slug}</p>
                         </div>
                       </div>
+                    </td>
+                    <td className="hidden px-4 py-3 md:table-cell">
+                      {product.skus.length === 0 ? (
+                        <span className="text-xs text-warning">No SKU</span>
+                      ) : (
+                        <>
+                          <span className="block font-mono text-xs text-ink">{product.skus[0]}</span>
+                          {product.skus.length > 1 ? (
+                            <span className="block text-xs text-ink-subtle" title={product.skus.slice(1).join(", ")}>+ {product.skus.length - 1} more</span>
+                          ) : null}
+                        </>
+                      )}
                     </td>
                     <td className="hidden px-4 py-3 text-ink-muted md:table-cell">
                       <span className="block">{product.category}</span>
