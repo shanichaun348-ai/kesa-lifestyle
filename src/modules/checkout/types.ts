@@ -7,6 +7,8 @@
 export type CartInput = {
   lines: CartLine[];
   couponCode?: string;
+  /** Lower-cased customer email, for per-customer and first-order coupon rules. */
+  customerEmail?: string;
 };
 
 export type CartLine = {
@@ -63,8 +65,11 @@ export type PricingErrorCode =
   | "OUT_OF_STOCK"
   | "COUPON_NOT_FOUND"
   | "COUPON_INACTIVE"
+  | "COUPON_NOT_STARTED"
   | "COUPON_EXPIRED"
   | "COUPON_USAGE_LIMIT_REACHED"
+  | "COUPON_PER_CUSTOMER_LIMIT_REACHED"
+  | "COUPON_FIRST_ORDER_ONLY"
   | "COUPON_MIN_ORDER_NOT_MET"
   | "COUPON_NOT_APPLICABLE";
 

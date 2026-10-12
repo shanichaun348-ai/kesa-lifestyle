@@ -1,77 +1,75 @@
 import "server-only";
 
-import { seedCoupons } from "@/lib/demo/seed-coupons";
-import type { AppliedCoupon, PricingError } from "./types";
+import { seedCoupons, type DemoCoupon } from "@/lib/demo/seed-coupons";
+import { isSupabaseConfigured } from "@/lib/supabase";
 
-type CouponResult = { ok: true; coupon: AppliedCoupon } | { ok: false; error: PricingError };
+import { loadCouponContext } from "./coupon-store";
+import { evaluateCoupon, normaliseCode, type CouponContext, type CouponEvaluation, type CouponRecord } from "./coupon-rules";
+
+/** The dev seed as the same record shape the database produces. */
+function seedToRecord(c: DemoCoupon): CouponRecord {
+  return {
+    id: c.id,
+    code: c.code,
+    description: c.description,
+    type: c.type,
+    value: c.value,
+    minOrderPaise: c.minOrderPaise,
+    maxDiscountPaise: null,
+    startsAt: null,
+    endsAt: c.expiresAt ?? (c.status === "expired" ? new Date(0).toISOString() : null),
+    usageLimit: c.usageLimit ?? null,
+    perCustomerLimit: c.perCustomerLimit ?? null,
+    firstOrderOnly: false,
+    // "expired" seeds stay active so the date rule (not the inactive rule) rejects them.
+    active: c.status !== "inactive",
+    createdAt: c.createdAt,
+  };
+}
+
+function seedContext(code: string, subtotalPaise: number, productSlugs: string[]): { ctx: CouponContext; notApplicable: boolean } {
+  const demo = seedCoupons.find((c) => c.code === code) ?? null;
+  const notApplicable = !!demo?.productSlugs?.length && !productSlugs.some((s) => demo.productSlugs!.includes(s));
+  const ctx: CouponContext = {
+    coupon: demo ? seedToRecord(demo) : null,
+    code,
+    subtotalPaise,
+    now: new Date(),
+    totalRedemptions: demo?.usageCount ?? 0,
+    customerRedemptions: 0,
+    customerHasPriorPaidOrder: false,
+  };
+  return { ctx, notApplicable };
+}
 
 /**
  * Validate a coupon code server-side and compute the discount amount.
+ * Reads the `coupons` table (and the redemption ledger) when Supabase is
+ * configured; falls back to the dev seed otherwise. All rules live in
+ * coupon-rules.ts.
  *
- * Phase 2: replace the seedCoupons scan with a DB query + per-customer
- * usage check against the orders table.
- *
- * @param code       Coupon code from the client (only the identifier is trusted).
- * @param subtotalPaise  Pre-discount subtotal in paise, used for min-order check.
- * @param productSlugs   Slugs of all products in the cart, for eligibility check.
+ * @param code           Coupon code from the client (only the identifier is trusted).
+ * @param subtotalPaise  Pre-discount merchandise subtotal in paise.
+ * @param productSlugs   Slugs of all products in the cart (seed-only eligibility check).
+ * @param customerEmail  Lower-cased email, for per-customer and first-order rules.
  */
-export function validateCoupon(code: string, subtotalPaise: number, productSlugs: string[]): CouponResult {
-  const normalized = code.trim().toUpperCase();
-  const coupon = seedCoupons.find((c) => c.code === normalized);
+export async function validateCoupon(code: string, subtotalPaise: number, productSlugs: string[], customerEmail?: string): Promise<CouponEvaluation> {
+  const normalized = normaliseCode(code);
 
-  if (!coupon) {
-    return { ok: false, error: { code: "COUPON_NOT_FOUND", message: `Coupon "${normalized}" not found.`, couponCode: normalized } };
-  }
-
-  if (coupon.status === "inactive") {
-    return { ok: false, error: { code: "COUPON_INACTIVE", message: "This coupon is not active.", couponCode: normalized } };
-  }
-
-  if (coupon.status === "expired" || (coupon.expiresAt && new Date(coupon.expiresAt) < new Date())) {
-    return { ok: false, error: { code: "COUPON_EXPIRED", message: "This coupon has expired.", couponCode: normalized } };
-  }
-
-  if (coupon.usageLimit !== undefined && coupon.usageCount >= coupon.usageLimit) {
-    return { ok: false, error: { code: "COUPON_USAGE_LIMIT_REACHED", message: "This coupon has reached its usage limit.", couponCode: normalized } };
-  }
-
-  if (subtotalPaise < coupon.minOrderPaise) {
-    const minRupees = Math.ceil(coupon.minOrderPaise / 100);
-    return {
-      ok: false,
-      error: {
-        code: "COUPON_MIN_ORDER_NOT_MET",
-        message: `Minimum order of ₹${minRupees} required for this coupon.`,
-        couponCode: normalized,
-      },
-    };
-  }
-
-  // Product/category eligibility: if the coupon restricts to specific products,
-  // at least one cart item must match.
-  if (coupon.productSlugs && coupon.productSlugs.length > 0) {
-    const eligible = productSlugs.some((s) => coupon.productSlugs!.includes(s));
-    if (!eligible) {
-      return { ok: false, error: { code: "COUPON_NOT_APPLICABLE", message: "This coupon is not applicable to the items in your cart.", couponCode: normalized } };
+  if (isSupabaseConfigured()) {
+    try {
+      const ctx = await loadCouponContext(normalized, customerEmail, new Date(), subtotalPaise);
+      return evaluateCoupon(ctx);
+    } catch (err) {
+      console.error(JSON.stringify({ level: "error", event: "coupon", action: "lookup_failed", code: normalized, error: err instanceof Error ? err.message : "unknown", ts: new Date().toISOString() }));
+      return { ok: false, error: { code: "COUPON_NOT_FOUND", message: "We couldn't check that code right now — please try again.", couponCode: normalized } };
     }
   }
 
-  let discountPaise: number;
-  if (coupon.type === "percent") {
-    discountPaise = Math.floor((subtotalPaise * coupon.value) / 100);
-  } else {
-    // Fixed discount must not exceed the subtotal.
-    discountPaise = Math.min(coupon.value, subtotalPaise);
+  const { ctx, notApplicable } = seedContext(normalized, subtotalPaise, productSlugs);
+  const result = evaluateCoupon(ctx);
+  if (result.ok && notApplicable) {
+    return { ok: false, error: { code: "COUPON_NOT_APPLICABLE", message: "This coupon is not applicable to the items in your cart.", couponCode: normalized } };
   }
-
-  return {
-    ok: true,
-    coupon: {
-      id: coupon.id,
-      code: coupon.code,
-      type: coupon.type,
-      value: coupon.value,
-      discountPaise,
-    },
-  };
+  return result;
 }

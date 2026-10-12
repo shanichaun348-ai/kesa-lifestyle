@@ -313,7 +313,7 @@ describe("coupon manipulation attacks", () => {
     // FLAT200 (value = 20000 paise = ₹200). Apply to a ₹100 order (10000 paise)
     // — would be blocked by minOrderPaise check first (minOrder is ₹1999 for FLAT200).
     // Test the cap logic with WELCOME10 (percent): discount must not exceed subtotal.
-    const r = validateCoupon("WELCOME10", 100, []); // subtotal = 1 paise, no min issue (min is 50000)
+    const r = await validateCoupon("WELCOME10", 100, []); // subtotal = 1 paise, no min issue (min is 50000)
     // WELCOME10 requires minOrderPaise = 50000; 100 < 50000 → rejected
     expect(r.ok).toBe(false);
   });

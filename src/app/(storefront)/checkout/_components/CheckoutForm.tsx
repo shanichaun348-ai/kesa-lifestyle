@@ -53,7 +53,12 @@ type OrderResponse =
   | { paymentMethod: "cod"; orderId: string; orderNumber: number | null; amount: number }
   | { paymentMethod?: "razorpay"; orderId: string; razorpayOrderId: string; razorpayKeyId: string; amount: number; currency: string };
 
-export function CheckoutForm() {
+type CheckoutFormProps = {
+  /** Code advertised in the announcement strip, offered as a one-tap hint. */
+  suggestedCode?: string | undefined;
+};
+
+export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
   const bag = useCart();
   const cart = bag.lines;
   // What the catalogue says about each line today: price, stock, or gone.
@@ -426,6 +431,17 @@ export function CheckoutForm() {
           <section className="space-y-2">
             <Label htmlFor="coupon">Coupon code</Label>
             <Input id="coupon" value={couponCode} onChange={(e) => setCouponCode(e.target.value)} placeholder="Optional" disabled={busy} />
+            {suggestedCode && couponCode.trim().toUpperCase() !== suggestedCode ? (
+              <p className="flex flex-wrap items-center gap-x-2 text-sm text-ink-muted">
+                <span>
+                  Have a code? Try <span className="font-mono font-medium text-ink">{suggestedCode}</span>
+                </span>
+                <button type="button" onClick={() => setCouponCode(suggestedCode)} disabled={busy} className="text-brand underline underline-offset-4 hover:no-underline disabled:opacity-50">
+                  Apply
+                </button>
+              </p>
+            ) : null}
+            <p className="text-xs text-ink-subtle">The discount is confirmed on the next step.</p>
           </section>
 
           <Button type="submit" variant="primary" size="lg" className="w-full" disabled={busy || availability.checking || !purchasable} aria-busy={busy || availability.checking}>

@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/admin/page-header";
 import { requireAdmin } from "@/modules/admin/guard";
 
 const SECTIONS = [
+  { title: "Announcement bar", desc: "The offer strip at the top of every page, with an optional coupon code", href: "/admin/content/announcement/" },
   { title: "Homepage sections", desc: "Hero, banners, product rails, brand statement", href: "/admin/content/homepage/" },
   { title: "Collections", desc: "Edit collection names, descriptions and images", href: "/admin/content/collections/" },
   { title: "Journal posts", desc: "Articles, style stories and guides", href: "/admin/content/journal/" },

@@ -26,7 +26,7 @@ const MAX_QUANTITY_PER_LINE = 10;
  * @param repo   CatalogRepository — reads authoritative prices from the source.
  */
 export async function computeOrderPricing(input: CartInput, repo: CatalogRepository): Promise<PricingOutcome> {
-  const { lines: rawLines, couponCode } = input;
+  const { lines: rawLines, couponCode, customerEmail } = input;
 
   if (!rawLines || rawLines.length === 0) {
     return { ok: false, error: { code: "EMPTY_CART", message: "Cart is empty." } };
@@ -112,7 +112,7 @@ export async function computeOrderPricing(input: CartInput, repo: CatalogReposit
       const entry = skuMap.get(l.sku);
       return entry?.product.slug ?? "";
     });
-    const couponResult = validateCoupon(couponCode, subtotalPaise, productSlugs);
+    const couponResult = await validateCoupon(couponCode, subtotalPaise, productSlugs, customerEmail);
     if (!couponResult.ok) {
       return { ok: false, error: couponResult.error };
     }

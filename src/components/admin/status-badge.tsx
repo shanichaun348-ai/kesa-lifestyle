@@ -83,9 +83,11 @@ export function productStatusBadge(status: string) {
 
 export function couponStatusBadge(status: string) {
   const map: Record<string, { label: string; variant: Variant }> = {
-    active: { label: "Active", variant: "success" },
+    active: { label: "Live", variant: "success" },
     inactive: { label: "Inactive", variant: "warning" },
+    scheduled: { label: "Scheduled", variant: "info" },
     expired: { label: "Expired", variant: "neutral" },
+    exhausted: { label: "Fully redeemed", variant: "neutral" },
   };
   const entry = map[status] ?? { label: status, variant: "neutral" as Variant };
   return <StatusBadge label={entry.label} variant={entry.variant} />;

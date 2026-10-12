@@ -102,7 +102,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 
   // ── 1. Server-side pricing ────────────────────────────────────────────────
   const pricingOutcome = await computeOrderPricing(
-    { lines: rawLines, ...(couponCode && { couponCode }) },
+    { lines: rawLines, ...(couponCode && { couponCode }), ...(customer.email && { customerEmail: customer.email }) },
     getCatalogRepository(),
   );
 
