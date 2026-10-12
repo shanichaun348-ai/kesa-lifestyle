@@ -5,12 +5,14 @@ import type { ReactNode } from "react";
 import { AdminNav } from "@/components/admin/admin-nav";
 import { AdminSignOut } from "@/components/admin/admin-sign-out";
 import { requireAdmin } from "@/modules/admin/guard";
-import { ROLE_LABELS } from "@/modules/admin/rbac";
+import { hasPermission, ROLE_LABELS } from "@/modules/admin/rbac";
+import { countOpenReturns } from "@/modules/returns/supabase-returns";
 import { isSupabaseConfigured } from "@/lib/supabase";
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const session = await requireAdmin();
   const dbConnected = isSupabaseConfigured();
+  const openReturns = dbConnected && hasPermission(session.role, "orders:read") ? await countOpenReturns().catch(() => 0) : 0;
 
   return (
     <div className="flex min-h-screen bg-bg">
@@ -25,7 +27,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
 
         {/* Nav */}
         <div className="flex-1 overflow-y-auto p-3">
-          <AdminNav role={session.role} />
+          <AdminNav role={session.role} badges={{ "/admin/returns/": openReturns }} />
         </div>
 
         {/* User */}

@@ -100,6 +100,17 @@ const NAV: NavItem[] = [
     ),
   },
   {
+    label: "Returns",
+    href: "/admin/returns/",
+    permission: "orders:read",
+    icon: (
+      <svg className="size-4.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75">
+        <polyline points="9 14 4 9 9 4" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M20 20v-7a4 4 0 00-4-4H4" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
     label: "Coupons",
     href: "/admin/coupons/",
     permission: "coupons:read",
@@ -113,9 +124,11 @@ const NAV: NavItem[] = [
 
 type Props = {
   role: AdminRole;
+  /** Count badges by href, e.g. open return requests. */
+  badges?: Record<string, number>;
 };
 
-export function AdminNav({ role }: Props) {
+export function AdminNav({ role, badges = {} }: Props) {
   const pathname = usePathname();
 
   const visible = NAV.filter((item) => !item.permission || hasPermission(role, item.permission));
@@ -139,6 +152,7 @@ export function AdminNav({ role }: Props) {
               >
                 {item.icon}
                 {item.label}
+                {(badges[item.href] ?? 0) > 0 ? <span className="ml-auto rounded-full bg-warning/15 px-1.5 text-xs text-warning">{badges[item.href]}</span> : null}
               </Link>
             </li>
           );

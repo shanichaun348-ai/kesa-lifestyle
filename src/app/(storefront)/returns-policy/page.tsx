@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { JsonLd } from "@/components/seo/json-ld";
 import { Breadcrumbs } from "@/components/storefront/breadcrumbs";
@@ -46,13 +47,21 @@ export default function ReturnsPolicyPage() {
           </section>
 
           <section aria-labelledby="returns-how">
-            <h2 id="returns-how" className="type-h3 text-ink mb-3">How to return</h2>
+            <h2 id="returns-how" className="type-h3 text-ink mb-3">How to request a return or exchange</h2>
             <ol className="list-decimal pl-5 space-y-2">
-              <li>Email us at <span className="text-ink">hello@kesalifestyle.com</span> within 7 days of delivery with your order number and reason for return.</li>
-              <li>We will send you a return shipping label within 1 business day.</li>
-              <li>Pack the item securely in its original packaging and drop it off at the courier.</li>
-              <li>Refunds are processed within 5–7 business days of receiving the return.</li>
+              <li>
+                Within 7 days of delivery, open the order under{" "}
+                <Link href="/account/orders/" className="text-brand underline-offset-4 hover:underline">My orders</Link> (or look it up on{" "}
+                <Link href="/track-order/" className="text-brand underline-offset-4 hover:underline">Track order</Link> with your order number and the email or mobile you used) and tap{" "}
+                <span className="text-ink">Request a return or exchange</span>. Choose the pieces, tell us why, and add photos if something arrived damaged.
+              </li>
+              <li>We review every request within 2 business days and email you pickup or return instructions.</li>
+              <li>Pack the pieces unworn, with tags, in their original packaging.</li>
+              <li>Refunds are processed within 5–7 business days of the parcel reaching us; exchanges are dispatched as soon as the pieces are checked.</li>
             </ol>
+            <p className="mt-2">
+              Prefer to write? Email <span className="text-ink">hello@kesalifestyle.com</span> with your order number and we will raise the request for you.
+            </p>
           </section>
 
           <section aria-labelledby="returns-refund">

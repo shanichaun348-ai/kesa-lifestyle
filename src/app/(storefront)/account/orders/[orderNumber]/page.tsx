@@ -4,9 +4,14 @@ import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { AccountHeading, AccountNotConfigured } from "@/components/account/not-configured";
 import { OrderTimeline } from "@/components/orders/order-timeline";
+import { ReturnRequestForm } from "@/components/orders/return-request-form";
+import { ReturnStatus } from "@/components/orders/return-status";
 import { requireUser } from "@/lib/auth/guard";
 import { formatPaise } from "@/lib/money";
 import { getAccountService } from "@/modules/account/server";
+import { getOrderByNumber } from "@/modules/admin/orders-data";
+import { parseOrderReference } from "@/modules/orders/track-match";
+import { getReturnContext, type ReturnContext } from "@/modules/returns/context";
 
 import { orderStatusLabel } from "../../page";
 
@@ -26,6 +31,15 @@ export default async function OrderDetailPage(props: PageProps<"/account/orders/
   const addr = order.shippingAddress;
   const cod = order.paymentMethod === "cod";
 
+  // Returns: the service already proved this order belongs to the confirmed email above.
+  let returns: ReturnContext | null = null;
+  if (user.emailConfirmed) {
+    const n = parseOrderReference(orderNumber);
+    const full = n === null ? null : await getOrderByNumber(n);
+    if (full) returns = await getReturnContext(full);
+  }
+  const showReturns = returns !== null && (order.status === "delivered" || returns.requests.length > 0);
+
   return (
     <>
       <AccountHeading eyebrow="Order" title={order.orderNumber} intro={`Placed ${dateTime.format(new Date(order.placedAt))}`} />
@@ -40,6 +54,18 @@ export default async function OrderDetailPage(props: PageProps<"/account/orders/
         </h2>
         <OrderTimeline order={order} />
       </section>
+
+      {showReturns && returns ? (
+        <section aria-labelledby="returns-title" className="mb-8 space-y-4">
+          <h2 id="returns-title" className="type-h3">
+            Returns &amp; exchanges
+          </h2>
+          {returns.requests.map((r) => (
+            <ReturnStatus key={r.id} request={r} reference={order.orderNumber} auth={{ mode: "session" }} />
+          ))}
+          <ReturnRequestForm reference={order.orderNumber} auth={{ mode: "session" }} eligibility={returns.eligibility} />
+        </section>
+      ) : null}
 
       <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_20rem]">
         <section aria-labelledby="items-title">

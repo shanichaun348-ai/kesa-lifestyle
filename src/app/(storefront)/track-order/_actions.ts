@@ -6,9 +6,22 @@ import { headers } from "next/headers";
 
 import { consumeMemoryRateLimit, limiterKey } from "@/lib/rate-limit-memory";
 import { isSupabaseConfigured } from "@/lib/supabase";
+import { getOrderByNumber } from "@/modules/admin/orders-data";
 import { lookupOrderForTracking, type TrackedOrder } from "@/modules/orders/track";
+import { parseOrderReference } from "@/modules/orders/track-match";
+import { getReturnContext, type ReturnContext } from "@/modules/returns/context";
 
-export type TrackState = { status: "idle" } | { status: "error"; message: string } | { status: "found"; order: TrackedOrder };
+export type TrackState =
+  | { status: "idle" }
+  | { status: "error"; message: string }
+  | {
+      status: "found";
+      order: TrackedOrder;
+      /** The credentials that proved ownership; reused by the return form. */
+      reference: string;
+      contact: string;
+      returns: ReturnContext | null;
+    };
 
 export const TRACK_IDLE: TrackState = { status: "idle" };
 
@@ -32,5 +45,15 @@ export async function trackOrderAction(_prev: TrackState, formData: FormData): P
 
   const order = await lookupOrderForTracking(reference, contact);
   if (!order) return { status: "error", message: NOT_FOUND };
-  return { status: "found", order };
+
+  // The lookup proved ownership, so the same page can offer a return on a delivered order.
+  let returns: ReturnContext | null = null;
+  try {
+    const n = parseOrderReference(reference);
+    const full = n === null ? null : await getOrderByNumber(n);
+    if (full) returns = await getReturnContext(full);
+  } catch {
+    returns = null;
+  }
+  return { status: "found", order, reference: order.orderNumber, contact, returns };
 }

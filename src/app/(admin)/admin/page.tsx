@@ -6,6 +6,7 @@ import { requireAdmin } from "@/modules/admin/guard";
 import { dashboardStats, formatOrderNumber } from "@/modules/admin/orders-data";
 import { hasPermission } from "@/modules/admin/rbac";
 import { getCatalogRepository } from "@/modules/catalog/queries";
+import { countOpenReturns } from "@/modules/returns/supabase-returns";
 import { formatPaise } from "@/lib/money";
 
 export default async function AdminDashboard() {
@@ -15,9 +16,10 @@ export default async function AdminDashboard() {
   const canSeeProducts = hasPermission(session.role, "products:read");
   const canSeeCustomers = hasPermission(session.role, "customers:read");
 
-  const [stats, activeProducts] = await Promise.all([
+  const [stats, activeProducts, openReturns] = await Promise.all([
     canSeeOrders || canSeeCustomers ? dashboardStats() : null,
     canSeeProducts ? getCatalogRepository().getAllActiveProducts() : null,
+    canSeeOrders ? countOpenReturns().catch(() => 0) : 0,
   ]);
 
   return (
@@ -44,6 +46,14 @@ export default async function AdminDashboard() {
         ) : null}
         {canSeeCustomers && stats ? (
           <StatCard label="Customers" value={stats.customers} sub="Have placed an order" />
+        ) : null}
+        {canSeeOrders ? (
+          <StatCard
+            label="Open returns"
+            value={openReturns}
+            sub="Awaiting a decision"
+            {...(openReturns > 0 ? { trend: { direction: "down" as const, label: "Needs action" } } : {})}
+          />
         ) : null}
       </div>
 

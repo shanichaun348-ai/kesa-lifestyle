@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { OrderTimeline } from "@/components/orders/order-timeline";
+import { ReturnRequestForm } from "@/components/orders/return-request-form";
+import { ReturnStatus } from "@/components/orders/return-status";
 
 import { TRACK_IDLE, trackOrderAction, type TrackState } from "./_actions";
 
@@ -49,6 +51,18 @@ export function TrackOrderForm() {
             </p>
           </div>
           <OrderTimeline order={state.order} />
+        </section>
+      ) : null}
+
+      {state.status === "found" && state.returns && (state.order.status === "delivered" || state.returns.requests.length > 0) ? (
+        <section aria-labelledby="track-returns-title" className="space-y-4">
+          <h2 id="track-returns-title" className="type-h3">
+            Returns &amp; exchanges
+          </h2>
+          {state.returns.requests.map((r) => (
+            <ReturnStatus key={r.id} request={r} reference={state.reference} auth={{ mode: "lookup", reference: state.reference, contact: state.contact }} />
+          ))}
+          <ReturnRequestForm reference={state.reference} auth={{ mode: "lookup", reference: state.reference, contact: state.contact }} eligibility={state.returns.eligibility} />
         </section>
       ) : null}
     </div>
