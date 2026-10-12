@@ -3,6 +3,7 @@ import { ChevronDownIcon } from "lucide-react";
 
 import { NewsletterForm } from "@/components/storefront/newsletter-form";
 import type { FooterColumn } from "@/lib/navigation";
+import { whatsappHref } from "@/lib/site";
 
 type SiteFooterProps = {
   columns: FooterColumn[];
@@ -44,13 +45,23 @@ export function SiteFooter({ columns }: SiteFooterProps) {
             <p className="type-eyebrow mb-4 text-ink">Stay in touch</p>
             <NewsletterForm />
             <ul className="mt-6 flex items-center gap-4" aria-label="Social">
-              {["Instagram", "Pinterest", "YouTube", "WhatsApp"].map((name) => (
+              {["Instagram", "Pinterest", "YouTube"].map((name) => (
                 <li key={name}>
                   <a href="#" className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline">
                     {name}
                   </a>
                 </li>
               ))}
+              <li>
+                <a
+                  href={whatsappHref("Hi Kesa Lifestyle, I have a question about your jewellery.")}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
+                >
+                  WhatsApp
+                </a>
+              </li>
             </ul>
           </div>
         </div>

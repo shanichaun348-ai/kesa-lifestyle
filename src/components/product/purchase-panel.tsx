@@ -8,7 +8,9 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { Price } from "@/components/storefront/price";
+import { WhatsAppIcon } from "@/components/storefront/whatsapp-button";
 import { WishlistButton } from "@/components/storefront/wishlist-button";
+import { site, whatsappHref } from "@/lib/site";
 import { useCart } from "@/modules/cart/use-cart";
 import { availabilityOf, maxQuantity, type Availability } from "@/modules/catalog/variants";
 import { trackAddToCart } from "@/modules/analytics/events";
@@ -210,6 +212,15 @@ export function PurchasePanel(props: PurchasePanelProps) {
           <Button size="lg" variant="secondary" fullWidth onClick={onBuyNow}>
             Buy now
           </Button>
+          <a
+            href={whatsappHref(`Hi Kesa, I have a question about "${props.productName}" — ${site.url.replace(/\/$/, "")}/products/${props.productSlug}/`)}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 self-start text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
+          >
+            <WhatsAppIcon className="size-4 text-[#25D366]" />
+            Ask about this piece on WhatsApp
+          </a>
         </div>
       ) : (
         <div className="flex flex-col gap-3">

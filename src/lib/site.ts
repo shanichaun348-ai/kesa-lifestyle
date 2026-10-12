@@ -34,3 +34,11 @@ export const legal = {
 export function absoluteUrl(path: string): string {
   return new URL(path, site.url).toString();
 }
+
+/** The business WhatsApp number in international digits-only form for wa.me links. */
+export const WHATSAPP_NUMBER = legal.supportPhone.replace(/\D/g, "");
+
+/** A wa.me link that opens a chat with the store, with the message pre-filled. */
+export function whatsappHref(message: string): string {
+  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+}
