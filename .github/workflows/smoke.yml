@@ -1,0 +1,60 @@
+name: Post-deploy smoke test
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  SITE_URL: https://kesa-lifestyle.vercel.app
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Wait for Vercel to serve this commit
+        run: |
+          for i in $(seq 1 40); do
+            commit=$(curl -fsS --max-time 20 "$SITE_URL/api/health/" | jq -r '.commit // empty' || true)
+            if [ "$commit" = "$GITHUB_SHA" ]; then
+              echo "Deployed commit matches ($commit)"; exit 0
+            fi
+            echo "Attempt $i: live commit is '${commit:-none}', waiting for $GITHUB_SHA…"
+            sleep 15
+          done
+          echo "::error::Vercel did not serve $GITHUB_SHA within 10 minutes"; exit 1
+
+      - name: Check health, key pages and APIs
+        run: |
+          set -e
+          check() {
+            local path="$1" expect="${2:-200}"
+            code=$(curl -s -o /tmp/body --max-time 30 -w '%{http_code}' "$SITE_URL$path")
+            if [ "$code" != "$expect" ]; then
+              echo "::error::$path returned $code (expected $expect)"; head -c 400 /tmp/body; echo; exit 1
+            fi
+            echo "ok  $code  $path"
+          }
+          check /api/health/
+          check /
+          check /women/
+          check /collections/new-arrivals/
+          check "/search/?q=necklace"
+          check /cart/
+          check /checkout/
+          check /login/
+          check /privacy-policy/
+          check /grievance-officer/
+          check /sitemap.xml
+          check /robots.txt
+          check /admin/login/
+          # First live product from the women's listing must render.
+          slug=$(curl -fsS --max-time 30 "$SITE_URL/women/" | grep -oE 'href="/products/[a-z0-9-]+/"' | head -1 | sed 's#href="/products/##; s#/"##')
+          if [ -z "$slug" ]; then echo "::error::no product links on /women/"; exit 1; fi
+          check "/products/$slug/"
+          # Database must answer.
+          curl -fsS --max-time 20 "$SITE_URL/api/health/" | jq -e '.database == "ok"' > /dev/null || { echo "::error::database not ok"; exit 1; }
+          echo "Smoke test passed for $GITHUB_SHA"
