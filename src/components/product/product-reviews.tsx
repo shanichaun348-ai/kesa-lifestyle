@@ -1,21 +1,32 @@
+import { Suspense } from "react";
+import Link from "next/link";
+import { BadgeCheckIcon } from "lucide-react";
+
+import { ReviewForm } from "@/components/product/review-form";
 import { RatingStars } from "@/components/storefront/rating-stars";
 import type { ReviewSummary } from "@/modules/reviews/types";
 
 type ProductReviewsProps = {
+  productSlug: string;
   productName: string;
   summary: ReviewSummary;
+  /** Signed-in customer's email, if any; pre-fills and locks the form's email field. */
+  sessionEmail?: string | null | undefined;
+  /** True when every approved review is in `summary.reviews` (the `?reviews=all` view). */
+  showingAll: boolean;
 };
 
 const dateFormat = new Intl.DateTimeFormat("en-IN", { day: "numeric", month: "short", year: "numeric" });
 
 /**
- * Reviews section. Shows real reviews when they exist; otherwise an honest
- * empty state. Never renders placeholder stars or invented counts.
+ * Reviews section: summary, the review form, and the approved reviews with
+ * photos. Never renders placeholder stars or invented counts.
  */
-export function ProductReviews({ productName, summary }: ProductReviewsProps) {
+export function ProductReviews({ productSlug, productName, summary, sessionEmail, showingAll }: ProductReviewsProps) {
+  const hidden = summary.count - summary.reviews.length;
   return (
-    <section aria-labelledby="reviews-title" className="border-t border-line pt-10">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+    <section id="reviews" aria-labelledby="reviews-title" className="scroll-mt-24 border-t border-line pt-10">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="type-eyebrow text-ink-subtle">Reviews</p>
           <h2 id="reviews-title" className="type-h2 mt-2">
@@ -30,29 +41,78 @@ export function ProductReviews({ productName, summary }: ProductReviewsProps) {
         ) : null}
       </div>
 
+      {summary.count > 0 ? (
+        <dl className="mt-5 grid max-w-sm grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1 text-sm" aria-label="Rating breakdown">
+          {([5, 4, 3, 2, 1] as const).map((n) => {
+            const share = summary.count ? (summary.distribution[n] / summary.count) * 100 : 0;
+            return (
+              <div key={n} className="contents">
+                <dt className="text-ink-muted">{n} star</dt>
+                <dd className="h-2 overflow-hidden rounded-full bg-surface-muted">
+                  <span className="block h-full rounded-full bg-highlight" style={{ width: `${share}%` }} />
+                </dd>
+                <dd className="tabular-nums text-ink-subtle">{summary.distribution[n]}</dd>
+              </div>
+            );
+          })}
+        </dl>
+      ) : null}
+
+      <div className="mt-6">
+        <Suspense fallback={null}>
+          <ReviewForm productSlug={productSlug} productName={productName} sessionEmail={sessionEmail} />
+        </Suspense>
+      </div>
+
       {summary.count === 0 ? (
         <div className="mt-6 rounded-md border border-line bg-surface p-6">
           <p className="text-base text-ink">No reviews yet for {productName}.</p>
-          <p className="type-small mt-1 text-ink-muted">
-            Reviews come from verified buyers after delivery. Once orders are flowing, the first ones will appear here.
-          </p>
+          <p className="type-small mt-1 text-ink-muted">Be the first — reviews from verified buyers are published straight away.</p>
         </div>
       ) : (
-        <ul className="mt-6 grid gap-4 md:grid-cols-2">
-          {summary.reviews.map((r) => (
-            <li key={r.id}>
-              <article className="flex h-full flex-col gap-2 rounded-md border border-line bg-surface p-5">
-                <RatingStars rating={r.rating} />
-                <h3 className="text-base font-medium text-ink">{r.title}</h3>
-                <p className="type-small flex-1 text-ink-muted">{r.body}</p>
-                <footer className="type-small text-ink-subtle">
-                  <span className="text-ink">{r.authorName}</span>
-                  {r.verifiedPurchase ? " · Verified buyer" : null} · <time dateTime={r.createdAt}>{dateFormat.format(new Date(r.createdAt))}</time>
-                </footer>
-              </article>
-            </li>
-          ))}
-        </ul>
+        <>
+          <ul className="mt-6 grid gap-4 md:grid-cols-2">
+            {summary.reviews.map((r) => (
+              <li key={r.id}>
+                <article className="flex h-full flex-col gap-2 rounded-md border border-line bg-surface p-5">
+                  <div className="flex items-center justify-between gap-3">
+                    <RatingStars rating={r.rating} />
+                    {r.verifiedPurchase ? (
+                      <span className="inline-flex items-center gap-1 text-xs font-medium text-success">
+                        <BadgeCheckIcon className="size-3.5" aria-hidden="true" />
+                        Verified purchase
+                      </span>
+                    ) : null}
+                  </div>
+                  {r.title ? <h3 className="text-base font-medium text-ink">{r.title}</h3> : null}
+                  <p className="type-small flex-1 whitespace-pre-line text-ink-muted">{r.body}</p>
+                  {r.images && r.images.length > 0 ? (
+                    <ul className="mt-1 flex flex-wrap gap-2" aria-label="Customer photos">
+                      {r.images.map((img, i) => (
+                        <li key={i}>
+                          <a href={img.src} target="_blank" rel="noopener noreferrer" className="block size-20 overflow-hidden rounded-sm border border-line bg-surface-muted outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={img.src} alt={img.alt || `Customer photo ${i + 1}`} loading="lazy" className="size-full object-cover transition-transform duration-400 ease-(--ease-standard) motion-safe:hover:scale-110" />
+                          </a>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : null}
+                  <footer className="type-small text-ink-subtle">
+                    <span className="text-ink">{r.authorName}</span> · <time dateTime={r.createdAt}>{dateFormat.format(new Date(r.createdAt))}</time>
+                  </footer>
+                </article>
+              </li>
+            ))}
+          </ul>
+          {hidden > 0 && !showingAll ? (
+            <p className="mt-5">
+              <Link href={`/products/${productSlug}/?reviews=all#reviews`} className="type-small font-medium text-ink underline decoration-line-strong underline-offset-6 hover:decoration-ink">
+                Show all {summary.count} reviews
+              </Link>
+            </p>
+          ) : null}
+        </>
       )}
     </section>
   );

@@ -3,6 +3,7 @@ import "server-only";
 import { cache } from "react";
 
 import { getSupabaseServiceClient } from "@/lib/supabase";
+import { getRatingsBySlug } from "@/modules/reviews/supabase-reviews";
 
 import { isInStock, matchesFilters, runListing, sortProducts } from "./listing";
 import type { CatalogRepository } from "./repository";
@@ -134,12 +135,15 @@ async function fetchAllWithInventory(): Promise<Product[]> {
   if (error) throw new Error(`SupabaseCatalogRepository: failed to fetch products: ${error.message}`);
   if (!data || data.length === 0) return [];
 
-  const allSkus = (data as CatProductRow[]).flatMap((p) =>
-    p.cat_variants.map((v) => v.sku),
-  );
-  const inventory = await fetchInventory(allSkus);
+  const rows = data as CatProductRow[];
+  const allSkus = rows.flatMap((p) => p.cat_variants.map((v) => v.sku));
+  const [inventory, ratings] = await Promise.all([fetchInventory(allSkus), getRatingsBySlug(rows.map((r) => r.slug))]);
 
-  return (data as CatProductRow[]).map((row) => toProduct(row, inventory));
+  return rows.map((row) => {
+    const product = toProduct(row, inventory);
+    const rating = ratings.get(row.slug);
+    return rating ? { ...product, rating } : product;
+  });
 }
 
 async function fetchInventory(skus: string[]): Promise<Map<string, number>> {

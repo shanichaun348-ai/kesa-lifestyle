@@ -6,6 +6,7 @@ import { auditLog } from "@/modules/admin/audit";
 import { requireAdmin } from "@/modules/admin/guard";
 import { getOrder, isConfirmed, setOrderStatus } from "@/modules/admin/orders-data";
 import { notifyOrderPaid } from "@/modules/notifications/order-paid";
+import { sendReviewRequest } from "@/modules/notifications/review-request";
 import { getOrderRepository } from "@/modules/orders/queries";
 import { isCod, type OrderStatus } from "@/modules/orders/types";
 
@@ -19,6 +20,11 @@ export async function advanceOrder(orderId: string, to: OrderStatus): Promise<Or
   const result = await setOrderStatus(orderId, to);
   if (!result.ok) return { error: result.error };
   auditLog(session, "order.update_status", { orderId, newStatus: to });
+  if (to === "DELIVERED") {
+    // Ask for reviews once the pieces are in the customer's hands. Never blocks the status change.
+    const sent = await sendReviewRequest(orderId);
+    if (sent) auditLog(session, "order.review_request", { orderId });
+  }
   revalidatePath(`/admin/orders/${orderId}/`);
   revalidatePath("/admin/orders/");
   revalidatePath("/admin/");

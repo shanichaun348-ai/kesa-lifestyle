@@ -15,6 +15,7 @@ export type AdminPermission =
   | "seo:write"
   | "coupons:read"
   | "coupons:write"
+  | "reviews:moderate"
   | "admin:manage";
 
 const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
@@ -33,6 +34,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
     "seo:write",
     "coupons:read",
     "coupons:write",
+    "reviews:moderate",
     "admin:manage",
   ],
   catalogue_manager: [
@@ -46,6 +48,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
     "seo:write",
     "coupons:read",
     "coupons:write",
+    "reviews:moderate",
   ],
   support: [
     "products:read",
@@ -61,6 +64,7 @@ const ROLE_PERMISSIONS: Record<AdminRole, AdminPermission[]> = {
     "content:write",
     "seo:read",
     "seo:write",
+    "reviews:moderate",
   ],
 };
 

@@ -23,6 +23,7 @@ import { getCatalogRepository, getCategoryByPath } from "@/modules/catalog/queri
 import type { FaqItem, Product } from "@/modules/catalog/types";
 import { resolveVariant } from "@/modules/catalog/variants";
 import { getProductReviewSummary } from "@/modules/reviews/queries";
+import { getSessionUser } from "@/lib/auth/session";
 import { breadcrumbListJsonLd, faqPageJsonLd, productJsonLd, type JsonLdObject } from "@/modules/seo/structured-data";
 import { SEED_NOW } from "@/lib/demo/seed-catalog";
 
@@ -32,7 +33,11 @@ type ProductViewProps = {
   requestedSku: string | undefined;
   /** Admin preview of a draft: no analytics, no redirect on a stale variant. */
   preview?: boolean | undefined;
+  /** `?reviews=all`: list every approved review instead of the latest few. */
+  allReviews?: boolean | undefined;
 };
+
+const REVIEWS_SHOWN = 6;
 
 function productFaq(product: Product, categoryFaq: FaqItem[] | undefined): FaqItem[] {
   const base: FaqItem[] = [
@@ -52,7 +57,7 @@ function productFaq(product: Product, categoryFaq: FaqItem[] | undefined): FaqIt
 }
 
 /** The product page body, shared by the public page and the admin draft preview. */
-export async function ProductView({ product, requestedSku, preview = false }: ProductViewProps) {
+export async function ProductView({ product, requestedSku, preview = false, allReviews = false }: ProductViewProps) {
   const path = productHref(product);
 
   let resolution = resolveVariant(product, requestedSku);
@@ -63,12 +68,13 @@ export async function ProductView({ product, requestedSku, preview = false }: Pr
   }
 
   const repo = getCatalogRepository();
-  const [category, siblings, related, lookProducts, reviews] = await Promise.all([
+  const [category, siblings, related, lookProducts, reviews, sessionUser] = await Promise.all([
     getCategoryByPath(product.primaryCategoryPath),
     repo.getFamilySiblings(product),
     repo.getRelatedProducts(product, 4),
     repo.getProductsBySlugs(product.completeTheLookSlugs),
-    getProductReviewSummary(product.slug),
+    getProductReviewSummary(product.slug, allReviews ? 0 : REVIEWS_SHOWN),
+    getSessionUser(),
   ]);
   const root = category?.parentPath ? await getCategoryByPath(category.parentPath) : null;
 
@@ -223,7 +229,7 @@ export async function ProductView({ product, requestedSku, preview = false }: Pr
           </section>
         ) : null}
 
-        <ProductReviews productName={product.name} summary={reviews} />
+        <ProductReviews productSlug={product.slug} productName={product.name} summary={reviews} sessionEmail={sessionUser?.email} showingAll={allReviews} />
 
         <ProductFaq items={faq} />
 

@@ -57,5 +57,5 @@ export default async function ProductPage(props: PageProps<"/products/[slug]">) 
     permanentRedirect(found.product.discontinuedRedirectPath ?? `/${found.product.primaryCategoryPath}/`);
   }
   const rawVariant = searchParams.variant;
-  return <ProductView product={found.product} requestedSku={Array.isArray(rawVariant) ? rawVariant[0] : rawVariant} />;
+  return <ProductView product={found.product} requestedSku={Array.isArray(rawVariant) ? rawVariant[0] : rawVariant} allReviews={searchParams.reviews === "all"} />;
 }

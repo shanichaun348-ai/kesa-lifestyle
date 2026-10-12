@@ -10,7 +10,7 @@ import { HeroCarousel } from "@/components/home/hero-carousel";
 import { JournalPreview } from "@/components/home/journal-preview";
 import { NewsletterBand } from "@/components/home/newsletter-band";
 import { ProductSection } from "@/components/home/product-section";
-import { Reviews } from "@/components/home/reviews";
+import { Reviews, type HomeReview } from "@/components/home/reviews";
 import { ShopTheLook } from "@/components/home/shop-the-look";
 import { TrustMarquee } from "@/components/home/trust-marquee";
 import { UgcGrid } from "@/components/home/ugc-grid";
@@ -25,6 +25,7 @@ import type { Product } from "@/modules/catalog/types";
 import { pickLookProducts } from "@/modules/content/home-look";
 import { getHomeLook } from "@/modules/content/home-look-server";
 import { buildRail, pinnedFor } from "@/modules/content/home-placements";
+import { getReviewShowcase } from "@/modules/reviews/queries";
 import {
   demoBrandStatement,
   demoCategories,
@@ -83,8 +84,34 @@ async function homeRails() {
   return { newArrivals: newArrivals.map(card), bestSellers: bestSellers.map(card), look: { products: lookProducts.map(card), href: look.href } };
 }
 
+const MIN_REAL_REVIEWS = 3;
+
+/** Real customer reviews once there are enough; the sample set (with its notice) until then. */
+async function homeReviews(): Promise<{ reviews: readonly HomeReview[]; notice: string | undefined }> {
+  const showcase = await getReviewShowcase(6);
+  if (showcase.total < MIN_REAL_REVIEWS || showcase.reviews.length === 0) {
+    return { reviews: demoReviews, notice: "Sample reviews shown for layout. Verified customer reviews appear here after launch." };
+  }
+  const products = await getCatalogRepository().getProductsBySlugs([...new Set(showcase.reviews.map((r) => r.productSlug))]);
+  const nameOf = new Map(products.map((p) => [p.slug, p.name]));
+  return {
+    reviews: showcase.reviews.map((r) => ({
+      id: r.id,
+      rating: r.rating,
+      title: r.title,
+      body: r.body,
+      author: r.authorName,
+      product: nameOf.get(r.productSlug) ?? "a Kesa piece",
+      productHref: `/products/${r.productSlug}/`,
+      verified: r.verifiedPurchase,
+      images: r.images,
+    })),
+    notice: undefined,
+  };
+}
+
 export default async function HomePage() {
-  const { newArrivals, bestSellers, look } = await homeRails();
+  const [{ newArrivals, bestSellers, look }, reviews] = await Promise.all([homeRails(), homeReviews()]);
   return (
     <>
       <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
@@ -120,10 +147,7 @@ export default async function HomePage() {
 
         <WhyKesa facts={demoWhyKesa} />
 
-        <Reviews
-          reviews={demoReviews}
-          notice="Sample reviews shown for layout. Verified customer reviews appear here after launch."
-        />
+        <Reviews reviews={reviews.reviews} notice={reviews.notice} />
 
         <UgcGrid handle="kesalifestyle" posts={demoUgcPosts} />
 
