@@ -4,11 +4,13 @@ import * as React from "react";
 import { useActionState } from "react";
 
 import type { Product } from "@/modules/catalog/types";
+import { railFlags } from "@/modules/content/home-placements";
 
 import { getBrowserSupabase } from "@/lib/supabase-browser";
 import { cn } from "@/lib/utils";
 
 import type { CategoryOption } from "../_category-options";
+import { PlacementsFields, type LookFieldState } from "../_placements-fields";
 import { prepareProductUploads } from "../_upload-action";
 import { updateProduct, type ProductEditState } from "./_actions";
 
@@ -28,7 +30,9 @@ const toPaise = (value: string) => (value.trim() === "" ? null : Math.round(Numb
 let nextKey = 1;
 const key = () => nextKey++;
 
-export function ProductEditForm({ product, categories }: { product: Product; categories: CategoryOption[] }) {
+type Props = { product: Product; categories: CategoryOption[]; look: LookFieldState };
+
+export function ProductEditForm({ product, categories, look }: Props) {
   const [state, action, pending] = useActionState<ProductEditState, FormData>(updateProduct.bind(null, product.slug), null);
 
   const [gender, setGender] = React.useState(product.gender);
@@ -127,6 +131,7 @@ export function ProductEditForm({ product, categories }: { product: Product; cat
     <form action={action} className="space-y-6">
       {state && "error" in state ? <p role="alert" className="rounded-sm border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">{state.error}</p> : null}
       {state && "success" in state ? <p role="status" className="rounded-sm border border-success/30 bg-success/5 px-4 py-3 text-sm text-success">{state.success}</p> : null}
+      {state && "notice" in state && state.notice ? <p role="alert" className="rounded-sm border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-ink">{state.notice}</p> : null}
 
       <input type="hidden" name="imagesJson" value={imagesJson} />
       <input type="hidden" name="variantsJson" value={variantsJson} />
@@ -187,6 +192,17 @@ export function ProductEditForm({ product, categories }: { product: Product; cat
           </div>
         </div>
       </section>
+
+      <PlacementsFields
+        categories={categories}
+        gender={gender}
+        primaryPath={categoryPath}
+        initialExtraPaths={product.categoryPaths.filter((p) => p !== product.primaryCategoryPath)}
+        initialRails={railFlags(product.tags)}
+        look={look}
+        status={status === "active" ? "active" : "draft"}
+        disabled={pending}
+      />
 
       <section className={SECTION}>
         <div className="flex flex-wrap items-center justify-between gap-3">

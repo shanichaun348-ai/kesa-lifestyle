@@ -6,10 +6,13 @@ import { redirect } from "next/navigation";
 import { auditLog } from "@/modules/admin/audit";
 import { requireAdmin } from "@/modules/admin/guard";
 import { getSupabaseServiceClient } from "@/lib/supabase";
+import { getHomeLook, setLookMembership } from "@/modules/content/home-look-server";
+import { withRailTags } from "@/modules/content/home-placements";
 
-import { categoryOptions, SKU_PATTERN } from "../_category-options";
+import { categoryOptions, readPlacements, SKU_PATTERN } from "../_category-options";
 
-export type ProductEditState = { error: string } | { success: string } | null;
+/** `notice` is something that did not happen even though the save went through. */
+export type ProductEditState = { error: string } | { success: string; notice?: string } | null;
 
 type SubmittedVariant = { sku: string; optionValue: string; pricePaise: number; compareAtPaise: number | null; stock: number };
 type SubmittedImage = { src: string; alt: string };
@@ -22,11 +25,12 @@ function text(value: FormDataEntryValue | null): string {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function revalidateProduct(slug: string) {
+function revalidateProduct(slug: string, categoryPaths: readonly string[] = []) {
   revalidatePath("/admin/products/");
   revalidatePath(`/admin/products/${slug}/`);
   revalidatePath(`/products/${slug}/`);
   revalidatePath("/");
+  for (const path of new Set(categoryPaths)) revalidatePath(`/${path}/`);
 }
 
 export async function updateProduct(slug: string, prevState: ProductEditState, formData: FormData): Promise<ProductEditState> {
@@ -39,8 +43,12 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
   const gender = text(formData.get("gender"));
   if (!["women", "men", "unisex"].includes(gender)) return { error: "Choose a gender." };
 
-  const category = (await categoryOptions()).find((c) => c.path === text(formData.get("primaryCategoryPath")));
+  const categories = await categoryOptions();
+  const category = categories.find((c) => c.path === text(formData.get("primaryCategoryPath")));
   if (!category) return { error: "Choose a category from the list." };
+  const placements = readPlacements(formData, categories, category, gender);
+  if ("error" in placements) return placements;
+  const showInLook = formData.get("showInLook") === "on";
 
   let images: SubmittedImage[] = [];
   try { images = JSON.parse(text(formData.get("imagesJson")) || "[]"); } catch { return { error: "Image data was malformed — reload the page and try again." }; }
@@ -66,9 +74,11 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
   if (variants.length > 1 && variants.some((v) => !v.optionValue)) return { error: "When a product has several variants, every variant needs an option value (e.g. S, M, 18 inch)." };
 
   const db = getSupabaseServiceClient();
-  const { data: existing } = await db.from("cat_products").select("id, published_at, cat_variants(sku)").eq("slug", slug).maybeSingle();
+  const { data: existing } = await db.from("cat_products").select("id, published_at, tags, category_paths, cat_variants(sku)").eq("slug", slug).maybeSingle();
   if (!existing) return { error: "Product not found." };
   const productId = existing.id as string;
+  const previousTags = Array.isArray(existing.tags) ? (existing.tags as string[]) : [];
+  const previousPaths = Array.isArray(existing.category_paths) ? (existing.category_paths as string[]) : [];
   const existingSkus = ((existing.cat_variants as Array<{ sku: string }> | null) ?? []).map((v) => v.sku);
 
   // A SKU moving to this product from another one would silently steal it — refuse.
@@ -87,7 +97,8 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
       description: lines(formData.get("description")),
       gender,
       primary_category_path: category.path,
-      category_paths: [category.path],
+      category_paths: placements.categoryPaths,
+      tags: withRailTags(previousTags, placements.rails),
       care: text(formData.get("care")),
       highlights: lines(formData.get("highlights")),
       images,
@@ -121,9 +132,21 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
     if (stockError) return { error: `Saved, but could not update stock for ${v.sku}: ${stockError.message}` };
   }
 
-  auditLog(session, "product.update", { productId: slug, status });
-  revalidateProduct(slug);
-  return { success: status === "active" ? "Saved and live in the store." : "Saved as draft." };
+  // "Shop the look" lives in site content, not on the product: add or drop this piece without reordering the rest.
+  let notice: string | undefined;
+  const { config: look, error: lookError } = await getHomeLook();
+  const inLook = look.productSlugs.includes(slug);
+  if (showInLook && status !== "active" && !inLook) {
+    notice = "Not added to Shop the look: only published pieces can be shown there. Publish the product, then tick the box again.";
+  } else if (showInLook !== inLook) {
+    const result = lookError ? { ok: false as const, error: lookError } : await setLookMembership(slug, showInLook);
+    if (!result.ok) notice = `${showInLook ? "Not added to" : "Not removed from"} Shop the look: ${result.error.message}`;
+  }
+
+  auditLog(session, "product.update", { productId: slug, status, categoryPaths: placements.categoryPaths, rails: placements.rails, showInLook });
+  revalidateProduct(slug, [...previousPaths, ...placements.categoryPaths]);
+  const success = status === "active" ? "Saved and live in the store." : "Saved as draft.";
+  return notice ? { success, notice } : { success };
 }
 
 export async function publishProduct(slug: string): Promise<void> {

@@ -6,6 +6,8 @@ import { hasPermission } from "@/modules/admin/rbac";
 import { effectivePrice } from "@/modules/catalog/listing";
 import { getCatalogRepository } from "@/modules/catalog/queries";
 import type { Product } from "@/modules/catalog/types";
+import { getHomeLook } from "@/modules/content/home-look-server";
+import { HOME_RAIL_KEYS, HOME_RAILS, railFlags } from "@/modules/content/home-placements";
 import { formatPaise } from "@/lib/money";
 
 import { ProductTable, type ProductRow } from "./_product-table";
@@ -19,13 +21,17 @@ const FILTERS: Array<{ label: string; value?: Product["status"] }> = [
 
 type Props = { searchParams: Promise<{ status?: string }> };
 
-function toRow(product: Product): ProductRow {
+function toRow(product: Product, lookSlugs: readonly string[]): ProductRow {
   const { pricePaise } = effectivePrice(product);
+  const rails = railFlags(product.tags);
+  const placements = [...(lookSlugs.includes(product.slug) ? ["Shop the look"] : []), ...HOME_RAIL_KEYS.filter((r) => rails[r]).map((r) => HOME_RAILS[r].label)];
   return {
     slug: product.slug,
     name: product.name,
     thumb: product.images[0]?.src ?? null,
     category: product.primaryCategoryPath,
+    extraCategories: product.categoryPaths.filter((p) => p !== product.primaryCategoryPath),
+    placements,
     priceLabel: formatPaise(pricePaise),
     stock: product.variants.reduce((s, v) => s + v.stock, 0),
     status: product.status,
@@ -34,7 +40,7 @@ function toRow(product: Product): ProductRow {
 
 export default async function ProductsPage({ searchParams }: Props) {
   const [session, { status }] = await Promise.all([requireAdmin("products:read"), searchParams]);
-  const all = await getCatalogRepository().getAllProducts();
+  const [all, { config: look }] = await Promise.all([getCatalogRepository().getAllProducts(), getHomeLook()]);
   const active = FILTERS.find((f) => f.value === status)?.value;
   const products = (active ? all.filter((p) => p.status === active) : all.filter((p) => p.status !== "archived"))
     .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
@@ -69,7 +75,7 @@ export default async function ProductsPage({ searchParams }: Props) {
       </div>
 
       {/* key resets the selection when the filter changes */}
-      <ProductTable key={active ?? "all"} rows={products.map(toRow)} canWrite={canWrite} canDelete={canDelete} />
+      <ProductTable key={active ?? "all"} rows={products.map((p) => toRow(p, look.productSlugs))} canWrite={canWrite} canDelete={canDelete} />
     </div>
   );
 }

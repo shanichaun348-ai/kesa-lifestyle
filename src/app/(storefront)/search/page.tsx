@@ -7,6 +7,7 @@ import { ProductCard } from "@/components/storefront/product-card";
 import { ProductGrid } from "@/components/storefront/product-grid";
 import { getCatalogRepository } from "@/modules/catalog/queries";
 import { toCardData } from "@/modules/catalog/presenters";
+import { shopperTags } from "@/modules/content/home-placements";
 import { SEED_NOW } from "@/lib/demo/seed-catalog";
 
 type Props = { searchParams: Promise<Record<string, string | string[] | undefined>> };
@@ -32,7 +33,7 @@ export default async function SearchPage({ searchParams }: Props) {
   const products = needle
     ? (await getCatalogRepository().getAllActiveProducts()).filter((p) => {
         const haystack = normalise(
-          [p.name, p.shortDescription, ...p.tags, ...p.categoryPaths, ...p.highlights].join(" "),
+          [p.name, p.shortDescription, ...shopperTags(p.tags), ...p.categoryPaths, ...p.highlights].join(" "),
         );
         return haystack.includes(needle);
       })

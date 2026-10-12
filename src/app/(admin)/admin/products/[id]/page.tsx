@@ -6,6 +6,8 @@ import { productStatusBadge } from "@/components/admin/status-badge";
 import { requireAdmin } from "@/modules/admin/guard";
 import { hasPermission } from "@/modules/admin/rbac";
 import { getCatalogRepository } from "@/modules/catalog/queries";
+import { MAX_LOOK_PRODUCTS } from "@/modules/content/home-look";
+import { getHomeLook } from "@/modules/content/home-look-server";
 import { formatPaise } from "@/lib/money";
 
 import { categoryOptions } from "../_category-options";
@@ -18,8 +20,10 @@ export default async function EditProductPage({ params, searchParams }: Props) {
   const [{ id }, flags] = await Promise.all([params, searchParams]);
   const session = await requireAdmin("products:read");
 
-  const [product, categories] = await Promise.all([getCatalogRepository().getAnyProductBySlug(id), categoryOptions()]);
+  const [product, categories, { config: look, error: lookError }] = await Promise.all([getCatalogRepository().getAnyProductBySlug(id), categoryOptions(), getHomeLook()]);
   if (!product) notFound();
+  const inLook = look.productSlugs.includes(product.slug);
+  const lookState = { inLook, full: !inLook && look.productSlugs.length >= MAX_LOOK_PRODUCTS, unavailable: lookError ? lookError.message : null };
 
   const canWrite = hasPermission(session.role, "products:write");
   const canDelete = hasPermission(session.role, "products:delete");
@@ -73,7 +77,7 @@ export default async function EditProductPage({ params, searchParams }: Props) {
       {canWrite ? (
         // Keyed by status: after Publish redirects back here the form remounts with the new
         // visibility instead of keeping "Draft" in its state (and unpublishing on the next save).
-        <ProductEditForm key={`${product.slug}:${product.status}`} product={product} categories={categories} />
+        <ProductEditForm key={`${product.slug}:${product.status}`} product={product} categories={categories} look={lookState} />
       ) : (
         <section className="rounded-md border border-line bg-surface p-5 space-y-3 text-sm">
           <h2 className="font-medium text-ink">Summary</h2>

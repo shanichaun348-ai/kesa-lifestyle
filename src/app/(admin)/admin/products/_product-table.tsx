@@ -13,6 +13,10 @@ export type ProductRow = {
   name: string;
   thumb: string | null;
   category: string;
+  /** Other categories the product is also listed under. */
+  extraCategories: string[];
+  /** Homepage spots it is pinned to, e.g. "Shop the look". */
+  placements: string[];
   priceLabel: string;
   stock: number;
   status: "active" | "draft" | "archived";
@@ -184,7 +188,17 @@ export function ProductTable({ rows, canWrite, canDelete }: Props) {
                         </div>
                       </div>
                     </td>
-                    <td className="hidden px-4 py-3 text-ink-muted md:table-cell">{product.category}</td>
+                    <td className="hidden px-4 py-3 text-ink-muted md:table-cell">
+                      <span className="block">{product.category}</span>
+                      {product.extraCategories.length > 0 ? <span className="block text-xs text-ink-subtle">+ {product.extraCategories.join(", ")}</span> : null}
+                      {product.placements.length > 0 ? (
+                        <span className="mt-1 flex flex-wrap gap-1">
+                          {product.placements.map((label) => (
+                            <span key={label} className="rounded-sm border border-brand/30 bg-brand/5 px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-brand">Home · {label}</span>
+                          ))}
+                        </span>
+                      ) : null}
+                    </td>
                     <td className="hidden px-4 py-3 font-medium text-ink sm:table-cell">{product.priceLabel}</td>
                     <td className="hidden px-4 py-3 lg:table-cell">
                       <span className={product.stock === 0 ? "text-danger" : product.stock <= 5 ? "text-warning" : "text-ink-muted"}>{product.stock} units</span>

@@ -39,3 +39,19 @@ export function pickLookProducts(config: HomeLook, chosen: Product[], activeNewe
   if (picked.length > 0) return picked;
   return activeNewestFirst.filter((p) => p.status === "active").slice(0, FALLBACK_LOOK_COUNT);
 }
+
+export type LookToggle =
+  | { changed: true; config: HomeLook }
+  | { changed: false; reason: "unchanged" | "full"; config: HomeLook };
+
+/**
+ * Adds a product to the end of the look, or removes it. Used by the product
+ * form's "Show in Shop the look" box; the homepage editor sets the order.
+ */
+export function toggleLookSlug(config: HomeLook, slug: string, include: boolean): LookToggle {
+  const present = config.productSlugs.includes(slug);
+  if (include === present) return { changed: false, reason: "unchanged", config };
+  if (!include) return { changed: true, config: { ...config, productSlugs: config.productSlugs.filter((s) => s !== slug) } };
+  if (config.productSlugs.length >= MAX_LOOK_PRODUCTS) return { changed: false, reason: "full", config };
+  return { changed: true, config: { ...config, productSlugs: [...config.productSlugs, slug] } };
+}

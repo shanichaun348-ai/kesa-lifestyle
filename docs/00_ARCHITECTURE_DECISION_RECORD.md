@@ -258,6 +258,15 @@ Decisions that require the business owner's input (D1–D18) are listed in `01_P
 
 ---
 
+## ADR-36 — Product placement is chosen on the product form; rail pins are product tags
+
+**Decision:** The product form has a "Where this product shows" section: extra categories (written to `category_paths`, the main one first), the two homepage rails ("New arrivals", "Bestsellers") and "Shop the look". A rail pin is a tag on the product (`home:new-arrivals`, `home:bestsellers`); the homepage lists pinned live pieces first, then the rule's members, then tops up. "Shop the look" stays an ordered list in `site_content` (ADR for migration 011): the product form only adds or removes the piece, the homepage editor sets the order. Placement tags are hidden from search and never rendered.
+**Why:** The owner decides placement at the moment of adding a product, without a second screen. Tags need no migration and travel with the product through exports and bulk edits; the ordered look cannot be a tag because order matters.
+**Alternatives:** A `homepage_sections` membership table (planned for Phase 1 merchandising) — more general, but another table to migrate for two checkboxes today; manual collections for the rails — would detach "New arrivals" from its automatic rule.
+**Why better:** Zero schema change, one form, and the Phase 1 table can be introduced later by migrating the tags.
+
+---
+
 ## Appendix A — Decision log
 
 | Date | Change | Reason |
@@ -265,6 +274,7 @@ Decisions that require the business owner's input (D1–D18) are listed in `01_P
 | 2026-10-05 | ADR-01 … ADR-28 proposed | Discovery and architecture phase |
 | 2026-10-09 | ADR-34 added: user-selectable dark theme with gold accents | Owner request |
 | 2026-10-10 | ADR-35 added: WhatsApp order confirmations via Meta Cloud API templates | Owner request |
+| 2026-10-12 | ADR-36 added: product placement (extra categories, homepage rails, Shop the look) chosen on the product form | Owner request |
 | 2026-10-05 | Architecture review: ADR-29 … ADR-33 added; ADR-06 amended; facet signalling, OOS handling, collection/guide keyword split, async rule collections, `locations`, `discount_targets`, `guide_section_products`, `credit_notes`, idempotency keys, `ga_client_id`, gift options, batch fulfilment, finance exports, search synonyms, size guides, OTP-first auth, Supabase SMTP, `prepare: false`, image cost controls | CTO-style review of the proposal |
 
 ## Appendix B — Owner decisions pending (summary)

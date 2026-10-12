@@ -7,7 +7,9 @@ import { auditLog } from "@/modules/admin/audit";
 import { requireAdmin } from "@/modules/admin/guard";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 
-import { categoryOptions, rupeesToPaise, SKU_PATTERN } from "../_category-options";
+import { withRailTags } from "@/modules/content/home-placements";
+
+import { categoryOptions, readPlacements, rupeesToPaise, SKU_PATTERN } from "../_category-options";
 
 export type ProductFormState = { error: string } | null;
 
@@ -34,6 +36,8 @@ export async function createProduct(prevState: ProductFormState, formData: FormD
   const categories = await categoryOptions();
   const category = categories.find((c) => c.path === primaryCategoryPath);
   if (!category) return { error: "Choose a category from the list." };
+  const placements = readPlacements(formData, categories, category, gender);
+  if ("error" in placements) return placements;
 
   const db = getSupabaseServiceClient();
   const cleanSlug = slug.trim();
@@ -55,8 +59,8 @@ export async function createProduct(prevState: ProductFormState, formData: FormD
       description: [],
       gender,
       primary_category_path: category.path,
-      category_paths: [category.path],
-      tags: [],
+      category_paths: placements.categoryPaths,
+      tags: withRailTags([], placements.rails),
       attributes: {},
       highlights: [],
       styling_tips: [],
@@ -95,7 +99,7 @@ export async function createProduct(prevState: ProductFormState, formData: FormD
     { onConflict: "sku" },
   );
 
-  auditLog(session, "product.create", { name: name.trim(), slug: cleanSlug, status: "draft" });
+  auditLog(session, "product.create", { name: name.trim(), slug: cleanSlug, status: "draft", categoryPaths: placements.categoryPaths, rails: placements.rails });
   revalidatePath("/admin/products/");
   redirect(`/admin/products/${cleanSlug}/?created=1`);
 }

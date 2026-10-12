@@ -23,6 +23,7 @@ import { getCatalogRepository, siblingsFor } from "@/modules/catalog/queries";
 import type { Product } from "@/modules/catalog/types";
 import { pickLookProducts } from "@/modules/content/home-look";
 import { getHomeLook } from "@/modules/content/home-look-server";
+import { buildRail, pinnedFor } from "@/modules/content/home-placements";
 import {
   demoBrandStatement,
   demoCategories,
@@ -107,12 +108,6 @@ const HERO_SLIDES: readonly HeroSlide[] = [
 
 const RAIL_SIZE = 4;
 
-/** Rule-collection members first; top up from the whole active catalogue while it is small. */
-function topUp(primary: Product[], pool: Product[]): Product[] {
-  const seen = new Set(primary.map((p) => p.slug));
-  return [...primary, ...pool.filter((p) => !seen.has(p.slug))].slice(0, RAIL_SIZE);
-}
-
 async function homeRails() {
   const repo = getCatalogRepository();
   const [active, arrivals, bestsellers, { config: look }] = await Promise.all([
@@ -122,8 +117,9 @@ async function homeRails() {
     getHomeLook(),
   ]);
   const newest = sortProducts(active, "newest");
-  const newArrivals = topUp(sortProducts(arrivals, "newest"), newest);
-  const bestSellers = topUp(bestsellers, sortProducts(active, "bestselling"));
+  // Each rail: pieces the owner pinned from the product form, then the rule's members, topped up while the catalogue is small.
+  const newArrivals = buildRail(pinnedFor(active, "newArrivals"), sortProducts(arrivals, "newest"), newest, RAIL_SIZE);
+  const bestSellers = buildRail(pinnedFor(active, "bestsellers"), bestsellers, sortProducts(active, "bestselling"), RAIL_SIZE);
   // "Shop the look": the owner's picks (admin → Content → Homepage), newest live pieces until then.
   const lookChosen = look.productSlugs.length > 0 ? await repo.getProductsBySlugs(look.productSlugs) : [];
   const lookProducts = pickLookProducts(look, lookChosen, newest);

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useActionState } from "react";
 
 import type { CategoryOption } from "../_category-options";
+import { PlacementsFields } from "../_placements-fields";
 import { createProduct, type ProductFormState } from "./_actions";
 
 const INPUT = "h-11 w-full rounded-sm border border-line-strong bg-surface px-3.5 text-base text-ink outline-none focus-visible:border-brand focus-visible:ring-3 focus-visible:ring-brand/20 disabled:opacity-50";
@@ -78,6 +79,17 @@ export function NewProductForm({ categories }: { categories: CategoryOption[] })
           </div>
         </div>
       </section>
+
+      <PlacementsFields
+        categories={categories}
+        gender={gender}
+        primaryPath={categoryPath}
+        initialExtraPaths={[]}
+        initialRails={{ newArrivals: false, bestsellers: false }}
+        look={null}
+        status="draft"
+        disabled={pending}
+      />
 
       <section className="rounded-md border border-line bg-surface p-5 space-y-4">
         <h2 className="text-sm font-medium text-ink">Price</h2>
