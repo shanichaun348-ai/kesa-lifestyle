@@ -8,6 +8,13 @@ import type { HeroSlide } from "@/components/home/hero-carousel";
  */
 export const HERO_SLIDES: readonly HeroSlide[] = [
   {
+    src: "/images/hero/golden-showcase-desktop.jpg",
+    mobileSrc: "/images/hero/golden-showcase-mobile.jpg",
+    alt: "Kesa Lifestyle golden jewellery — a gold-tone crystal flower tassel necklace and a gem charm bracelet on cream satin with white daisies.",
+    href: "/collections/new-arrivals/",
+    cta: "Shop the new collection",
+  },
+  {
     src: "/images/hero/necklace-showcase.jpg",
     mobileSrc: "/images/hero/necklace-showcase-mobile.jpg",
     alt: "A model in a black embroidered saree wearing a gold-tone crystal pendant necklace, beside gold-tone crystal lariat necklaces and an Om pendant on display stands.",
