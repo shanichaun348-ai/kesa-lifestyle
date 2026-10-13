@@ -40,6 +40,7 @@ export const sampleHeaderMenus: NavMenu[] = [
         links: [
           { label: "Necklaces", href: "/women/necklaces/" },
           { label: "Pendants", href: "/women/pendants/" },
+          { label: "Mangalsutras", href: "/women/mangalsutras/" },
           { label: "Earrings", href: "/women/earrings/" },
           { label: "Bracelets", href: "/women/bracelets/" },
         ],

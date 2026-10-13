@@ -153,6 +153,24 @@ const categorySpecs: CategorySpec[] = [
   },
   {
     gender: "women",
+    slug: "mangalsutras",
+    name: "Mangalsutras",
+    titleNoun: "Mangalsutras for Women",
+    intro: "Black-bead mangalsutras in short and long lengths, from everyday single strands to antique-finish pendants set with stones.",
+    body: [
+      "A mangalsutra is worn daily, so we list the bead length, the pendant size and the finish on every piece. Short lengths sit at the collarbone and suit work and daily wear; long ones fall below the bust and suit sarees and festive outfits.",
+      "All mangalsutras are gold-plated over a hypoallergenic base. Keep them dry and store them flat so the bead strands do not tangle.",
+    ],
+    faq: [
+      { question: "What length should I choose?", answer: "16–18 inch sits at the collarbone for daily wear; 24–30 inch is the traditional long length. Each product page lists the exact length." },
+      { question: "Can I wear it every day?", answer: "Yes. Remove it before bathing and swimming, and wipe it with a soft dry cloth to keep the finish bright." },
+    ],
+    image: placeholder(2, ""),
+    dimensions: "Length 16–30 inch; pendant 2–4 cm",
+    stylingTips: ["Pair a long mangalsutra with a saree and keep earrings small.", "A short single strand layers well under a plain neckline.", "Antique-finish pendants look best against solid colours."],
+  },
+  {
+    gender: "women",
     slug: "earrings",
     name: "Earrings",
     titleNoun: "Earrings for Women",

@@ -48,6 +48,8 @@ export function categoryPathToGpc(categoryPath: string): number {
       return GPC.JEWELRY_SETS;
     case "pendants":
       return GPC.CHARMS_PENDANTS;
+    case "mangalsutras":
+      return GPC.NECKLACES; // a mangalsutra is a necklace
     default:
       return GPC.JEWELRY;
   }
