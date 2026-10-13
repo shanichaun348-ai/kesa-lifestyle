@@ -4,6 +4,7 @@ import * as React from "react";
 import { useActionState } from "react";
 
 import type { Product } from "@/modules/catalog/types";
+import { MAX_SLUG_LENGTH, slugify } from "@/modules/catalog/slug";
 import { MAX_PRODUCT_VIDEOS, parseYouTubeId, SITE_FILMS, youtubePoster } from "@/modules/catalog/videos";
 import { railFlags } from "@/modules/content/home-placements";
 
@@ -40,6 +41,7 @@ export function ProductEditForm({ product, categories, look }: Props) {
   const [state, action, pending] = useActionState<ProductEditState, FormData>(updateProduct.bind(null, product.slug), null);
 
   const [gender, setGender] = React.useState(product.gender);
+  const [slug, setSlug] = React.useState(product.slug);
   const [categoryPath, setCategoryPath] = React.useState(product.primaryCategoryPath);
   const [status, setStatus] = React.useState(product.status === "active" ? "active" : "draft");
   const [optionName, setOptionName] = React.useState(product.optionName ?? "Size");
@@ -237,8 +239,27 @@ export function ProductEditForm({ product, categories, look }: Props) {
             <input id="ep-name" name="name" required defaultValue={product.name} disabled={pending} className={INPUT} />
           </div>
           <div>
-            <label className={LABEL}>URL (cannot be changed)</label>
-            <input value={`/products/${product.slug}/`} readOnly disabled className={INPUT + " cursor-not-allowed font-mono opacity-60"} />
+            <label htmlFor="ep-slug" className={LABEL}>URL slug</label>
+            <div className="flex items-center gap-1">
+              <span className="shrink-0 font-mono text-xs text-ink-subtle">/products/</span>
+              <input
+                id="ep-slug"
+                name="slug"
+                value={slug}
+                onChange={(e) => setSlug(slugify(e.target.value))}
+                disabled={pending}
+                maxLength={MAX_SLUG_LENGTH}
+                pattern="[a-z0-9]+(-[a-z0-9]+)*"
+                className={INPUT + " font-mono"}
+              />
+            </div>
+            {slug !== product.slug ? (
+              <p className="mt-1 text-xs text-warning">
+                {product.status === "active" ? "This product is live: links already shared to the old address will stop working." : "The address will change when you save."}
+              </p>
+            ) : (
+              <p className={HINT + " mt-1"}>A few words from the name, at most {MAX_SLUG_LENGTH} characters.</p>
+            )}
           </div>
         </div>
         <div>

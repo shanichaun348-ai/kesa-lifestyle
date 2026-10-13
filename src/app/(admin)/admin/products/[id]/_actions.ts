@@ -7,7 +7,8 @@ import { auditLog } from "@/modules/admin/audit";
 import { requireAdmin } from "@/modules/admin/guard";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { validateSubmittedVideos } from "@/modules/catalog/videos";
-import { getHomeLook, setLookMembership } from "@/modules/content/home-look-server";
+import { slugProblem } from "@/modules/catalog/slug";
+import { getHomeLook, renameLookSlug, setLookMembership } from "@/modules/content/home-look-server";
 import { withRailTags } from "@/modules/content/home-placements";
 
 import { categoryOptions, readPlacements, SKU_PATTERN } from "../_category-options";
@@ -41,6 +42,11 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
   if (!name) return { error: "Product name is required." };
 
   const status = text(formData.get("status")) === "active" ? "active" : "draft";
+  // The URL may be changed here (e.g. to repair one that was filled from a pasted description).
+  const requestedSlug = text(formData.get("slug")) || slug;
+  const slugError = slugProblem(requestedSlug);
+  if (slugError) return { error: slugError };
+  const renamed = requestedSlug !== slug;
   const gender = text(formData.get("gender"));
   if (!["women", "men", "unisex"].includes(gender)) return { error: "Choose a gender." };
 
@@ -83,6 +89,10 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
   const { data: existing } = await db.from("cat_products").select("id, published_at, tags, category_paths, cat_variants(sku)").eq("slug", slug).maybeSingle();
   if (!existing) return { error: "Product not found." };
   const productId = existing.id as string;
+  if (renamed) {
+    const { data: taken } = await db.from("cat_products").select("id").eq("slug", requestedSlug).neq("id", productId).maybeSingle();
+    if (taken) return { error: `The URL slug "${requestedSlug}" is already used by another product.` };
+  }
   const previousTags = Array.isArray(existing.tags) ? (existing.tags as string[]) : [];
   const previousPaths = Array.isArray(existing.category_paths) ? (existing.category_paths as string[]) : [];
   const existingSkus = ((existing.cat_variants as Array<{ sku: string }> | null) ?? []).map((v) => v.sku);
@@ -99,6 +109,7 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
     .from("cat_products")
     .update({
       name,
+      slug: requestedSlug,
       short_description: text(formData.get("shortDescription")),
       description: lines(formData.get("description")),
       gender,
@@ -141,17 +152,26 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
 
   // "Shop the look" lives in site content, not on the product: add or drop this piece without reordering the rest.
   let notice: string | undefined;
+  if (renamed) {
+    const moved = await renameLookSlug(slug, requestedSlug);
+    if (!moved.ok && moved.error.code !== "unconfigured") notice = `The URL changed, but Shop the look could not be updated: ${moved.error.message}`;
+  }
   const { config: look, error: lookError } = await getHomeLook();
-  const inLook = look.productSlugs.includes(slug);
+  const inLook = look.productSlugs.includes(requestedSlug);
   if (showInLook && status !== "active" && !inLook) {
     notice = "Not added to Shop the look: only published pieces can be shown there. Publish the product, then tick the box again.";
   } else if (showInLook !== inLook) {
-    const result = lookError ? { ok: false as const, error: lookError } : await setLookMembership(slug, showInLook);
+    const result = lookError ? { ok: false as const, error: lookError } : await setLookMembership(requestedSlug, showInLook);
     if (!result.ok) notice = `${showInLook ? "Not added to" : "Not removed from"} Shop the look: ${result.error.message}`;
   }
 
-  auditLog(session, "product.update", { productId: slug, status, categoryPaths: placements.categoryPaths, rails: placements.rails, showInLook });
+  auditLog(session, "product.update", { productId: requestedSlug, previousSlug: renamed ? slug : undefined, status, categoryPaths: placements.categoryPaths, rails: placements.rails, showInLook });
   revalidateProduct(slug, [...previousPaths, ...placements.categoryPaths]);
+  if (renamed) {
+    revalidateProduct(requestedSlug);
+    // The edit page lives at the slug, so move the browser to the new address.
+    redirect(`/admin/products/${requestedSlug}/?renamed=1${notice ? `&notice=${encodeURIComponent(notice)}` : ""}`);
+  }
   const success = status === "active" ? "Saved and live in the store." : "Saved as draft.";
   return notice ? { success, notice } : { success };
 }

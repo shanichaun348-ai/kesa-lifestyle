@@ -13,6 +13,15 @@ export async function saveHomeLook(config: HomeLook): Promise<{ ok: true } | { o
   return writeSiteContent(HOME_LOOK_KEY, homeLookSchema.parse(config));
 }
 
+/** Keeps a renamed product in the look, in its place. No-op when it is not listed. */
+export async function renameLookSlug(from: string, to: string): Promise<{ ok: true; changed: boolean } | { ok: false; error: SiteContentError }> {
+  const { config, error } = await getHomeLook();
+  if (error) return { ok: false, error };
+  if (!config.productSlugs.includes(from)) return { ok: true, changed: false };
+  const saved = await saveHomeLook({ ...config, productSlugs: config.productSlugs.map((s) => (s === from ? to : s)) });
+  return saved.ok ? { ok: true, changed: true } : saved;
+}
+
 export type LookMembershipResult = { ok: true; changed: boolean } | { ok: false; error: SiteContentError } | { ok: false; error: { code: "full"; message: string } };
 
 /** Adds or removes one product from the look without touching the order of the others. */

@@ -14,7 +14,7 @@ import { categoryOptions } from "../_category-options";
 import { archiveProduct, deleteProduct, publishProduct, unpublishProduct } from "./_actions";
 import { ProductEditForm } from "./_edit-form";
 
-type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string; published?: string; error?: string }> };
+type Props = { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string; published?: string; renamed?: string; notice?: string; error?: string }> };
 
 export default async function EditProductPage({ params, searchParams }: Props) {
   const [{ id }, flags] = await Promise.all([params, searchParams]);
@@ -66,6 +66,12 @@ export default async function EditProductPage({ params, searchParams }: Props) {
           Product created as a draft. Add photos and details below, save, then click <strong>Publish</strong> to make it live.
         </p>
       ) : null}
+      {flags.renamed ? (
+        <p role="status" className="rounded-md border border-success/30 bg-success/5 px-4 py-3 text-sm text-success">
+          Saved. The product&rsquo;s address is now /products/{product.slug}/.
+        </p>
+      ) : null}
+      {flags.notice ? <p role="alert" className="rounded-md border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-ink">{flags.notice}</p> : null}
       {flags.published ? <p role="status" className="rounded-md border border-success/30 bg-success/5 px-4 py-3 text-sm text-success">Published — this product is now visible in the store.</p> : null}
       {flags.error === "no-image" ? <p role="alert" className="rounded-md border border-danger/30 bg-danger/5 px-4 py-3 text-sm text-danger">Add at least one photo, then click <strong>&ldquo;Save draft&rdquo;</strong> at the bottom of the form — only after saving will the Publish button become active.</p> : null}
       {flags.error === "publish-failed" || flags.error === "unpublish-failed" ? (

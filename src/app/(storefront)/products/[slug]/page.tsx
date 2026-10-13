@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { MAX_SLUG_LENGTH } from "@/modules/catalog/slug";
 import { notFound, permanentRedirect } from "next/navigation";
 
 import { effectivePrice } from "@/modules/catalog/listing";
@@ -11,7 +12,7 @@ import { absoluteUrl } from "@/lib/site";
 
 import { ProductView } from "./_product-view";
 
-const SLUG = /^[a-z0-9-]{1,120}$/;
+const SLUG = new RegExp(`^[a-z0-9-]{1,${MAX_SLUG_LENGTH}}$`);
 
 export async function generateStaticParams() {
   const products = await getCatalogRepository().getAllActiveProducts();

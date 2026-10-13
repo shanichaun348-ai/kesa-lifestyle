@@ -4,6 +4,7 @@ import * as React from "react";
 import Link from "next/link";
 import { useActionState } from "react";
 
+import { MAX_SLUG_LENGTH, slugify } from "@/modules/catalog/slug";
 import type { CategoryOption } from "../_category-options";
 import { PlacementsFields } from "../_placements-fields";
 import { createProduct, type ProductFormState } from "./_actions";
@@ -11,10 +12,6 @@ import { createProduct, type ProductFormState } from "./_actions";
 const INPUT = "h-11 w-full rounded-sm border border-line-strong bg-surface px-3.5 text-base text-ink outline-none focus-visible:border-brand focus-visible:ring-3 focus-visible:ring-brand/20 disabled:opacity-50";
 const LABEL = "block text-sm text-ink";
 const HINT = "text-xs text-ink-subtle";
-
-function slugify(s: string): string {
-  return s.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-}
 
 export function NewProductForm({ categories }: { categories: CategoryOption[] }) {
   const [state, action, pending] = useActionState<ProductFormState, FormData>(createProduct, null);
@@ -51,9 +48,10 @@ export function NewProductForm({ categories }: { categories: CategoryOption[] })
             id="slug" name="slug" required disabled={pending} value={slug}
             onChange={(e) => { setSlugTouched(true); setSlug(slugify(e.target.value)); }}
             pattern="[a-z0-9]+(-[a-z0-9]+)*"
+            maxLength={MAX_SLUG_LENGTH}
             className={INPUT + " font-mono"}
           />
-          <p className={HINT}>Fills in automatically from the name. The product page will be /products/{slug || "…"}/</p>
+          <p className={HINT}>Fills in automatically from the name (a few words, at most {MAX_SLUG_LENGTH} characters). The product page will be /products/{slug || "…"}/</p>
         </div>
 
         <div className="space-y-1.5">

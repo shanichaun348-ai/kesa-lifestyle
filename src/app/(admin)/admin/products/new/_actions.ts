@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { auditLog } from "@/modules/admin/audit";
 import { requireAdmin } from "@/modules/admin/guard";
 import { getSupabaseServiceClient } from "@/lib/supabase";
+import { slugProblem } from "@/modules/catalog/slug";
 
 import { withRailTags } from "@/modules/content/home-placements";
 
@@ -27,7 +28,8 @@ export async function createProduct(prevState: ProductFormState, formData: FormD
   const compareAtPaise = rupeesToPaise(formData.get("compareAtRupees"));
 
   if (typeof name !== "string" || !name.trim()) return { error: "Product name is required." };
-  if (typeof slug !== "string" || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.trim())) return { error: "Slug must be lowercase letters, numbers and single hyphens, e.g. gold-hoop-earrings." };
+  const slugError = typeof slug === "string" ? slugProblem(slug.trim()) : "Enter a URL slug.";
+  if (slugError || typeof slug !== "string") return { error: slugError ?? "Enter a URL slug." };
   if (pricePaise === null || pricePaise <= 0) return { error: "Enter the price in rupees, e.g. 999 or 1299.50." };
   if (compareAtPaise !== null && compareAtPaise <= pricePaise) return { error: "Compare-at price must be higher than the selling price (or leave it blank)." };
   if (typeof sku !== "string" || !SKU_PATTERN.test(sku.trim())) return { error: "SKU may only contain letters, numbers, dots, dashes and underscores (no spaces), e.g. KL-NCK-0101." };

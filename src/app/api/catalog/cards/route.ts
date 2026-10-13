@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { MAX_SLUG_LENGTH } from "@/modules/catalog/slug";
 
 import { toCardData } from "@/modules/catalog/presenters";
 import { getCatalogRepository } from "@/modules/catalog/queries";
 import { SEED_NOW } from "@/lib/demo/seed-catalog";
 
-const SLUG = /^[a-z0-9-]{1,120}$/;
+const SLUG = new RegExp(`^[a-z0-9-]{1,${MAX_SLUG_LENGTH}}$`);
 const MAX = 100;
 
 /**
