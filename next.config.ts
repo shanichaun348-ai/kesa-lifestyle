@@ -70,7 +70,8 @@ const nextConfig: NextConfig = {
       { protocol: "https", hostname: "i.ytimg.com", pathname: "/vi/**" },
     ],
     // Small fixed set of widths keeps optimisation cost predictable (docs/12 §4).
-    deviceSizes: [360, 640, 828, 1080, 1440],
+    // 1920 and 2560 let full-bleed hero art reach large monitors unscaled (never above the source file's width).
+    deviceSizes: [360, 640, 828, 1080, 1440, 1920, 2560],
     imageSizes: [80, 160, 288],
     // Next 16 serves only allow-listed qualities (others are coerced to the nearest); the hero asks for 85.
     qualities: [75, 85],
