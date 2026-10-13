@@ -10,7 +10,6 @@ import { getAnnouncement } from "@/modules/content/announcement-server";
 
 const secondaryLinks = [
   { label: "About Kesa", href: "/about/" },
-  { label: "Journal", href: "/journal/" },
   { label: "Style guides", href: "/style-guides/" },
   { label: "Track order", href: "/track-order/" },
   { label: "Contact", href: "/contact/" },

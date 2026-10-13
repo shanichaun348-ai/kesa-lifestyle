@@ -18,12 +18,11 @@ type Props = {
   searchParams: Promise<{ type?: string }>;
 };
 
-export async function generateMetadata({ searchParams }: Props): Promise<Metadata> {
-  const { type } = await searchParams;
-  const filtered = type !== undefined && ARTICLE_TYPES.some((t) => t === type);
+export async function generateMetadata(): Promise<Metadata> {
   return {
     ...BASE_META,
-    robots: filtered ? { index: false, follow: true } : { index: true, follow: true },
+    // The journal is unlisted for now (no links to it, not in the sitemap), so it is never indexed.
+    robots: { index: false, follow: true },
   };
 }
 

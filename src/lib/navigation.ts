@@ -41,10 +41,7 @@ export const sampleHeaderMenus: NavMenu[] = [
           { label: "Necklaces", href: "/women/necklaces/" },
           { label: "Pendants", href: "/women/pendants/" },
           { label: "Earrings", href: "/women/earrings/" },
-          { label: "Rings", href: "/women/rings/" },
           { label: "Bracelets", href: "/women/bracelets/" },
-          { label: "Bangles", href: "/women/bangles/" },
-          { label: "Jewellery sets", href: "/women/jewellery-sets/" },
         ],
       },
       {
@@ -80,7 +77,6 @@ export const sampleHeaderMenus: NavMenu[] = [
     ],
   },
   { label: "New In", href: "/collections/new-arrivals/" },
-  { label: "Journal", href: "/journal/" },
 ];
 
 export const sampleFooterColumns: FooterColumn[] = [
@@ -105,7 +101,6 @@ export const sampleFooterColumns: FooterColumn[] = [
   {
     heading: "Kesa",
     links: [
-      { label: "Journal", href: "/journal/" },
       { label: "Style guides", href: "/style-guides/" },
     ],
   },

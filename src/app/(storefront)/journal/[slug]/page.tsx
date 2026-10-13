@@ -27,16 +27,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const article = getArticleBySlug(slug);
   if (!article) return {};
-  return articleMetadata({
-    title: article.title,
-    excerpt: article.excerpt,
-    path: `/journal/${slug}/`,
-    publishedAt: article.publishedAt,
-    updatedAt: article.updatedAt,
-    seoTitle: article.seoTitle,
-    seoDescription: article.seoDescription,
-    imageUrl: absoluteUrl(article.image.src),
-  });
+  return {
+    ...articleMetadata({
+      title: article.title,
+      excerpt: article.excerpt,
+      path: `/journal/${slug}/`,
+      publishedAt: article.publishedAt,
+      updatedAt: article.updatedAt,
+      seoTitle: article.seoTitle,
+      seoDescription: article.seoDescription,
+      imageUrl: absoluteUrl(article.image.src),
+    }),
+    // The journal is unlisted for now (no links to it, not in the sitemap), so articles are never indexed.
+    robots: { index: false, follow: true },
+  };
 }
 
 export default async function JournalArticlePage({ params }: Props) {
