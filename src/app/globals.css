@@ -494,6 +494,29 @@ html[data-theme="dark"] {
     height: 1px;
     background-color: var(--color-highlight);
   }
+  /* Hairline gold rule with a centred ornament, between the title block and the copy. */
+  .lux-divider-ornament {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: var(--color-highlight);
+  }
+  .lux-divider-ornament::before,
+  .lux-divider-ornament::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, color-mix(in oklab, var(--color-highlight) 55%, transparent));
+  }
+  .lux-divider-ornament::after {
+    background: linear-gradient(90deg, color-mix(in oklab, var(--color-highlight) 55%, transparent), transparent);
+  }
+  /* Soft gallery stage: deep shadow and a faint one-pixel highlight instead of a hard frame. */
+  .lux-stage {
+    box-shadow:
+      var(--shadow-overlay),
+      inset 0 0 0 1px color-mix(in oklab, var(--color-highlight) 25%, transparent);
+  }
   /* Soft top-light and base vignette over the gallery stage so jewellery reads as lit. */
   .lux-stage-light::after {
     content: "";

@@ -34,7 +34,54 @@ export function discountPercent(pricePaise: number, compareAtPaise: number | und
   return percentOff(compareAtPaise, pricePaise);
 }
 
-export type BenefitLine = { key: "shipping" | "returns" | "payment" | "quality"; title: string; detail: string };
+export type BenefitLine = { key: "shipping" | "payment" | "returns"; title: string; detail: string };
+
+export type HighlightIconKey = "gem" | "sparkles" | "feather" | "gift" | "shield" | "leaf" | "hand" | "star";
+export type HighlightIcon = { icon: HighlightIconKey; lines: [string, string]; text: string };
+
+const HIGHLIGHT_ICON_RULES: Array<[RegExp, HighlightIconKey]> = [
+  [/\b(gold|plated|plating|brass|silver)\b/i, "gem"],
+  [/\b(charm|charms|colou?r|colou?rful|multicolou?r|stone|stones|crystal|crystals|cz|zircon)\b/i, "sparkles"],
+  [/\b(light|lightweight|weight|comfort|comfortable|feather)\b/i, "feather"],
+  [/\b(gift|gifting|gifts)\b/i, "gift"],
+  [/\b(tarnish|anti-tarnish|water|durable|long-lasting|lasting)\b/i, "shield"],
+  [/\b(skin|hypoallergenic|hypo|nickel)\b/i, "leaf"],
+  [/\b(handmade|hand-made|handcrafted|crafted|craft|artisan)\b/i, "hand"],
+];
+
+/** Connector words that read badly stranded at the end of a line. */
+const CONNECTORS = new Set(["&", "and", "for", "of", "in", "with", "to", "the", "a", "on", "or"]);
+
+/** Splits a short phrase onto two lines at the word nearest the midpoint, never ending line one on a connector. */
+export function splitLabel(text: string): [string, string] {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  if (words.length < 2) return [words[0] ?? "", ""];
+  const total = words.join(" ").length;
+  let best = 1;
+  let bestDiff = Infinity;
+  for (let i = 1; i < words.length; i++) {
+    if (CONNECTORS.has(words[i - 1]!.toLowerCase())) continue;
+    const first = words.slice(0, i).join(" ").length;
+    const diff = Math.abs(first - (total - first));
+    if (diff < bestDiff) {
+      bestDiff = diff;
+      best = i;
+    }
+  }
+  return [words.slice(0, best).join(" "), words.slice(best).join(" ")];
+}
+
+/** Up to four highlights as icon tiles; the icon is picked from keywords in the text. */
+export function highlightIcons(highlights: readonly string[], max = 4): HighlightIcon[] {
+  return highlights
+    .map((h) => h.trim())
+    .filter(Boolean)
+    .slice(0, max)
+    .map((text) => {
+      const match = HIGHLIGHT_ICON_RULES.find(([re]) => re.test(text));
+      return { icon: match ? match[1] : "star", lines: splitLabel(text), text };
+    });
+}
 
 /** Store promises as stated on the shipping and returns policy pages and the homepage. */
 export const STORE_PROMISES = {
@@ -46,17 +93,17 @@ export const STORE_PROMISES = {
 } as const;
 
 export const RETURNS_COPY: Record<ReturnPolicy, { title: string; detail: string }> = {
-  returnable: { title: "7-day easy returns", detail: "Unworn pieces with tags; refund to the original payment method." },
-  exchange_only: { title: "Exchange only", detail: "Hygiene item. Exchanged for size or style; damaged or incorrect items replaced free." },
-  final_sale: { title: "Final sale", detail: "Not eligible for return or exchange, except if damaged or incorrect." },
+  returnable: { title: "Easy returns", detail: "7-day policy" },
+  exchange_only: { title: "Exchange only", detail: "Hygiene item, 7 days" },
+  final_sale: { title: "Final sale", detail: "No returns or exchanges" },
 };
 
+/** The three-item promise strip under the purchase controls: shipping, payment, returns. */
 export function benefitLines(returnPolicy: ReturnPolicy): BenefitLine[] {
   const r = RETURNS_COPY[returnPolicy];
   return [
-    { key: "shipping", title: "Free shipping over ₹999", detail: `₹59 below. Dispatched in ${STORE_PROMISES.dispatchDays}.` },
+    { key: "shipping", title: "Free shipping", detail: "on orders above ₹999" },
+    { key: "payment", title: "Secure payment", detail: "Razorpay" },
     { key: "returns", title: r.title, detail: r.detail },
-    { key: "payment", title: "Secure payments", detail: "UPI, cards and netbanking via Razorpay; cash on delivery available." },
-    { key: "quality", title: "Anti-tarnish, skin-friendly", detail: "Nickel-safe, hypoallergenic base metals." },
   ];
 }

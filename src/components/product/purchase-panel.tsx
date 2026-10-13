@@ -3,9 +3,9 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { ShoppingBagIcon } from "lucide-react";
 import { toast } from "sonner";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { Price } from "@/components/storefront/price";
@@ -159,16 +159,14 @@ export function PurchasePanel(props: PurchasePanelProps) {
       {display ? (
         <div className="flex flex-col gap-1">
           <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
-            <span className="type-price text-3xl text-ink">{formatPaise(display.pricePaise)}</span>
+            <span className="type-price font-display text-4xl text-ink dark:text-highlight">{formatPaise(display.pricePaise)}</span>
             {saving !== null && display.compareAtPaise !== undefined ? (
               <>
-                <s className="type-price text-base font-normal text-ink-subtle">
+                <s className="type-price text-lg font-normal text-ink-subtle">
                   <span className="sr-only">Original price </span>
                   {formatPaise(display.compareAtPaise)}
                 </s>
-                <Badge variant="outline" className="border-highlight/60 bg-transparent text-highlight">
-                  Save {saving}%
-                </Badge>
+                <span className="inline-flex h-6 items-center rounded-full bg-success/15 px-2.5 text-xs font-medium text-success">{saving}% off</span>
               </>
             ) : null}
           </p>
@@ -202,7 +200,7 @@ export function PurchasePanel(props: PurchasePanelProps) {
                   aria-label={out ? `${o.label}, sold out` : o.label}
                   onClick={() => choose(o)}
                   className={cn(
-                    "min-h-11 min-w-14 rounded-md border px-4 text-sm transition-[border-color,background-color,box-shadow] duration-150",
+                    "min-h-11 min-w-14 rounded-xl border px-4 text-sm transition-[border-color,background-color,box-shadow] duration-150",
                     sku === o.sku
                       ? "border-highlight bg-highlight/10 font-medium text-ink ring-1 ring-highlight/60"
                       : "border-line-strong bg-surface text-ink hover:border-highlight",
@@ -219,9 +217,13 @@ export function PurchasePanel(props: PurchasePanelProps) {
       ) : null}
 
       <p
-        className={cn("type-small", availability === "out_of_stock" ? "text-danger" : availability === "low_stock" ? "text-warning" : "text-success")}
+        className={cn(
+          "type-small inline-flex items-center gap-2",
+          availability === "out_of_stock" ? "text-danger" : availability === "low_stock" ? "text-warning" : "text-success",
+        )}
         role="status"
       >
+        <span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-current" />
         {availability === "low_stock" && selected ? `Only ${selected.stock} left.` : AVAILABILITY_COPY[availability]}
       </p>
 
@@ -234,13 +236,19 @@ export function PurchasePanel(props: PurchasePanelProps) {
       {availability !== "out_of_stock" ? (
         <div ref={actionsRef} className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <QuantityStepper value={quantity} max={Math.max(1, max || 1)} onChange={setQuantity} className="h-13 rounded-md" />
-            <Button size="lg" className="flex-1 rounded-md shadow-(--shadow-float)" onClick={onAdd} loading={adding}>
+            <QuantityStepper value={quantity} max={Math.max(1, max || 1)} onChange={setQuantity} className="h-13 rounded-xl" />
+            <Button
+              size="lg"
+              className="flex-1 rounded-xl shadow-(--shadow-float) dark:border-transparent dark:bg-gradient-to-b dark:from-highlight dark:to-brand dark:text-cta-foreground dark:hover:from-highlight dark:hover:to-highlight"
+              onClick={onAdd}
+              loading={adding}
+            >
+              <ShoppingBagIcon className="size-5" aria-hidden="true" />
               Add to bag
             </Button>
-            <WishlistButton productSlug={props.productSlug} productName={props.productName} pricePaise={display?.pricePaise} className="lux-hairline size-13 rounded-md" />
+            <WishlistButton productSlug={props.productSlug} productName={props.productName} pricePaise={display?.pricePaise} className="lux-hairline size-13 rounded-full" />
           </div>
-          <Button size="lg" variant="secondary" fullWidth className="rounded-md border-highlight/70 hover:border-highlight" onClick={onBuyNow}>
+          <Button size="lg" variant="secondary" fullWidth className="rounded-xl border-highlight/70 hover:border-highlight" onClick={onBuyNow}>
             Buy now
           </Button>
           <a
@@ -256,10 +264,10 @@ export function PurchasePanel(props: PurchasePanelProps) {
       ) : (
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <Button size="lg" className="flex-1 rounded-md" disabled>
+            <Button size="lg" className="flex-1 rounded-xl" disabled>
               Sold out
             </Button>
-            <WishlistButton productSlug={props.productSlug} productName={props.productName} pricePaise={display?.pricePaise} className="lux-hairline size-13 rounded-md" />
+            <WishlistButton productSlug={props.productSlug} productName={props.productName} pricePaise={display?.pricePaise} className="lux-hairline size-13 rounded-full" />
           </div>
           <p className="type-small text-ink-muted">
             Save it to your wishlist. Back-in-stock alerts arrive with customer accounts; until then the wishlist is the way to keep track.
@@ -281,7 +289,7 @@ export function PurchasePanel(props: PurchasePanelProps) {
               <p className="truncate font-display text-base text-ink">{props.productName}</p>
               {display ? <Price pricePaise={display.pricePaise} compareAtPaise={display.compareAtPaise} size="sm" /> : null}
             </div>
-            <Button size="md" className="rounded-md" onClick={onAdd} loading={adding} tabIndex={showSticky ? 0 : -1}>
+            <Button size="md" className="rounded-xl" onClick={onAdd} loading={adding} tabIndex={showSticky ? 0 : -1}>
               Add to bag
             </Button>
           </div>

@@ -4,10 +4,12 @@ import { permanentRedirect } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { DeliveryEstimateChecker } from "@/components/product/delivery-estimate";
+import { ProductBackdrop } from "@/components/product/product-backdrop";
 import { ProductBenefits } from "@/components/product/product-benefits";
 import { ProductDetails } from "@/components/product/product-details";
 import { ProductFaq } from "@/components/product/product-faq";
 import { ProductGallery, type GalleryItem } from "@/components/product/product-gallery";
+import { ProductHighlights } from "@/components/product/product-highlights";
 import { ProductReviews } from "@/components/product/product-reviews";
 import { PurchasePanel, type PurchaseOption } from "@/components/product/purchase-panel";
 import { RecentlyViewed } from "@/components/product/recently-viewed";
@@ -123,8 +125,13 @@ export async function ProductView({ product, requestedSku, preview = false, allR
     faqPageJsonLd(faq),
   ];
 
+  const heroImage = product.images[0];
+  // The short description is the lead; the full description (in the accordion) only stands in when it is empty.
+  const intro = product.shortDescription.trim() || product.description[0] || "";
+
   return (
-    <Container className="pt-5 pb-16 lg:pb-24">
+    <Container className="relative isolate pt-5 pb-16 lg:pb-24">
+      {heroImage ? <ProductBackdrop image={heroImage} /> : null}
       <JsonLd data={jsonLd} />
       {trackerVariant && !preview ? (
         <Suspense>
@@ -145,31 +152,39 @@ export async function ProductView({ product, requestedSku, preview = false, allR
 
         <div className="flex flex-col gap-7">
           <header className="flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-2">
-              {category ? (
-                <Link href={`/${category.path}/`} className="type-eyebrow text-highlight underline-offset-4 hover:underline">
-                  {category.name}
-                </Link>
-              ) : null}
+            <div className="flex flex-wrap items-center gap-3">
               {badges.map((b) => (
-                <Badge key={b.label} variant={BADGE_VARIANT[b.tone]} className={cn(BADGE_CLASS[b.tone])}>
+                <Badge key={b.label} variant={BADGE_VARIANT[b.tone]} className={cn("rounded-full px-3", BADGE_CLASS[b.tone])}>
                   {b.label}
                 </Badge>
               ))}
+              {category ? (
+                <Link href={`/${category.path}/`} className="type-eyebrow tracking-[0.18em] text-ink-muted underline-offset-4 hover:text-highlight hover:underline">
+                  {category.name}
+                </Link>
+              ) : null}
             </div>
-            <h1 className="type-h1 text-balance">{product.name}</h1>
+            <h1 className="type-h1 text-balance lg:text-[clamp(2rem,1.2rem+2vw,2.9rem)] lg:leading-[1.1]">{product.name}</h1>
             {reviews.count > 0 && reviews.average !== null ? (
               <a href="#reviews-title" className="inline-flex w-fit items-center gap-2 text-sm text-ink-muted hover:text-ink">
-                <RatingStars rating={reviews.average} />
+                <RatingStars rating={reviews.average} size="md" />
                 <span>
                   {reviews.average.toFixed(1)} · {reviews.count} {reviews.count === 1 ? "review" : "reviews"}
                 </span>
               </a>
             ) : (
-              <p className="type-small text-ink-subtle">No reviews yet</p>
+              <p className="inline-flex items-center gap-2 text-sm text-ink-subtle">
+                <RatingStars rating={0} size="md" className="text-highlight/60" />
+                <span>No reviews yet</span>
+              </p>
             )}
-            <RichText text={product.shortDescription} className="type-lead text-ink-muted" />
+            <span className="lux-divider-ornament my-1" aria-hidden="true">
+              <span className="text-sm leading-none">✦</span>
+            </span>
+            {intro ? <RichText text={intro} className="type-lead text-ink-muted" /> : null}
           </header>
+
+          <ProductHighlights highlights={product.highlights} />
 
           {siblings.length > 0 ? (
             <div className="flex flex-col gap-2">
@@ -178,13 +193,13 @@ export async function ProductView({ product, requestedSku, preview = false, allR
               </p>
               <ul className="flex flex-wrap gap-2" aria-label="Also available in">
                 <li>
-                  <span aria-current="true" className="inline-flex h-11 items-center rounded-md border border-highlight bg-highlight/10 px-4 text-sm font-medium text-ink ring-1 ring-highlight/60">
+                  <span aria-current="true" className="inline-flex h-11 items-center rounded-xl border border-highlight bg-highlight/10 px-4 text-sm font-medium text-ink ring-1 ring-highlight/60">
                     {product.familyOptionLabel}
                   </span>
                 </li>
                 {siblings.map((s) => (
                   <li key={s.slug}>
-                    <Link href={productHref(s)} className="lux-hairline inline-flex h-11 items-center rounded-md bg-surface px-4 text-sm text-ink transition-colors hover:border-highlight">
+                    <Link href={productHref(s)} className="lux-hairline inline-flex h-11 items-center rounded-xl bg-surface px-4 text-sm text-ink transition-colors hover:border-highlight">
                       {s.familyOptionLabel ?? s.name}
                     </Link>
                   </li>
@@ -209,7 +224,7 @@ export async function ProductView({ product, requestedSku, preview = false, allR
 
           <DeliveryEstimateChecker />
 
-          {product.highlights.length > 0 ? (
+          {product.highlights.length > 0 && product.highlights.length < 2 ? (
             <ul className="grid gap-2 text-sm text-ink-muted" aria-label="Highlights">
               {product.highlights.map((h) => (
                 <li key={h} className="flex gap-3">

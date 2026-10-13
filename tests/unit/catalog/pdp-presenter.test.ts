@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { benefitLines, discountPercent, pdpBadges, totalStock } from "@/modules/catalog/pdp";
+import { benefitLines, discountPercent, highlightIcons, pdpBadges, splitLabel, totalStock } from "@/modules/catalog/pdp";
 import type { Product } from "@/modules/catalog/types";
 
 const NOW = new Date("2026-10-13T00:00:00.000Z");
@@ -77,12 +77,46 @@ describe("discountPercent", () => {
 
 describe("benefitLines", () => {
   it("adapts the returns line to the policy", () => {
-    expect(benefitLines("returnable")[1]!.title).toBe("7-day easy returns");
-    expect(benefitLines("exchange_only")[1]!.title).toBe("Exchange only");
-    expect(benefitLines("final_sale")[1]!.title).toBe("Final sale");
+    expect(benefitLines("returnable")[2]).toEqual({ key: "returns", title: "Easy returns", detail: "7-day policy" });
+    expect(benefitLines("exchange_only")[2]!.title).toBe("Exchange only");
+    expect(benefitLines("final_sale")[2]!.title).toBe("Final sale");
   });
 
-  it("always lists shipping, returns, payment and quality in that order", () => {
-    expect(benefitLines("returnable").map((b) => b.key)).toEqual(["shipping", "returns", "payment", "quality"]);
+  it("always lists shipping, payment and returns in that order", () => {
+    expect(benefitLines("returnable").map((b) => b.key)).toEqual(["shipping", "payment", "returns"]);
+  });
+});
+
+describe("splitLabel", () => {
+  it("splits at the word nearest the midpoint", () => {
+    expect(splitLabel("Premium Gold Plated")).toEqual(["Premium", "Gold Plated"]);
+    expect(splitLabel("Lightweight & Comfortable")).toEqual(["Lightweight", "& Comfortable"]);
+    expect(splitLabel("Perfect for Gifting")).toEqual(["Perfect", "for Gifting"]);
+  });
+
+  it("keeps a single word on one line", () => {
+    expect(splitLabel("Handcrafted")).toEqual(["Handcrafted", ""]);
+  });
+});
+
+describe("highlightIcons", () => {
+  it("picks icons from keywords and falls back to a star", () => {
+    const icons = highlightIcons([
+      "Premium gold plated",
+      "Vibrant multicolor charms",
+      "Lightweight & comfortable",
+      "Perfect for gifting",
+      "Anti-tarnish finish",
+      "Skin friendly, nickel-free",
+      "Handcrafted in Jaipur",
+      "Comes in a box",
+    ], 8);
+    expect(icons.map((i) => i.icon)).toEqual(["gem", "sparkles", "feather", "gift", "shield", "leaf", "hand", "star"]);
+  });
+
+  it("caps at four by default and ignores blank lines", () => {
+    const icons = highlightIcons(["a b", " ", "c d", "e f", "g h", "i j"]);
+    expect(icons).toHaveLength(4);
+    expect(icons[0]!.lines).toEqual(["a", "b"]);
   });
 });

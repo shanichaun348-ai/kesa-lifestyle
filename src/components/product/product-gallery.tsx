@@ -63,8 +63,8 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
               aria-label={item.kind === "video" ? `Play video: ${item.video.title}` : `Show image ${i + 1}`}
               aria-current={active === i ? "true" : undefined}
               className={cn(
-                "relative block aspect-[3/4] w-full overflow-hidden rounded-md border bg-surface-muted",
-                "transition-[transform,box-shadow,border-color] duration-250 ease-(--ease-standard) motion-safe:hover:-translate-y-0.5",
+                "relative block aspect-[3/4] w-full overflow-hidden rounded-xl border bg-surface-muted",
+                "transition-[transform,box-shadow,border-color] duration-250 ease-(--ease-standard) motion-safe:hover:scale-[1.03]",
                 active === i
                   ? "border-highlight ring-1 ring-highlight shadow-(--shadow-float)"
                   : "border-line hover:border-highlight/60",
@@ -79,7 +79,7 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
       </ul>
       ) : null}
 
-      {/* Stage: a hairline gold frame with a soft top-light; tilts a few degrees toward a mouse pointer. */}
+      {/* Stage: soft deep shadow, faint highlight edge and a top-light; tilts a few degrees toward a mouse pointer. */}
       <Tilt max={4} glare={false} className="relative">
         <ul
           ref={stageRef}
@@ -91,7 +91,7 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
             <li key={i} className="w-full shrink-0 snap-center px-4 lg:px-0">
               <figure
                 className={cn(
-                  "lux-frame lux-stage-light relative aspect-[4/5] overflow-hidden rounded-md bg-surface-muted",
+                  "lux-stage lux-stage-light relative aspect-[4/5] overflow-hidden rounded-2xl bg-surface-muted",
                   "transition-[opacity,transform] duration-500 ease-(--ease-standard)",
                   active === i ? "opacity-100" : "lg:scale-[0.985] lg:opacity-60",
                 )}
