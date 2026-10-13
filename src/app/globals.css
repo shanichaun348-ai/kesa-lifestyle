@@ -468,6 +468,45 @@ html[data-theme="dark"] {
     0 0 90px -10px color-mix(in oklab, var(--color-on-image-gold) 55%, transparent);
 }
 
+/* ------------------------------------------------------------------------
+   Luxury surfaces for the product page (both themes; gold comes from the
+   highlight token so the dark theme's brighter gold applies automatically).
+   ------------------------------------------------------------------------ */
+@layer components {
+  /* Hairline gold frame with a one-pixel inner line in the page colour. */
+  .lux-frame {
+    border: 1px solid color-mix(in oklab, var(--color-highlight) 45%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--color-bg) 70%, transparent);
+  }
+  .lux-hairline {
+    border: 1px solid color-mix(in oklab, var(--color-highlight) 28%, transparent);
+  }
+  /* Elevated card surface; the shadow warms in the dark theme via the token. */
+  .lux-surface {
+    background-color: var(--color-surface);
+    border: 1px solid color-mix(in oklab, var(--color-highlight) 22%, var(--color-line));
+    box-shadow: var(--shadow-float);
+  }
+  /* Short centred gold rule under editorial headings. */
+  .lux-divider {
+    display: block;
+    width: 3rem;
+    height: 1px;
+    background-color: var(--color-highlight);
+  }
+  /* Soft top-light and base vignette over the gallery stage so jewellery reads as lit. */
+  .lux-stage-light::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 4;
+    pointer-events: none;
+    background:
+      linear-gradient(180deg, rgb(255 255 255 / 0.09), transparent 32%),
+      radial-gradient(120% 85% at 50% 105%, transparent 58%, rgb(0 0 0 / 0.16) 100%);
+  }
+}
+
 /* Hide scrollbar for horizontal chip rows while keeping scrollability. */
 @utility no-scrollbar {
   scrollbar-width: none;

@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ChevronLeftIcon, ChevronRightIcon, PlayIcon } from "lucide-react";
 
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
+import { Tilt } from "@/components/motion/tilt";
 import { useFinePointer, useZoomTracking, ZoomStage, zoomSource } from "@/components/product/zoom-stage";
 import type { ImageRef, ProductVideo } from "@/modules/catalog/types";
 import { cn } from "@/lib/utils";
@@ -46,7 +47,7 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
     <div className="flex flex-col lg:grid lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-4">
       {/* Thumbnails: a scrollable row under the stage on phones, a column beside it on desktop. */}
       {items.length > 1 ? (
-      <ul className="no-scrollbar order-2 mt-3 flex gap-2 overflow-x-auto lg:order-none lg:mt-0 lg:flex-col lg:overflow-visible" aria-label="Choose image">
+      <ul className="no-scrollbar order-2 mt-3 flex gap-2 overflow-x-auto px-0.5 py-1 lg:order-none lg:mt-0 lg:flex-col lg:overflow-visible lg:py-0.5" aria-label="Choose image">
         {items.map((item, i) => (
           <li
             key={i}
@@ -62,8 +63,11 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
               aria-label={item.kind === "video" ? `Play video: ${item.video.title}` : `Show image ${i + 1}`}
               aria-current={active === i ? "true" : undefined}
               className={cn(
-                "relative block aspect-[3/4] w-full overflow-hidden rounded-sm border bg-surface-muted",
-                active === i ? "border-ink" : "border-transparent hover:border-line-strong",
+                "relative block aspect-[3/4] w-full overflow-hidden rounded-md border bg-surface-muted",
+                "transition-[transform,box-shadow,border-color] duration-250 ease-(--ease-standard) motion-safe:hover:-translate-y-0.5",
+                active === i
+                  ? "border-highlight ring-1 ring-highlight shadow-(--shadow-float)"
+                  : "border-line hover:border-highlight/60",
                 "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
               )}
             >
@@ -75,8 +79,8 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
       </ul>
       ) : null}
 
-      {/* Stage */}
-      <div className="relative">
+      {/* Stage: a hairline gold frame with a soft top-light; tilts a few degrees toward a mouse pointer. */}
+      <Tilt max={4} glare={false} className="relative">
         <ul
           ref={stageRef}
           onScroll={onStageScroll}
@@ -85,7 +89,13 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
         >
           {items.map((item, i) => (
             <li key={i} className="w-full shrink-0 snap-center px-4 lg:px-0">
-              <figure className="relative aspect-[4/5] overflow-hidden rounded-sm bg-surface-muted">
+              <figure
+                className={cn(
+                  "lux-frame lux-stage-light relative aspect-[4/5] overflow-hidden rounded-md bg-surface-muted",
+                  "transition-[opacity,transform] duration-500 ease-(--ease-standard)",
+                  active === i ? "opacity-100" : "lg:scale-[0.985] lg:opacity-60",
+                )}
+              >
                 {item.kind === "image" ? (
                   <ZoomStage
                     image={item.image}
@@ -107,8 +117,7 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
             </li>
           ))}
         </ul>
-
-      </div>
+      </Tilt>
 
       <Lightbox open={open} onOpenChange={setOpen} items={items} index={active} setIndex={setActive} productName={productName} />
     </div>
@@ -131,7 +140,7 @@ function VideoStage({ video }: { video: ProductVideo }) {
         className="absolute inset-0 outline-none focus-visible:outline-2 focus-visible:-outline-offset-4 focus-visible:outline-brand"
       >
         <Image src={video.poster.src} alt={video.poster.alt} fill sizes={STAGE_SIZES} unoptimized={video.poster.unoptimized ?? false} className="object-cover" />
-        <span className="absolute inset-0 m-auto inline-flex size-14 items-center justify-center rounded-full bg-surface/90 text-ink backdrop-blur-sm">
+        <span className="lux-hairline absolute inset-0 m-auto inline-flex size-14 items-center justify-center rounded-full bg-surface/90 text-ink backdrop-blur-sm dark:text-highlight">
           <PlayIcon className="ml-0.5 size-6" aria-hidden="true" />
         </span>
       </button>

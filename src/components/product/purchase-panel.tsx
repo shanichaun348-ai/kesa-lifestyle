@@ -5,13 +5,16 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { QuantityStepper } from "@/components/ui/quantity-stepper";
 import { Price } from "@/components/storefront/price";
 import { WhatsAppIcon } from "@/components/storefront/whatsapp-button";
 import { WishlistButton } from "@/components/storefront/wishlist-button";
+import { formatPaise } from "@/lib/money";
 import { site, whatsappHref } from "@/lib/site";
 import { useCart } from "@/modules/cart/use-cart";
+import { discountPercent } from "@/modules/catalog/pdp";
 import { availabilityOf, maxQuantity, type Availability } from "@/modules/catalog/variants";
 import { trackAddToCart } from "@/modules/analytics/events";
 import { cn } from "@/lib/utils";
@@ -56,6 +59,10 @@ export function PurchasePanel(props: PurchasePanelProps) {
   const [sku, setSku] = React.useState<string | null>(props.initialSku);
   const [quantity, setQuantity] = React.useState(1);
   const [error, setError] = React.useState<string | null>(null);
+  // Brief "adding" state so the button visibly acknowledges the tap; the add itself is synchronous.
+  const [adding, setAdding] = React.useState(false);
+  const addingTimer = React.useRef<number | null>(null);
+  React.useEffect(() => () => { if (addingTimer.current) window.clearTimeout(addingTimer.current); }, []);
 
   // Sticky bar on phones: shown once the main Add to bag button has scrolled off the top.
   const actionsRef = React.useRef<HTMLDivElement>(null);
@@ -131,11 +138,16 @@ export function PurchasePanel(props: PurchasePanelProps) {
 
   function onAdd() {
     if (!addToBag()) return;
+    setAdding(true);
+    if (addingTimer.current) window.clearTimeout(addingTimer.current);
+    addingTimer.current = window.setTimeout(() => setAdding(false), 500);
     toast.success("Added to bag", {
       description: props.productName,
       action: { label: "View bag", onClick: () => router.push("/cart/") },
     });
   }
+
+  const saving = display ? discountPercent(display.pricePaise, display.compareAtPaise) : null;
 
   function onBuyNow() {
     if (!addToBag()) return;
@@ -144,8 +156,25 @@ export function PurchasePanel(props: PurchasePanelProps) {
 
   return (
     <div className="flex flex-col gap-5">
-      {display ? <Price pricePaise={display.pricePaise} compareAtPaise={display.compareAtPaise} size="lg" /> : null}
-      <p className="type-small -mt-3 text-ink-subtle">Inclusive of all taxes</p>
+      {display ? (
+        <div className="flex flex-col gap-1">
+          <p className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <span className="type-price text-3xl text-ink">{formatPaise(display.pricePaise)}</span>
+            {saving !== null && display.compareAtPaise !== undefined ? (
+              <>
+                <s className="type-price text-base font-normal text-ink-subtle">
+                  <span className="sr-only">Original price </span>
+                  {formatPaise(display.compareAtPaise)}
+                </s>
+                <Badge variant="outline" className="border-highlight/60 bg-transparent text-highlight">
+                  Save {saving}%
+                </Badge>
+              </>
+            ) : null}
+          </p>
+          <p className="type-small text-ink-subtle">Inclusive of all taxes</p>
+        </div>
+      ) : null}
 
       {hasOptions ? (
         <fieldset className="flex flex-col gap-3">
@@ -173,9 +202,11 @@ export function PurchasePanel(props: PurchasePanelProps) {
                   aria-label={out ? `${o.label}, sold out` : o.label}
                   onClick={() => choose(o)}
                   className={cn(
-                    "h-11 min-w-14 rounded-sm border px-3 text-sm transition-colors",
-                    sku === o.sku ? "border-ink bg-ink text-bg" : "border-line-strong bg-surface text-ink hover:border-ink",
-                    out && "cursor-not-allowed text-ink-subtle line-through hover:border-line-strong",
+                    "min-h-11 min-w-14 rounded-md border px-4 text-sm transition-[border-color,background-color,box-shadow] duration-150",
+                    sku === o.sku
+                      ? "border-highlight bg-highlight/10 font-medium text-ink ring-1 ring-highlight/60"
+                      : "border-line-strong bg-surface text-ink hover:border-highlight",
+                    out && "cursor-not-allowed border-line text-ink-subtle line-through hover:border-line",
                     "outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand",
                   )}
                 >
@@ -203,13 +234,13 @@ export function PurchasePanel(props: PurchasePanelProps) {
       {availability !== "out_of_stock" ? (
         <div ref={actionsRef} className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <QuantityStepper value={quantity} max={Math.max(1, max || 1)} onChange={setQuantity} />
-            <Button size="lg" className="flex-1" onClick={onAdd}>
+            <QuantityStepper value={quantity} max={Math.max(1, max || 1)} onChange={setQuantity} className="h-13 rounded-md" />
+            <Button size="lg" className="flex-1 rounded-md shadow-(--shadow-float)" onClick={onAdd} loading={adding}>
               Add to bag
             </Button>
-            <WishlistButton productSlug={props.productSlug} productName={props.productName} pricePaise={display?.pricePaise} className="border border-line" />
+            <WishlistButton productSlug={props.productSlug} productName={props.productName} pricePaise={display?.pricePaise} className="lux-hairline size-13 rounded-md" />
           </div>
-          <Button size="lg" variant="secondary" fullWidth onClick={onBuyNow}>
+          <Button size="lg" variant="secondary" fullWidth className="rounded-md border-highlight/70 hover:border-highlight" onClick={onBuyNow}>
             Buy now
           </Button>
           <a
@@ -225,10 +256,10 @@ export function PurchasePanel(props: PurchasePanelProps) {
       ) : (
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-3">
-            <Button size="lg" className="flex-1" disabled>
+            <Button size="lg" className="flex-1 rounded-md" disabled>
               Sold out
             </Button>
-            <WishlistButton productSlug={props.productSlug} productName={props.productName} pricePaise={display?.pricePaise} className="border border-line" />
+            <WishlistButton productSlug={props.productSlug} productName={props.productName} pricePaise={display?.pricePaise} className="lux-hairline size-13 rounded-md" />
           </div>
           <p className="type-small text-ink-muted">
             Save it to your wishlist. Back-in-stock alerts arrive with customer accounts; until then the wishlist is the way to keep track.
@@ -240,17 +271,17 @@ export function PurchasePanel(props: PurchasePanelProps) {
         <div
           aria-hidden={!showSticky}
           className={cn(
-            "fixed inset-x-0 bottom-0 z-30 border-t border-line bg-bg/95 backdrop-blur supports-backdrop-filter:bg-bg/85 lg:hidden",
-            "pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 transition-[transform,opacity] duration-250 ease-(--ease-standard)",
+            "fixed inset-x-0 bottom-0 z-30 border-t border-highlight/30 bg-bg/95 backdrop-blur supports-backdrop-filter:bg-bg/85 lg:hidden",
+            "pb-[max(0.75rem,env(safe-area-inset-bottom))] pt-3 shadow-(--shadow-overlay) transition-[transform,opacity] duration-250 ease-(--ease-standard)",
             showSticky ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-full opacity-0",
           )}
         >
           <div className="container-page flex items-center gap-3">
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-ink">{props.productName}</p>
+              <p className="truncate font-display text-base text-ink">{props.productName}</p>
               {display ? <Price pricePaise={display.pricePaise} compareAtPaise={display.compareAtPaise} size="sm" /> : null}
             </div>
-            <Button size="md" onClick={onAdd} tabIndex={showSticky ? 0 : -1}>
+            <Button size="md" className="rounded-md" onClick={onAdd} loading={adding} tabIndex={showSticky ? 0 : -1}>
               Add to bag
             </Button>
           </div>

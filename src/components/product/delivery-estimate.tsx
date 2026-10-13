@@ -72,13 +72,13 @@ export function DeliveryEstimateChecker() {
   }, []);
 
   return (
-    <section aria-labelledby="delivery-title" className="rounded-md border border-line bg-surface p-4">
+    <section aria-labelledby="delivery-title" className="lux-hairline rounded-md bg-surface p-4">
       <h2 id="delivery-title" className="flex items-center gap-2 text-sm font-medium text-ink">
-        <TruckIcon className="size-4" strokeWidth={1.5} aria-hidden="true" />
+        <TruckIcon className="size-4 text-highlight" strokeWidth={1.5} aria-hidden="true" />
         Delivery estimate
       </h2>
       <form
-        className="mt-3 flex gap-2"
+        className="mt-3 flex gap-2 [&_input]:rounded-md [&_input:focus-visible]:border-highlight [&_input:focus-visible]:ring-highlight/25"
         onSubmit={(e) => {
           e.preventDefault();
           void check(pincode);
@@ -118,7 +118,7 @@ export function DeliveryEstimateChecker() {
             <p className="text-danger">{state.estimate.message ?? "Not serviceable."}</p>
           )
         ) : null}
-        {state.status === "idle" ? <p className="text-ink-subtle">Free shipping over ₹999 across India (pending decision D4).</p> : null}
+        {state.status === "idle" ? <p className="text-ink-subtle">Free shipping over ₹999 across India. Dispatched in 1–2 business days.</p> : null}
       </div>
     </section>
   );

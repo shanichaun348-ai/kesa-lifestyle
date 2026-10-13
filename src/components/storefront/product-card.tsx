@@ -66,7 +66,7 @@ export function ProductCard({ product, priority = false, className }: ProductCar
 
   return (
     <article className={cn("group/card relative flex flex-col", className)}>
-      <Tilt className="sheen relative aspect-[3/4] overflow-hidden rounded-sm bg-surface-muted">
+      <Tilt className="sheen lux-hairline relative aspect-[3/4] overflow-hidden rounded-md bg-surface-muted transition-shadow duration-400 ease-(--ease-standard) group-hover/card:shadow-(--shadow-float) group-focus-within/card:shadow-(--shadow-float)">
         <Image
           src={product.image.src}
           alt={product.image.alt}
@@ -139,10 +139,10 @@ export function ProductCard({ product, priority = false, className }: ProductCar
       </Tilt>
 
       <div className="mt-3 flex flex-col gap-1">
-        <h3 className="line-clamp-2 font-sans text-sm leading-snug font-normal text-ink">
+        <h3 className="line-clamp-2 font-display text-[15px] leading-snug font-normal text-ink">
           <Link
             href={href}
-            className="outline-none after:absolute after:inset-0 after:rounded-sm after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-brand"
+            className="outline-none after:absolute after:inset-0 after:rounded-md after:content-[''] focus-visible:after:outline-2 focus-visible:after:outline-offset-4 focus-visible:after:outline-brand"
           >
             {product.name}
           </Link>

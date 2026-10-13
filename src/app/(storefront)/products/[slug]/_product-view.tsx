@@ -4,6 +4,7 @@ import { permanentRedirect } from "next/navigation";
 
 import { Badge } from "@/components/ui/badge";
 import { DeliveryEstimateChecker } from "@/components/product/delivery-estimate";
+import { ProductBenefits } from "@/components/product/product-benefits";
 import { ProductDetails } from "@/components/product/product-details";
 import { ProductFaq } from "@/components/product/product-faq";
 import { ProductGallery, type GalleryItem } from "@/components/product/product-gallery";
@@ -18,7 +19,7 @@ import { ProductRail } from "@/components/storefront/product-rail";
 import { RichText } from "@/components/storefront/rich-text";
 import { RatingStars } from "@/components/storefront/rating-stars";
 import { SectionHeading } from "@/components/storefront/section-heading";
-import { isNewArrival } from "@/modules/catalog/listing";
+import { pdpBadges, type PdpBadgeTone } from "@/modules/catalog/pdp";
 import { primaryImage, productHref, toCardData } from "@/modules/catalog/presenters";
 import { getCatalogRepository, getCategoryByPath } from "@/modules/catalog/queries";
 import type { FaqItem, Product } from "@/modules/catalog/types";
@@ -26,7 +27,15 @@ import { resolveVariant } from "@/modules/catalog/variants";
 import { getProductReviewSummary } from "@/modules/reviews/queries";
 import { getSessionUser } from "@/lib/auth/session";
 import { breadcrumbListJsonLd, faqPageJsonLd, productJsonLd, type JsonLdObject } from "@/modules/seo/structured-data";
-import { SEED_NOW } from "@/lib/demo/seed-catalog";
+import { cn } from "@/lib/utils";
+
+const BADGE_CLASS: Record<PdpBadgeTone, string> = {
+  gold: "border-highlight/60 bg-transparent text-highlight",
+  muted: "",
+  warning: "",
+  danger: "",
+};
+const BADGE_VARIANT: Record<PdpBadgeTone, "outline" | "muted" | "warning" | "solid"> = { gold: "outline", muted: "muted", warning: "warning", danger: "solid" };
 
 type ProductViewProps = {
   product: Product;
@@ -79,8 +88,9 @@ export async function ProductView({ product, requestedSku, preview = false, allR
   ]);
   const root = category?.parentPath ? await getCategoryByPath(category.parentPath) : null;
 
+  const now = new Date();
   const orderedLook = product.completeTheLookSlugs.map((s) => lookProducts.find((p) => p.slug === s)).filter((p): p is Product => p !== undefined);
-  const cardWithSiblings = async (p: Product) => toCardData(p, { now: SEED_NOW, siblings: await repo.getFamilySiblings(p) });
+  const cardWithSiblings = async (p: Product) => toCardData(p, { now, siblings: await repo.getFamilySiblings(p) });
   const [lookCards, relatedCards] = await Promise.all([Promise.all(orderedLook.map(cardWithSiblings)), Promise.all(related.map(cardWithSiblings))]);
 
   const breadcrumbs = [
@@ -105,6 +115,7 @@ export async function ProductView({ product, requestedSku, preview = false, allR
   const initialSku = resolution.status === "ok" ? resolution.variant.sku : null;
   const trackerVariant = (resolution.status === "ok" ? resolution.variant : null) ?? product.variants[0] ?? null;
   const faq = productFaq(product, category?.faq);
+  const badges = pdpBadges(product, now);
 
   const jsonLd: JsonLdObject[] = [
     breadcrumbListJsonLd(breadcrumbs.map((c) => ({ name: c.label, path: c.href ?? path }))),
@@ -127,22 +138,26 @@ export async function ProductView({ product, requestedSku, preview = false, allR
       ) : null}
       <Breadcrumbs items={breadcrumbs} />
 
-      <article className="mt-5 grid grid-cols-1 gap-8 lg:mt-8 lg:grid-cols-12 lg:gap-12">
-        <div className="lg:col-span-7">
+      <article className="mt-5 grid grid-cols-1 gap-8 md:grid-cols-2 md:gap-8 lg:mt-8 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-14">
+        <div>
           <ProductGallery productName={product.name} items={galleryItems} />
         </div>
 
-        <div className="flex flex-col gap-6 lg:col-span-5">
+        <div className="flex flex-col gap-7">
           <header className="flex flex-col gap-3">
-            <div className="flex items-center gap-2">
-              {isNewArrival(product, SEED_NOW) ? <Badge>New</Badge> : null}
+            <div className="flex flex-wrap items-center gap-2">
               {category ? (
-                <Link href={`/${category.path}/`} className="type-eyebrow text-ink-subtle hover:text-ink">
+                <Link href={`/${category.path}/`} className="type-eyebrow text-highlight underline-offset-4 hover:underline">
                   {category.name}
                 </Link>
               ) : null}
+              {badges.map((b) => (
+                <Badge key={b.label} variant={BADGE_VARIANT[b.tone]} className={cn(BADGE_CLASS[b.tone])}>
+                  {b.label}
+                </Badge>
+              ))}
             </div>
-            <h1 className="type-h2">{product.name}</h1>
+            <h1 className="type-h1 text-balance">{product.name}</h1>
             {reviews.count > 0 && reviews.average !== null ? (
               <a href="#reviews-title" className="inline-flex w-fit items-center gap-2 text-sm text-ink-muted hover:text-ink">
                 <RatingStars rating={reviews.average} />
@@ -153,7 +168,7 @@ export async function ProductView({ product, requestedSku, preview = false, allR
             ) : (
               <p className="type-small text-ink-subtle">No reviews yet</p>
             )}
-            <RichText text={product.shortDescription} className="type-body text-ink-muted" />
+            <RichText text={product.shortDescription} className="type-lead text-ink-muted" />
           </header>
 
           {siblings.length > 0 ? (
@@ -163,13 +178,13 @@ export async function ProductView({ product, requestedSku, preview = false, allR
               </p>
               <ul className="flex flex-wrap gap-2" aria-label="Also available in">
                 <li>
-                  <span aria-current="true" className="inline-flex h-10 items-center rounded-sm border border-ink bg-ink px-3 text-sm text-bg">
+                  <span aria-current="true" className="inline-flex h-11 items-center rounded-md border border-highlight bg-highlight/10 px-4 text-sm font-medium text-ink ring-1 ring-highlight/60">
                     {product.familyOptionLabel}
                   </span>
                 </li>
                 {siblings.map((s) => (
                   <li key={s.slug}>
-                    <Link href={productHref(s)} className="inline-flex h-10 items-center rounded-sm border border-line-strong bg-surface px-3 text-sm text-ink hover:border-ink">
+                    <Link href={productHref(s)} className="lux-hairline inline-flex h-11 items-center rounded-md bg-surface px-4 text-sm text-ink transition-colors hover:border-highlight">
                       {s.familyOptionLabel ?? s.name}
                     </Link>
                   </li>
@@ -190,24 +205,35 @@ export async function ProductView({ product, requestedSku, preview = false, allR
             categoryPath={product.primaryCategoryPath}
           />
 
+          <ProductBenefits returnPolicy={product.returnPolicy} />
+
           <DeliveryEstimateChecker />
 
-          <ul className="list-disc space-y-1 pl-5 text-sm text-ink-muted">
-            {product.highlights.map((h) => (
-              <li key={h}>{h}</li>
-            ))}
-          </ul>
+          {product.highlights.length > 0 ? (
+            <ul className="grid gap-2 text-sm text-ink-muted" aria-label="Highlights">
+              {product.highlights.map((h) => (
+                <li key={h} className="flex gap-3">
+                  <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-highlight" />
+                  <span>{h}</span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
 
           <ProductDetails product={product} />
 
           {product.stylingTips.length > 0 ? (
-            <section aria-labelledby="styling-title" className="rounded-md bg-surface-muted/70 p-5">
+            <section aria-labelledby="styling-title" className="lux-surface rounded-md p-5">
               <h2 id="styling-title" className="type-h3">
                 How to style it
               </h2>
-              <ul className="mt-3 list-disc space-y-1.5 pl-5 text-sm text-ink-muted">
+              <span className="lux-divider mt-3" aria-hidden="true" />
+              <ul className="mt-4 grid gap-2 text-sm text-ink-muted">
                 {product.stylingTips.map((tip) => (
-                  <li key={tip}>{tip}</li>
+                  <li key={tip} className="flex gap-3">
+                    <span aria-hidden="true" className="mt-2 size-1.5 shrink-0 rounded-full bg-highlight" />
+                    <span>{tip}</span>
+                  </li>
                 ))}
               </ul>
             </section>
@@ -217,14 +243,14 @@ export async function ProductView({ product, requestedSku, preview = false, allR
 
       <div className="mt-16 flex flex-col gap-14 lg:mt-24 lg:gap-20">
         {lookCards.length > 0 ? (
-          <section aria-labelledby="look-title">
+          <section aria-labelledby="look-title" className="reveal">
             <SectionHeading eyebrow="Complete the look" title="Wear it with" description="Curated by our stylists to pair with this piece." className="mb-6" />
             <ProductRail label="Complete the look" products={lookCards} />
           </section>
         ) : null}
 
         {relatedCards.length > 0 ? (
-          <section aria-labelledby="related-title">
+          <section aria-labelledby="related-title" className="reveal">
             <SectionHeading eyebrow="You may also like" title="Similar pieces" className="mb-6" />
             <ProductRail label="Related products" products={relatedCards} />
           </section>
