@@ -19,8 +19,8 @@ type ProductGalleryProps = {
 const STAGE_SIZES = "(min-width: 1024px) 50vw, 100vw";
 
 /**
- * Gallery: snap-scrolling stage on phones with dots, thumbnail column on
- * desktop, and a lightbox with zoom. Only the first image is eager (LCP);
+ * Gallery: snap-scrolling stage with a thumbnail row under it on phones and
+ * a thumbnail column beside it on desktop, and a lightbox with zoom. Only the first image is eager (LCP);
  * the rest lazy-load. Videos render a poster and load their player on tap.
  */
 export function ProductGallery({ productName, items }: ProductGalleryProps) {
@@ -43,11 +43,19 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
   }
 
   return (
-    <div className="lg:grid lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-4">
-      {/* Thumbnails (desktop) */}
-      <ul className="hidden lg:flex lg:flex-col lg:gap-2" aria-label="Choose image">
+    <div className="flex flex-col lg:grid lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-4">
+      {/* Thumbnails: a scrollable row under the stage on phones, a column beside it on desktop. */}
+      {items.length > 1 ? (
+      <ul className="no-scrollbar order-2 mt-3 flex gap-2 overflow-x-auto lg:order-none lg:mt-0 lg:flex-col lg:overflow-visible" aria-label="Choose image">
         {items.map((item, i) => (
-          <li key={i}>
+          <li
+            key={i}
+            ref={(el) => {
+              // Keep the active thumbnail in view as the stage is swiped.
+              if (el && active === i) el.scrollIntoView({ block: "nearest", inline: "nearest" });
+            }}
+            className="w-16 shrink-0 lg:w-auto"
+          >
             <button
               type="button"
               onClick={() => scrollTo(i)}
@@ -65,6 +73,7 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
           </li>
         ))}
       </ul>
+      ) : null}
 
       {/* Stage */}
       <div className="relative">
@@ -99,22 +108,6 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
           ))}
         </ul>
 
-        {/* Dots (phones) */}
-        {items.length > 1 ? (
-          <ol className="mt-3 flex justify-center gap-1.5 lg:hidden" aria-label="Gallery position">
-            {items.map((_, i) => (
-              <li key={i}>
-                <button
-                  type="button"
-                  onClick={() => scrollTo(i)}
-                  aria-label={`Go to item ${i + 1}`}
-                  aria-current={active === i ? "true" : undefined}
-                  className={cn("block size-2 rounded-full transition-colors", active === i ? "bg-ink" : "bg-line-strong")}
-                />
-              </li>
-            ))}
-          </ol>
-        ) : null}
       </div>
 
       <Lightbox open={open} onOpenChange={setOpen} items={items} index={active} setIndex={setActive} productName={productName} />
