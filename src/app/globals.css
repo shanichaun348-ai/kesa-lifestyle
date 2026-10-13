@@ -31,6 +31,8 @@
      icons). They do not change with the theme because the photo does not. */
   --color-on-image: #fbfaf7;
   --color-image-scrim: #1b1917;
+  /* Gold drawn over photography or the dark film stage; same in both themes. */
+  --color-on-image-gold: #e0c27c;
 
   /* Radius ---------------------------------------------------------------- */
   --radius-sm: 2px;
@@ -423,6 +425,23 @@ html[data-theme="dark"] {
   to {
     --header-h: 3.5rem;
   }
+}
+
+/* Dark stage behind the product films: warm near-black with soft gold glows
+   rising from the floor and the top corners. Theme-independent, like a photo. */
+@utility stage-dark {
+  background-color: var(--color-image-scrim);
+  background-image:
+    radial-gradient(70% 70% at 50% 115%, color-mix(in oklab, var(--color-on-image-gold) 30%, transparent), transparent 70%),
+    radial-gradient(30% 40% at 8% 12%, color-mix(in oklab, var(--color-on-image-gold) 14%, transparent), transparent 70%),
+    radial-gradient(30% 40% at 92% 8%, color-mix(in oklab, var(--color-on-image-gold) 14%, transparent), transparent 70%);
+}
+
+/* Gold halo around the film in the centre of the stage. */
+@utility film-glow {
+  box-shadow:
+    0 0 0 1.5px color-mix(in oklab, var(--color-on-image-gold) 85%, transparent),
+    0 0 90px -10px color-mix(in oklab, var(--color-on-image-gold) 55%, transparent);
 }
 
 /* Hide scrollbar for horizontal chip rows while keeping scrollability. */

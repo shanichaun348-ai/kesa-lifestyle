@@ -29,6 +29,8 @@ describe("homeReel", () => {
     for (const item of homeReel) {
       expect(item.href).toMatch(/^\/[a-z0-9-]+(?:\/[a-z0-9-]+)*\/$/);
       expect(item.title.length).toBeGreaterThan(5);
+      expect(item.headline.length).toBeGreaterThan(2);
+      expect(item.kicker.length).toBeGreaterThan(2);
       expect(item.caption.length).toBeGreaterThan(20);
       expect(item.cta).toMatch(/^Shop /);
     }
