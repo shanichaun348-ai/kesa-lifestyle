@@ -6,7 +6,7 @@ import { ConsentBanner } from "@/components/analytics/consent-banner";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { Toaster } from "@/components/ui/sonner";
-import { THEME_INIT_SCRIPT } from "@/lib/theme";
+import { DEFAULT_THEME, THEME_INIT_SCRIPT } from "@/lib/theme";
 
 import "./globals.css";
 
@@ -46,11 +46,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // Browser chrome colour per OS scheme; the in-page toggle cannot update this.
-  themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#fbfaf7" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f0e0c" },
-  ],
+  // Browser chrome colour matches the dark default; the in-page toggle cannot update this.
+  themeColor: "#0f0e0c",
   width: "device-width",
   initialScale: 1,
 };
@@ -61,7 +58,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     // suppressHydrationWarning: the theme script sets data-theme on <html>
     // before React hydrates, and that attribute is expected to differ.
-    <html lang="en-IN" className={`${inter.variable} ${fraunces.variable} h-full`} suppressHydrationWarning>
+    <html lang="en-IN" data-theme={DEFAULT_THEME} className={`${inter.variable} ${fraunces.variable} h-full`} suppressHydrationWarning>
       <head>
         {/* Applies the saved or OS theme before first paint (ADR-34). Allowed by the CSP's 'unsafe-inline'. */}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
