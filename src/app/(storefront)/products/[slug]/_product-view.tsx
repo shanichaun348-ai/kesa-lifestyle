@@ -15,6 +15,7 @@ import { JsonLd } from "@/components/seo/json-ld";
 import { Breadcrumbs } from "@/components/storefront/breadcrumbs";
 import { Container } from "@/components/storefront/container";
 import { ProductRail } from "@/components/storefront/product-rail";
+import { RichText } from "@/components/storefront/rich-text";
 import { RatingStars } from "@/components/storefront/rating-stars";
 import { SectionHeading } from "@/components/storefront/section-heading";
 import { isNewArrival } from "@/modules/catalog/listing";
@@ -152,7 +153,7 @@ export async function ProductView({ product, requestedSku, preview = false, allR
             ) : (
               <p className="type-small text-ink-subtle">No reviews yet</p>
             )}
-            <p className="type-body text-ink-muted">{product.shortDescription}</p>
+            <RichText text={product.shortDescription} className="type-body text-ink-muted" />
           </header>
 
           {siblings.length > 0 ? (

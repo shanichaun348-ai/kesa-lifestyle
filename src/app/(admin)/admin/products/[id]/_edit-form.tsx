@@ -243,10 +243,11 @@ export function ProductEditForm({ product, categories, look }: Props) {
         </div>
         <div>
           <label htmlFor="ep-short" className={LABEL}>Short description</label>
-          <textarea id="ep-short" name="shortDescription" rows={2} defaultValue={product.shortDescription} disabled={pending} className={TEXTAREA} />
+          <textarea id="ep-short" name="shortDescription" rows={3} defaultValue={product.shortDescription} disabled={pending} className={TEXTAREA} />
+          <p className={HINT + " mt-1"}>Shown under the product name. Wrap words in ** for <strong>bold</strong>; start a line with - for a bullet point; each line is a paragraph.</p>
         </div>
         <div>
-          <label htmlFor="ep-desc" className={LABEL}>Full description (one paragraph per line)</label>
+          <label htmlFor="ep-desc" className={LABEL}>Full description (one paragraph per line; ** for bold, - for bullets)</label>
           <textarea id="ep-desc" name="description" rows={5} defaultValue={product.description.join("\n")} disabled={pending} className={TEXTAREA} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">

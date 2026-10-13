@@ -1,4 +1,5 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { RichText } from "@/components/storefront/rich-text";
 import type { Product, ReturnPolicy } from "@/modules/catalog/types";
 
 const RETURN_COPY: Record<ReturnPolicy, string> = {
@@ -35,9 +36,7 @@ export function ProductDetails({ product }: { product: Product }) {
         <AccordionTrigger>Product details</AccordionTrigger>
         <AccordionContent>
           <div className="flex flex-col gap-4">
-            {product.description.map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
+            <RichText text={product.description.join("\n")} className="gap-4" />
             <dl className="grid grid-cols-[minmax(7rem,auto)_1fr] gap-x-6 gap-y-1.5 text-sm">
               {specs
                 .filter((s): s is { label: string; value: string } => s.value !== undefined)

@@ -4,6 +4,7 @@ import { notFound, permanentRedirect } from "next/navigation";
 import { effectivePrice } from "@/modules/catalog/listing";
 import { productHref } from "@/modules/catalog/presenters";
 import { getCatalogRepository } from "@/modules/catalog/queries";
+import { plainText } from "@/modules/content/rich-text";
 import type { Product } from "@/modules/catalog/types";
 import { productMetadata } from "@/modules/seo/metadata";
 import { absoluteUrl } from "@/lib/site";
@@ -40,7 +41,7 @@ export async function generateMetadata(props: PageProps<"/products/[slug]">): Pr
   const finish = product.attributes.finish?.[0]?.replace(/-/g, " ");
   return productMetadata({
     name: product.name,
-    shortDescription: product.shortDescription,
+    shortDescription: plainText(product.shortDescription),
     finishLabel: finish,
     path: productHref(product),
     imageUrl: first ? absoluteUrl(first.src) : undefined,

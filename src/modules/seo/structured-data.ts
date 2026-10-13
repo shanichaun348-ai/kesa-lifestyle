@@ -1,4 +1,5 @@
 import "server-only";
+import { plainText } from "@/modules/content/rich-text";
 
 import { absoluteUrl, site } from "@/lib/site";
 import type { FaqItem, Product } from "@/modules/catalog/types";
@@ -229,7 +230,7 @@ export function productJsonLd(product: Product, path: string, opts: { reviews?: 
   const base: JsonLdObject = {
     "@context": "https://schema.org",
     name: product.name,
-    description: product.shortDescription,
+    description: plainText(product.shortDescription),
     image: images,
     brand: { "@type": "Brand", name: site.name },
     category: product.primaryCategoryPath.replace(/\//g, " > "),

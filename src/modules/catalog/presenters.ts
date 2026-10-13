@@ -3,6 +3,7 @@
  * Kept free of I/O so it can be used from route handlers and tests.
  */
 import type { ProductCardData } from "@/components/storefront/product-card";
+import { plainText } from "@/modules/content/rich-text";
 
 import { effectivePrice, isBestseller, isInStock, isNewArrival } from "./listing";
 import type { ImageRef, Product } from "./types";
@@ -37,7 +38,8 @@ export function toQuickView(product: Product): QuickViewProduct {
     slug: product.slug,
     name: product.name,
     href: productHref(product),
-    shortDescription: product.shortDescription,
+    // Cards and dialogs show prose only; the product page renders the owner's bold and bullets.
+    shortDescription: plainText(product.shortDescription),
     pricePaise,
     compareAtPaise,
     image,
