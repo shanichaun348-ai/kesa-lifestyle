@@ -34,7 +34,7 @@ function useAutoplayAllowed(): boolean {
 const SETS = 3;
 
 const ARROW =
-  "absolute top-[38%] z-10 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full border border-on-image-gold/70 bg-image-scrim/80 text-on-image-gold backdrop-blur transition-colors hover:bg-image-scrim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-image-gold md:inline-flex";
+  "absolute top-1/2 z-10 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full border border-on-image-gold/70 bg-image-scrim/80 text-on-image-gold backdrop-blur transition-colors hover:bg-image-scrim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-image-gold md:inline-flex";
 const BADGE =
   "inline-flex items-center justify-center rounded-full border border-on-image/60 bg-image-scrim/45 text-on-image backdrop-blur transition-colors hover:bg-image-scrim/70 focus-visible:ring-2 focus-visible:ring-on-image-gold focus-visible:outline-none";
 
@@ -188,7 +188,7 @@ export function VideoReel({ items }: VideoReelProps) {
           {/* --card is the centre card's width; the side padding lets the first and last card reach the middle. */}
           <ul
             ref={trackRef}
-            className="no-scrollbar -mx-4 flex snap-x snap-mandatory items-center gap-4 overflow-x-auto px-[calc(50%-var(--card)/2)] py-4 [--card:66vw] sm:gap-5 sm:[--card:40vw] md:mx-0 md:[--card:clamp(230px,25vw,330px)]"
+            className="no-scrollbar -mx-4 flex snap-x snap-mandatory items-center gap-4 overflow-x-auto px-[calc(50%-var(--card)/2)] py-4 [--card:66vw] sm:gap-5 sm:[--card:40vw] md:mx-0 md:[--card:clamp(240px,26vw,360px)]"
             aria-live={playing ? "off" : "polite"}
           >
             {Array.from({ length: SETS }, (_, set) => items.map((item, index) => ({ item, index, set, p: set * count + index })))
@@ -207,18 +207,22 @@ export function VideoReel({ items }: VideoReelProps) {
                     aria-label={`${index + 1} of ${count}: ${item.title}`}
                     aria-hidden={isCopy || undefined}
                     style={{ "--d": p === count ? 0 : 1 } as React.CSSProperties}
-                    className="relative w-(--card) shrink-0 snap-center opacity-[calc(1-0.5*var(--d))] [transform:scale(calc(1-0.14*var(--d)))] transition-[opacity] duration-200 ease-(--ease-standard)"
+                    className="relative w-(--card) shrink-0 snap-center opacity-[calc(1-0.45*var(--d))] [transform:scale(calc(1-0.12*var(--d)))] transition-[opacity] duration-200 ease-(--ease-standard)"
                   >
-                    {/* Diamond finial on the crown of the arch. */}
-                    <span aria-hidden="true" className="absolute top-0.5 left-1/2 z-10 size-3 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-on-image-gold ring-2 ring-image-scrim" />
-
                     <article
                       className={cn(
-                        "group/reel relative overflow-hidden rounded-t-full rounded-b-xl bg-image-scrim transition-shadow duration-300",
-                        isActive ? "film-glow" : "ring-1 ring-on-image-gold/40",
+                        "group/reel film-frame-inner relative overflow-hidden rounded-sm bg-image-scrim ring-1 transition-shadow duration-300",
+                        isActive ? "film-glow ring-on-image-gold" : "ring-on-image-gold/60",
                       )}
                     >
-                      <div className="relative aspect-[3/4]">
+                      {/* Corner ornaments of the gold frame. */}
+                      {(["top-1.5 left-1.5", "top-1.5 right-1.5", "bottom-1.5 left-1.5", "bottom-1.5 right-1.5"] as const).map((corner) => (
+                        <span key={corner} aria-hidden="true" className={cn("pointer-events-none absolute z-10 text-[11px] leading-none text-on-image-gold", corner)}>
+                          ✦
+                        </span>
+                      ))}
+
+                      <div className="relative aspect-[5/8]">
                         <video
                           ref={(el) => {
                             videoRefs.current[p] = el;
@@ -244,9 +248,9 @@ export function VideoReel({ items }: VideoReelProps) {
                           tabIndex={isCopy ? -1 : 0}
                           onClick={() => (isActive ? togglePlay() : goTo(p))}
                           aria-label={isActive ? (playing ? `Pause ${item.title}` : `Play ${item.title}`) : `Show ${item.title}`}
-                          className="absolute inset-0 flex items-center justify-center outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-on-image-gold"
+                          className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-image-scrim/85 via-image-scrim/10 to-transparent outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-on-image-gold"
                         >
-                          <span className={cn(BADGE, "size-14 transition-opacity", isActive && playing && "opacity-0 group-hover/reel:opacity-100")}>
+                          <span className={cn(BADGE, "size-14 border-on-image-gold/70 text-on-image-gold transition-opacity", isActive && playing && "opacity-0 group-hover/reel:opacity-100")}>
                             {isActive && playing ? <PauseIcon className="size-5" aria-hidden="true" /> : <PlayIcon className="ml-0.5 size-5" aria-hidden="true" />}
                           </span>
                         </button>
@@ -257,29 +261,27 @@ export function VideoReel({ items }: VideoReelProps) {
                             onClick={() => setSoundOn((on) => !on)}
                             aria-pressed={soundOn}
                             aria-label={soundOn ? `Mute ${item.title}` : `Unmute ${item.title}`}
-                            className={cn(BADGE, "absolute top-3 right-3 size-9")}
+                            className={cn(BADGE, "absolute top-4 right-4 size-9")}
                           >
                             {soundOn ? <Volume2Icon className="size-4" aria-hidden="true" /> : <VolumeXIcon className="size-4" aria-hidden="true" />}
                           </button>
                         ) : null}
-                      </div>
 
-                      <div className="flex flex-col items-center px-4 pt-4 pb-5 text-center">
-                        <h3 className="font-display text-xl leading-tight text-on-image">{item.headline}</h3>
-                        <p className="mt-1 text-[10px] font-medium tracking-[0.28em] text-on-image/70 uppercase">{item.kicker}</p>
-                        <Link
-                          href={item.href}
-                          tabIndex={isCopy ? -1 : 0}
-                          aria-label={`${item.title}: ${item.cta}`}
-                          className={cn(
-                            "mt-3.5 inline-flex items-center gap-1.5 rounded-full border px-4 py-1.5 text-xs font-medium transition-colors focus-visible:ring-2 focus-visible:ring-on-image-gold focus-visible:outline-none",
-                            isActive
-                              ? "border-on-image-gold bg-on-image-gold text-image-scrim hover:bg-on-image"
-                              : "border-on-image-gold/70 text-on-image hover:border-on-image-gold hover:text-on-image-gold",
-                          )}
-                        >
-                          {item.cta} →
-                        </Link>
+                        {/* Name and shop link over the foot of the film. */}
+                        <div className="absolute inset-x-0 bottom-0 flex items-end justify-between gap-3 px-5 pb-5 pt-10 sm:px-6 sm:pb-6">
+                          <div className="min-w-0">
+                            <h3 className="font-display text-lg leading-snug text-on-image sm:text-xl">{item.title}</h3>
+                            <Link
+                              href={item.href}
+                              tabIndex={isCopy ? -1 : 0}
+                              aria-label={`${item.title}: ${item.cta}`}
+                              className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium tracking-[0.18em] text-on-image-gold underline decoration-on-image-gold/60 underline-offset-[6px] transition-colors hover:text-on-image hover:decoration-on-image focus-visible:ring-2 focus-visible:ring-on-image-gold focus-visible:outline-none"
+                            >
+                              {item.cta} →
+                            </Link>
+                          </div>
+                          <span aria-hidden="true" className="shrink-0 pb-0.5 text-sm text-on-image-gold">✦</span>
+                        </div>
                       </div>
                     </article>
                   </li>

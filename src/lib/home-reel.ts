@@ -8,12 +8,8 @@ export type HomeReelItem = {
   id: string;
   src: string;
   poster: string;
-  /** Spoken for screen readers; `headline` + `kicker` are what is printed under the film. */
+  /** Printed over the film in the display serif and spoken for screen readers, in title case. */
   title: string;
-  /** First line under the film, in the display serif, e.g. "Crystal Flower". */
-  headline: string;
-  /** Second line in small capitals, e.g. "Pendant necklace". */
-  kicker: string;
   caption: string;
   href: string;
   cta: string;
@@ -24,44 +20,36 @@ export const homeReel: readonly HomeReelItem[] = [
     id: "crystal-flower-necklace",
     src: "/videos/home/crystal-flower-necklace.mp4",
     poster: "/videos/home/crystal-flower-necklace.jpg",
-    title: "Crystal flower pendant necklace",
-    headline: "Crystal Flower",
-    kicker: "Pendant necklace",
+    title: "Crystal Flower Pendant Necklace",
     caption: "A gold-tone chain with a crystal bloom and twin tassel drops, worn and on marble.",
     href: "/women/necklaces/",
-    cta: "Shop necklaces",
+    cta: "Shop Necklaces",
   },
   {
     id: "teardrop-earrings",
     src: "/videos/home/teardrop-earrings.mp4",
     poster: "/videos/home/teardrop-earrings.jpg",
-    title: "Teardrop tassel earrings",
-    headline: "Teardrop Tassel",
-    kicker: "Earrings",
+    title: "Teardrop Tassel Earrings",
     caption: "Gold-tone filigree teardrops with crystal detail and chain tassels, on a stand and worn with cream.",
     href: "/women/earrings/",
-    cta: "Shop earrings",
+    cta: "Shop Earrings",
   },
   {
     id: "gem-charm-bracelet",
     src: "/videos/home/gem-charm-bracelet.mp4",
     poster: "/videos/home/gem-charm-bracelet.jpg",
-    title: "Gem charm bracelet",
-    headline: "Gem Charm",
-    kicker: "Bracelet",
+    title: "Gem Charm Bracelet",
     caption: "A fine gold-tone chain bracelet with square red, teal, black, pink and green charms on champagne velvet.",
     href: "/women/bracelets/",
-    cta: "Shop bracelets",
+    cta: "Shop Bracelets",
   },
   {
     id: "antique-mangalsutra",
     src: "/videos/home/antique-mangalsutra.mp4",
     poster: "/videos/home/antique-mangalsutra.jpg",
-    title: "Antique mangalsutra",
-    headline: "Antique",
-    kicker: "Mangalsutra",
+    title: "Antique Mangalsutra",
     caption: "Black bead chains with an antique gold-tone square pendant set with stones, on green velvet.",
     href: "/women/necklaces/",
-    cta: "Shop mangalsutras",
+    cta: "Shop Mangalsutras",
   },
 ];

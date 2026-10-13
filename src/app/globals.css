@@ -430,11 +430,35 @@ html[data-theme="dark"] {
 /* Dark stage behind the product films: warm near-black with soft gold glows
    rising from the floor and the top corners. Theme-independent, like a photo. */
 @utility stage-dark {
+  --stage-gold: color-mix(in oklab, var(--color-on-image-gold) 22%, transparent);
+  --stage-gold-soft: color-mix(in oklab, var(--color-on-image-gold) 10%, transparent);
   background-color: var(--color-image-scrim);
   background-image:
-    radial-gradient(70% 70% at 50% 115%, color-mix(in oklab, var(--color-on-image-gold) 30%, transparent), transparent 70%),
+    /* out-of-focus gold "bokeh" discs around the edges */
+    radial-gradient(22px at 6% 58%, var(--stage-gold), var(--stage-gold-soft) 60%, transparent 100%),
+    radial-gradient(14px at 11% 36%, var(--stage-gold), transparent 100%),
+    radial-gradient(30px at 3% 82%, var(--stage-gold-soft), transparent 100%),
+    radial-gradient(18px at 94% 40%, var(--stage-gold), transparent 100%),
+    radial-gradient(26px at 97% 70%, var(--stage-gold-soft), transparent 100%),
+    radial-gradient(12px at 88% 86%, var(--stage-gold), transparent 100%),
+    radial-gradient(16px at 20% 92%, var(--stage-gold-soft), transparent 100%),
+    radial-gradient(10px at 78% 14%, var(--stage-gold), transparent 100%),
+    /* soft satin light */
+    radial-gradient(70% 70% at 50% 115%, color-mix(in oklab, var(--color-on-image-gold) 28%, transparent), transparent 70%),
     radial-gradient(30% 40% at 8% 12%, color-mix(in oklab, var(--color-on-image-gold) 14%, transparent), transparent 70%),
     radial-gradient(30% 40% at 92% 8%, color-mix(in oklab, var(--color-on-image-gold) 14%, transparent), transparent 70%);
+}
+
+/* Thin inner gold line of the double frame around each film. */
+@utility film-frame-inner {
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    border: 1px solid color-mix(in oklab, var(--color-on-image-gold) 55%, transparent);
+    border-radius: 2px;
+    pointer-events: none;
+  }
 }
 
 /* Gold halo around the film in the centre of the stage. */
