@@ -36,7 +36,7 @@ export default async function StorefrontLayout({ children }: LayoutProps<"/">) {
       ) : null}
       <SiteHeader menus={sampleHeaderMenus} secondaryLinks={secondaryLinks} />
       {/* overflow-x-clip: a stray wide element can never widen the page on a phone; sticky still works since clip is not a scroll container. */}
-      <main id="main" className="side-ornaments relative isolate flex-1 overflow-x-clip">
+      <main id="main" className="flex-1 overflow-x-clip">
         {children}
       </main>
       <SiteFooter columns={sampleFooterColumns} />

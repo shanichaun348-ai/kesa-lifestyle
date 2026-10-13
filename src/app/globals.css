@@ -468,67 +468,6 @@ html[data-theme="dark"] {
     0 0 90px -10px color-mix(in oklab, var(--color-on-image-gold) 55%, transparent);
 }
 
-/* Gold sparkles in the empty side margins of wide screens. Sits behind the
-   content (negative z-index inside an isolated parent), never takes clicks,
-   and only twinkles when motion is allowed. Put it on a `relative isolate` box. */
-@utility side-ornaments {
-  &::before,
-  &::after {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    bottom: 0;
-    display: none;
-    width: calc((100% - var(--container-page)) / 2);
-    pointer-events: none;
-    background-color: var(--color-highlight);
-    opacity: 0.4;
-    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22180%22 height=%22640%22 viewBox=%220 0 180 640%22 fill=%22black%22%3E%3Cpath d=%22M90 34Q90 60 116 60Q90 60 90 86Q90 60 64 60Q90 60 90 34Z%22/%3E%3Cpath d=%22M40 140Q40 150 50 150Q40 150 40 160Q40 150 30 150Q40 150 40 140Z%22/%3E%3Cpath d=%22M140 195Q140 210 155 210Q140 210 140 225Q140 210 125 210Q140 210 140 195Z%22/%3E%3Cpath d=%22M70 296Q70 330 104 330Q70 330 70 364Q70 330 36 330Q70 330 70 296Z%22/%3E%3Cpath d=%22M150 411Q150 420 159 420Q150 420 150 429Q150 420 141 420Q150 420 150 411Z%22/%3E%3Cpath d=%22M30 484Q30 500 46 500Q30 500 30 516Q30 500 14 500Q30 500 30 484Z%22/%3E%3Cpath d=%22M110 538Q110 560 132 560Q110 560 110 582Q110 560 88 560Q110 560 110 538Z%22/%3E%3Cpath d=%22M60 602Q60 610 68 610Q60 610 60 618Q60 610 52 610Q60 610 60 602Z%22/%3E%3Cpath d=%22M165 93Q165 100 172 100Q165 100 165 107Q165 100 158 100Q165 100 165 93Z%22/%3E%3Cpath d=%22M125 464Q125 470 131 470Q125 470 125 476Q125 470 119 470Q125 470 125 464Z%22/%3E%3Ccircle cx=%2220%22 cy=%2240%22 r=%222.5%22/%3E%3Ccircle cx=%22160%22 cy=%22160%22 r=%223%22/%3E%3Ccircle cx=%22100%22 cy=%22270%22 r=%222.5%22/%3E%3Ccircle cx=%2225%22 cy=%22380%22 r=%223%22/%3E%3Ccircle cx=%22170%22 cy=%22300%22 r=%222%22/%3E%3Ccircle cx=%2280%22 cy=%22455%22 r=%222.5%22/%3E%3Ccircle cx=%22150%22 cy=%22600%22 r=%223%22/%3E%3Ccircle cx=%2245%22 cy=%22230%22 r=%222%22/%3E%3C/svg%3E");
-    mask-image: url("data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22180%22 height=%22640%22 viewBox=%220 0 180 640%22 fill=%22black%22%3E%3Cpath d=%22M90 34Q90 60 116 60Q90 60 90 86Q90 60 64 60Q90 60 90 34Z%22/%3E%3Cpath d=%22M40 140Q40 150 50 150Q40 150 40 160Q40 150 30 150Q40 150 40 140Z%22/%3E%3Cpath d=%22M140 195Q140 210 155 210Q140 210 140 225Q140 210 125 210Q140 210 140 195Z%22/%3E%3Cpath d=%22M70 296Q70 330 104 330Q70 330 70 364Q70 330 36 330Q70 330 70 296Z%22/%3E%3Cpath d=%22M150 411Q150 420 159 420Q150 420 150 429Q150 420 141 420Q150 420 150 411Z%22/%3E%3Cpath d=%22M30 484Q30 500 46 500Q30 500 30 516Q30 500 14 500Q30 500 30 484Z%22/%3E%3Cpath d=%22M110 538Q110 560 132 560Q110 560 110 582Q110 560 88 560Q110 560 110 538Z%22/%3E%3Cpath d=%22M60 602Q60 610 68 610Q60 610 60 618Q60 610 52 610Q60 610 60 602Z%22/%3E%3Cpath d=%22M165 93Q165 100 172 100Q165 100 165 107Q165 100 158 100Q165 100 165 93Z%22/%3E%3Cpath d=%22M125 464Q125 470 131 470Q125 470 125 476Q125 470 119 470Q125 470 125 464Z%22/%3E%3Ccircle cx=%2220%22 cy=%2240%22 r=%222.5%22/%3E%3Ccircle cx=%22160%22 cy=%22160%22 r=%223%22/%3E%3Ccircle cx=%22100%22 cy=%22270%22 r=%222.5%22/%3E%3Ccircle cx=%2225%22 cy=%22380%22 r=%223%22/%3E%3Ccircle cx=%22170%22 cy=%22300%22 r=%222%22/%3E%3Ccircle cx=%2280%22 cy=%22455%22 r=%222.5%22/%3E%3Ccircle cx=%22150%22 cy=%22600%22 r=%223%22/%3E%3Ccircle cx=%2245%22 cy=%22230%22 r=%222%22/%3E%3C/svg%3E");
-    -webkit-mask-repeat: repeat-y;
-    mask-repeat: repeat-y;
-    -webkit-mask-size: 180px 640px;
-    mask-size: 180px 640px;
-    -webkit-mask-position: center top;
-    mask-position: center top;
-  }
-  &::before {
-    left: 0;
-  }
-  &::after {
-    right: 0;
-    transform: scaleX(-1);
-    -webkit-mask-position: center 260px;
-    mask-position: center 260px;
-  }
-  @media (min-width: 1700px) {
-    &::before,
-    &::after {
-      display: block;
-    }
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    &::before,
-    &::after {
-      animation: side-twinkle 6s ease-in-out infinite;
-    }
-    &::after {
-      animation-delay: -3s;
-    }
-  }
-}
-
-@keyframes side-twinkle {
-  0%,
-  100% {
-    opacity: 0.28;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
 /* Hide scrollbar for horizontal chip rows while keeping scrollability. */
 @utility no-scrollbar {
   scrollbar-width: none;
