@@ -15,13 +15,6 @@ export const HERO_SLIDES: readonly HeroSlide[] = [
     cta: "Shop the new collection",
   },
   {
-    src: "/images/hero/every-story-desktop.jpg",
-    mobileSrc: "/images/hero/every-story-mobile.jpg",
-    alt: "Kesa Lifestyle — Jewellery for your every story. A model in black velvet wearing a gold-tone crystal leaf pendant necklace against burgundy velvet. Explore the collection.",
-    href: "/collections/new-arrivals/",
-    cta: "Explore the collection",
-  },
-  {
     src: "/images/hero/necklace-showcase.jpg",
     mobileSrc: "/images/hero/necklace-showcase-mobile.jpg",
     alt: "A model in a black embroidered saree wearing a gold-tone crystal pendant necklace, beside gold-tone crystal lariat necklaces and an Om pendant on display stands.",
