@@ -25,19 +25,19 @@ type ShopTheLookProps = {
 export function ShopTheLook({ eyebrow, title, description, showCopy = true, image, products, href }: ShopTheLookProps) {
   return (
     <section aria-labelledby="look-title" className="container-page">
-      <div className="reveal grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-center lg:gap-12">
-        <figure className="relative min-w-0 aspect-[4/5] overflow-hidden rounded-sm bg-surface-muted lg:col-span-7">
+      <div className="reveal grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-12">
+        <figure className="relative min-w-0 aspect-[4/5] overflow-hidden rounded-sm bg-surface-muted lg:col-span-5">
           <Image
             src={image.src}
             alt={image.alt}
             fill
-            sizes="(min-width: 1024px) 58vw, 100vw"
+            sizes="(min-width: 1024px) 42vw, 100vw"
             unoptimized={image.unoptimized ?? false}
             className="object-cover"
           />
         </figure>
 
-        <div className="flex min-w-0 flex-col gap-6 lg:col-span-5">
+        <div className="flex min-w-0 flex-col justify-center gap-6 lg:col-span-7">
           {showCopy ? (
             <div className="flex flex-col gap-2">
               {eyebrow ? <p className="type-eyebrow text-ink-subtle">{eyebrow}</p> : null}
@@ -57,20 +57,20 @@ export function ShopTheLook({ eyebrow, title, description, showCopy = true, imag
               <li key={p.slug}>
                 <Link
                   href={`/products/${p.slug}/`}
-                  className="group/piece flex items-center gap-4 py-3 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                  className="group/piece flex items-center gap-5 py-5 outline-none focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
                 >
-                  <span className="relative aspect-[3/4] w-14 shrink-0 overflow-hidden rounded-sm bg-surface-muted">
+                  <span className="relative aspect-[3/4] w-20 shrink-0 overflow-hidden rounded-sm bg-surface-muted">
                     <Image
                       src={p.image.src}
                       alt=""
                       fill
-                      sizes="56px"
+                      sizes="80px"
                       unoptimized={p.image.unoptimized ?? false}
                       className="object-cover"
                     />
                   </span>
-                  <span className="flex min-w-0 flex-1 flex-col gap-0.5">
-                    <span className="line-clamp-2 text-sm text-ink group-hover/piece:underline group-hover/piece:underline-offset-4">
+                  <span className="flex min-w-0 flex-1 flex-col gap-1">
+                    <span className="line-clamp-2 text-lg font-medium text-ink group-hover/piece:underline group-hover/piece:underline-offset-4">
                       {p.name}
                     </span>
                     <Price pricePaise={p.pricePaise} compareAtPaise={p.compareAtPaise} size="sm" />
