@@ -586,6 +586,63 @@ html[data-theme="dark"] {
     transition: transform 700ms var(--ease-standard);
   }
 
+  /* Hero: a warm showcase lamp that follows the cursor over the artwork.
+     Only lights up while a fine pointer is over the <Parallax> field. */
+  .hero-spotlight {
+    background: radial-gradient(
+      38% 52% at var(--gx, 50%) var(--gy, 50%),
+      rgb(255 236 190 / 0.3),
+      rgb(224 194 124 / 0.12) 48%,
+      transparent 75%
+    );
+    mix-blend-mode: screen;
+    opacity: 0;
+    transition: opacity 700ms var(--ease-standard);
+  }
+  [data-active="true"] > .hero-spotlight {
+    opacity: 1;
+  }
+
+  /* Hero: gold hairline frame that draws itself clockwise from the top-left
+     corner on load (pathLength=1 normalises the dash to the whole outline). */
+  .hero-frame {
+    stroke: var(--color-on-image-gold);
+    opacity: 0.8;
+    filter: drop-shadow(0 0 6px rgb(224 194 124 / 0.35));
+  }
+  .hero-frame rect {
+    width: calc(100% - 1px);
+    height: calc(100% - 1px);
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-frame rect {
+      animation: hero-frame-draw 2400ms var(--ease-standard) 350ms both;
+    }
+  }
+
+  /* Hero masthead: a glint sweeps once across the headline after the words
+     have landed. The sheen is a transparent copy of the text laid over the
+     real heading, so the word animation never fights background-clip. */
+  .hero-sheen {
+    color: transparent;
+    background-image: linear-gradient(100deg, transparent 0 40%, #fff6dc 49%, var(--color-on-image-gold) 53%, transparent 62% 100%);
+    background-size: 240% 100%;
+    background-position: 120% 0;
+    background-clip: text;
+    -webkit-background-clip: text;
+    pointer-events: none;
+    user-select: none;
+    display: none;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-sheen {
+      display: block;
+      animation: hero-sheen-sweep 1700ms var(--ease-standard) 1300ms both;
+    }
+  }
+
   /* Staggered "roll in" entrance (src/components/motion/reveal-group.tsx).
      Items are hidden only once the group has mounted, and animate the first
      time it scrolls into view; each item sets --i for its delay. */
@@ -595,6 +652,47 @@ html[data-theme="dark"] {
   .roll-in-group[data-in] .roll-in-item {
     animation: roll-in 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
     animation-delay: calc(var(--i, 0) * 130ms);
+  }
+}
+
+@keyframes hero-frame-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes hero-sheen-sweep {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+
+/* Word-by-word headline entrance (hero masthead). Each word sets --i. */
+@utility word-reveal {
+  display: inline-block;
+  @media (prefers-reduced-motion: no-preference) {
+    opacity: 0;
+    animation: word-reveal 950ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: calc(180ms + var(--i, 0) * 95ms);
+  }
+}
+
+@keyframes word-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(0.55em) rotate(1.5deg);
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: blur(0);
   }
 }
 
