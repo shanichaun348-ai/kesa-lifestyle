@@ -185,10 +185,12 @@ export function VideoReel({ items }: VideoReelProps) {
             <ChevronRightIcon className="size-5" aria-hidden="true" />
           </button>
 
-          {/* --card is the centre card's width; the side padding lets the first and last card reach the middle. */}
+          {/* --card is the centre card's width; the side padding lets the first and last card reach the middle.
+              On tablets and up the track is exactly three cards wide (centre + one neighbour each side), so no
+              further cards peek in at the edges. */}
           <ul
             ref={trackRef}
-            className="no-scrollbar -mx-4 flex snap-x snap-mandatory items-center gap-4 overflow-x-auto px-[calc(50%-var(--card)/2)] py-4 [--card:66vw] sm:gap-5 sm:[--card:40vw] md:mx-0 md:[--card:clamp(240px,26vw,360px)]"
+            className="no-scrollbar -mx-4 flex snap-x snap-mandatory items-center gap-4 overflow-x-auto px-[calc(50%-var(--card)/2)] py-4 [--card:66vw] sm:gap-5 sm:[--card:40vw] md:mx-auto md:max-w-[calc(3*var(--card)+2*1.25rem)] md:[--card:clamp(240px,26vw,360px)]"
             aria-live={playing ? "off" : "polite"}
           >
             {Array.from({ length: SETS }, (_, set) => items.map((item, index) => ({ item, index, set, p: set * count + index })))
