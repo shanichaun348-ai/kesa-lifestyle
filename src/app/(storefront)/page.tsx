@@ -7,7 +7,6 @@ export const revalidate = 60;
 import { BrandStatement } from "@/components/home/brand-statement";
 import { CategoryTiles } from "@/components/home/category-tiles";
 import { HeroCarousel } from "@/components/home/hero-carousel";
-import { HeroMasthead } from "@/components/home/hero-masthead";
 import { NewsletterBand } from "@/components/home/newsletter-band";
 import { ProductSection } from "@/components/home/product-section";
 import { Reviews, type HomeReview } from "@/components/home/reviews";
@@ -113,7 +112,6 @@ export default async function HomePage() {
       <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
 
       <HeroCarousel slides={HERO_SLIDES} />
-      <HeroMasthead headline="Jewellery that completes your look." lead="Premium fashion jewellery for modern Indian wardrobes — crafted to shine with you, every day." />
       <TrustMarquee items={demoWhyKesa.map((f) => f.title)} />
 
       <div className="flex flex-col gap-14 pt-14 pb-14 lg:gap-24 lg:pt-24 lg:pb-24">

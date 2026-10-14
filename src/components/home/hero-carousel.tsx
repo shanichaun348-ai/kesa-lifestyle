@@ -135,25 +135,11 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
                 ) : (
                   <SlideImage src={slide.src} alt={slide.alt} priority={i === 0} />
                 )}
-                {/* Showcase lamp: lights the artwork under the cursor (pointer-fine only, see .hero-spotlight). */}
-                <span aria-hidden="true" className="hero-spotlight pointer-events-none absolute inset-0 z-[2]" />
               </Parallax>
             </Link>
           </li>
         ))}
       </ul>
-
-      {/* Gold hairline frame that draws itself on load; sits over the slides, under the controls. */}
-      <svg
-        aria-hidden="true"
-        className="hero-frame pointer-events-none absolute inset-3 z-[3] lg:inset-5"
-        width="100%"
-        height="100%"
-        preserveAspectRatio="none"
-        focusable="false"
-      >
-        <rect x="0.5" y="0.5" width="100%" height="100%" fill="none" strokeWidth="1" pathLength={1} vectorEffect="non-scaling-stroke" />
-      </svg>
 
       {count > 1 ? (
         <>
