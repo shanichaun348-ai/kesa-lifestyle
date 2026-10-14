@@ -2,6 +2,7 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { RichText } from "@/components/storefront/rich-text";
 import { RETURNS_COPY, STORE_PROMISES } from "@/modules/catalog/pdp";
 import type { Product } from "@/modules/catalog/types";
+import { warrantyMonths } from "@/modules/catalog/warranty";
 
 type Spec = { label: string; value: string | undefined };
 
@@ -18,6 +19,7 @@ const ITEM = "border-highlight/25";
  * shipping and returns copy mirrors the policy pages.
  */
 export function ProductDetails({ product }: { product: Product }) {
+  const warranty = warrantyMonths(product.tags);
   const specs: Spec[] = [
     { label: "Material", value: labelFor(product.attributes.material?.[0]) },
     { label: "Finish", value: labelFor(product.attributes.finish?.[0]) },
@@ -25,6 +27,7 @@ export function ProductDetails({ product }: { product: Product }) {
     { label: "Dimensions", value: product.dimensions },
     { label: "Weight", value: product.weightGrams !== undefined ? `${product.weightGrams} g` : undefined },
     { label: "Closure", value: product.primaryCategoryPath.endsWith("earrings") ? "Push back" : undefined },
+    { label: "Warranty", value: warranty ? `${warranty} months` : undefined },
     { label: "Country of origin", value: "India" },
     { label: "HSN code", value: product.hsnCode },
   ];

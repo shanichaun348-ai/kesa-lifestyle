@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
 import { permanentRedirect } from "next/navigation";
+import { ShieldCheckIcon } from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { DeliveryEstimateChecker } from "@/components/product/delivery-estimate";
@@ -26,6 +27,7 @@ import { primaryImage, productHref, toCardData } from "@/modules/catalog/present
 import { getCatalogRepository, getCategoryByPath } from "@/modules/catalog/queries";
 import type { FaqItem, Product } from "@/modules/catalog/types";
 import { resolveVariant } from "@/modules/catalog/variants";
+import { warrantyLabel, warrantyMonths } from "@/modules/catalog/warranty";
 import { getProductReviewSummary } from "@/modules/reviews/queries";
 import { getSessionUser } from "@/lib/auth/session";
 import { breadcrumbListJsonLd, faqPageJsonLd, productJsonLd, type JsonLdObject } from "@/modules/seo/structured-data";
@@ -70,6 +72,7 @@ function productFaq(product: Product, categoryFaq: FaqItem[] | undefined): FaqIt
 
 /** The product page body, shared by the public page and the admin draft preview. */
 export async function ProductView({ product, requestedSku, preview = false, allReviews = false }: ProductViewProps) {
+  const warranty = warrantyMonths(product.tags);
   const path = productHref(product);
 
   let resolution = resolveVariant(product, requestedSku);
@@ -221,6 +224,15 @@ export async function ProductView({ product, requestedSku, preview = false, allR
           />
 
           <ProductBenefits returnPolicy={product.returnPolicy} />
+
+          {warranty ? (
+            <p className="flex items-center gap-2 text-sm text-ink-muted">
+              <ShieldCheckIcon className="size-4 text-highlight" strokeWidth={1.5} aria-hidden="true" />
+              <span>
+                <span className="font-medium text-ink">{warrantyLabel(warranty)}</span> on this piece
+              </span>
+            </p>
+          ) : null}
 
           <DeliveryEstimateChecker />
 

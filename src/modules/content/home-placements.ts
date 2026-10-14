@@ -8,6 +8,7 @@
  * (see `home-look.ts`).
  */
 import type { Product } from "@/modules/catalog/types";
+import { WARRANTY_TAG_PREFIX } from "@/modules/catalog/warranty";
 
 export const PLACEMENT_TAG_PREFIX = "home:";
 
@@ -25,7 +26,7 @@ export function isHomeRail(value: unknown): value is HomeRail {
 
 /** Placement tags are bookkeeping, never shown to shoppers or searched. */
 export function isPlacementTag(tag: string): boolean {
-  return tag.startsWith(PLACEMENT_TAG_PREFIX);
+  return tag.startsWith(PLACEMENT_TAG_PREFIX) || tag.startsWith(WARRANTY_TAG_PREFIX);
 }
 
 export function shopperTags(tags: readonly string[]): string[] {

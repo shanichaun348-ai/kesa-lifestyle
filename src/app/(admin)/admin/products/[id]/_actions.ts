@@ -8,6 +8,7 @@ import { requireAdmin } from "@/modules/admin/guard";
 import { getSupabaseServiceClient } from "@/lib/supabase";
 import { validateSubmittedVideos } from "@/modules/catalog/videos";
 import { slugProblem } from "@/modules/catalog/slug";
+import { isWarrantyMonths, withWarrantyTag } from "@/modules/catalog/warranty";
 import { getHomeLook, renameLookSlug, setLookMembership } from "@/modules/content/home-look-server";
 import { withRailTags } from "@/modules/content/home-placements";
 
@@ -104,6 +105,8 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
     if (clashes && clashes.length > 0) return { error: `SKU "${(clashes[0] as { sku: string }).sku}" already belongs to another product.` };
   }
 
+  const warrantyValue = Number(text(formData.get("warranty")));
+  const warranty = isWarrantyMonths(warrantyValue) ? warrantyValue : undefined;
   const gstRateBp = parseInt(text(formData.get("gstRateBp")), 10);
   const { error: updateError } = await db
     .from("cat_products")
@@ -115,7 +118,7 @@ export async function updateProduct(slug: string, prevState: ProductEditState, f
       gender,
       primary_category_path: category.path,
       category_paths: placements.categoryPaths,
-      tags: withRailTags(previousTags, placements.rails),
+      tags: withWarrantyTag(withRailTags(previousTags, placements.rails), warranty),
       care: text(formData.get("care")),
       highlights: lines(formData.get("highlights")),
       images,

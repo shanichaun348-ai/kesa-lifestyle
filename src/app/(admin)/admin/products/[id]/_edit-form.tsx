@@ -4,6 +4,7 @@ import * as React from "react";
 import { useActionState } from "react";
 
 import type { Product } from "@/modules/catalog/types";
+import { WARRANTY_MONTHS, warrantyMonths } from "@/modules/catalog/warranty";
 import { MAX_SLUG_LENGTH, slugify } from "@/modules/catalog/slug";
 import { MAX_PRODUCT_VIDEOS, parseYouTubeId, SITE_FILMS, youtubePoster } from "@/modules/catalog/videos";
 import { railFlags } from "@/modules/content/home-placements";
@@ -289,7 +290,7 @@ export function ProductEditForm({ product, categories, look }: Props) {
             {!categoryKnown ? <p className="mt-1 text-xs text-warning">Current value &ldquo;{categoryPath}&rdquo; is not a real category — pick one from the list.</p> : null}
           </div>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-3">
           <div>
             <label htmlFor="ep-status" className={LABEL}>Visibility</label>
             <select id="ep-status" name="status" value={status} onChange={(e) => setStatus(e.target.value)} disabled={pending} className={INPUT}>
@@ -303,6 +304,15 @@ export function ProductEditForm({ product, categories, look }: Props) {
               <option value="returnable">Returnable</option>
               <option value="exchange_only">Exchange only</option>
               <option value="final_sale">Final sale (no return)</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="ep-warranty" className={LABEL}>Warranty</label>
+            <select id="ep-warranty" name="warranty" defaultValue={String(warrantyMonths(product.tags) ?? "")} disabled={pending} className={INPUT}>
+              <option value="">No warranty (not shown to customers)</option>
+              {WARRANTY_MONTHS.map((m) => (
+                <option key={m} value={m}>{m} months</option>
+              ))}
             </select>
           </div>
         </div>
