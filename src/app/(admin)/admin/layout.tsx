@@ -17,7 +17,8 @@ export default async function AdminLayout({ children }: { children: ReactNode })
   return (
     <div className="flex min-h-screen bg-bg">
       {/* Sidebar */}
-      <aside className="hidden w-60 shrink-0 flex-col border-r border-line bg-surface lg:flex">
+      {/* sticky + h-screen pins the sidebar to the viewport: the page scrolls, the sidebar does not (its menu scrolls inside if the window is short). */}
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col self-start border-r border-line bg-surface lg:flex">
         {/* Brand */}
         <div className="flex h-14 items-center border-b border-line px-5">
           <a href="/admin/" className="font-display text-base font-medium text-ink">
