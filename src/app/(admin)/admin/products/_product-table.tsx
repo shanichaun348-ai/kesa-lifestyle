@@ -175,7 +175,8 @@ export function ProductTable({ rows, canWrite, canDelete }: Props) {
                         <input type="checkbox" className={CHECKBOX} checked={isChosen} onChange={() => toggle(product.slug)} aria-label={`Select ${product.name}`} />
                       </td>
                     ) : null}
-                    <td className="px-4 py-3">
+                    {/* w-full + max-w-0: this column takes the spare width and lets long names and slugs truncate instead of stretching the table. */}
+                    <td className="w-full max-w-0 px-4 py-3">
                       <div className="flex items-center gap-3">
                         <div className="size-10 shrink-0 overflow-hidden rounded-sm border border-line bg-surface-muted">
                           {product.thumb ? (
@@ -186,8 +187,8 @@ export function ProductTable({ rows, canWrite, canDelete }: Props) {
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className="truncate font-medium text-ink">{product.name}</p>
-                          <p className="truncate text-xs text-ink-subtle">{product.slug}</p>
+                          <p className="truncate font-medium text-ink" title={product.name}>{product.name}</p>
+                          <p className="truncate text-xs text-ink-subtle" title={product.slug}>{product.slug}</p>
                         </div>
                       </div>
                     </td>
@@ -218,8 +219,8 @@ export function ProductTable({ rows, canWrite, canDelete }: Props) {
                     <td className="hidden px-4 py-3 lg:table-cell">
                       <span className={product.stock === 0 ? "text-danger" : product.stock <= 5 ? "text-warning" : "text-ink-muted"}>{product.stock} units</span>
                     </td>
-                    <td className="px-4 py-3">{productStatusBadge(product.status)}</td>
-                    <td className="px-4 py-3 text-right">
+                    <td className="whitespace-nowrap px-4 py-3">{productStatusBadge(product.status)}</td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right">
                       <Link href={`/admin/products/${product.slug}/`} className="text-sm text-brand hover:underline">{canWrite ? "Edit" : "View"}</Link>
                     </td>
                   </tr>
