@@ -294,7 +294,7 @@ const roots: Category[] = [
     parentPath: null,
     name: "Women",
     titleNoun: "Women's Jewellery",
-    intro: "Earrings, necklaces, rings, bracelets, bangles and sets designed to be worn every day and dressed up when it counts.",
+    intro: "Necklaces, pendants, mangalsutras, earrings and bracelets designed to be worn every day and dressed up when it counts.",
     body: [
       "Kesa's women's jewellery is built around three ideas: it should be light enough to forget you are wearing it, finished well enough to look expensive, and priced so you can build a collection.",
     ],

@@ -56,11 +56,6 @@ export const sampleHeaderMenus: NavMenu[] = [
         ],
       },
     ],
-    feature: {
-      title: "The pearl edit",
-      href: "/collections/pearl-edit/",
-      image: { src: "/placeholders/editorial-1.svg", alt: "Layered pearl necklaces on a linen backdrop", unoptimized: true },
-    },
   },
   {
     label: "Collections",

@@ -24,6 +24,8 @@ function resolvePath(gender: CategoryGender, segments: string[] | undefined): { 
   return { path: `${gender}/${slug}`, basePath: `/${gender}/${slug}/` };
 }
 
+const UNLISTED_CATEGORIES: ReadonlySet<string> = new Set(["women/rings", "women/bangles", "women/jewellery-sets"]);
+
 export async function genderRouteMetadata(gender: CategoryGender, segments: string[] | undefined, raw: RawSearchParams): Promise<Metadata> {
   const resolved = resolvePath(gender, segments);
   if (!resolved) return {};
@@ -50,7 +52,8 @@ export async function renderGenderRoute(gender: CategoryGender, segments: string
   const { params, result } = await resolveListing({ kind: "category", path: category.path }, resolved.basePath, raw, "featured");
   const tree = await getCategoryTree();
   const root = tree.roots.find((r) => r.gender === gender);
-  const children = tree.childrenOf(gender);
+  // Rings, bangles and sets are not part of the current range, so they are not offered as tiles or links.
+  const children = tree.childrenOf(gender).filter((c) => !UNLISTED_CATEGORIES.has(c.path));
 
   const isRoot = category.parentPath === null;
   const tiles: ListingTile[] | undefined = isRoot
