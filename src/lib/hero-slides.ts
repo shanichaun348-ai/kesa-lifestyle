@@ -15,13 +15,6 @@ export const HERO_SLIDES: readonly HeroSlide[] = [
     cta: "Shop women's jewellery",
   },
   {
-    src: "/images/hero/elegance-in-every-detail-desktop-v2.jpg",
-    mobileSrc: "/images/hero/elegance-in-every-detail-mobile.jpg",
-    alt: "Elegance in Every Detail. Jewellery that speaks your style. A smiling model in black velvet wearing gold-tone crystal leaf earrings and a matching tassel pendant necklace against plum velvet.",
-    href: "/women/necklaces/",
-    cta: "Shop necklaces",
-  },
-  {
     src: "/images/hero/timeless-elegance-desktop.jpg",
     mobileSrc: "/images/hero/timeless-elegance-mobile.jpg",
     alt: "Timeless Elegance for every you. A gold-tone crystal flower pendant necklace on a navy velvet display bust with a gilded tray and baby's breath.",
@@ -29,11 +22,11 @@ export const HERO_SLIDES: readonly HeroSlide[] = [
     cta: "Shop pendants",
   },
   {
-    src: "/images/hero/midnight-in-bloom-desktop.jpg",
-    mobileSrc: "/images/hero/midnight-in-bloom-mobile.jpg",
-    alt: "New launch — Midnight in Bloom. Petal Sparkle. A gold-tone crystal pendant necklace on midnight-blue satin with a white orchid.",
-    href: "/collections/new-arrivals/",
-    cta: "Shop Petal Sparkle",
+    src: "/images/hero/elegance-in-every-detail-desktop-v2.jpg",
+    mobileSrc: "/images/hero/elegance-in-every-detail-mobile.jpg",
+    alt: "Elegance in Every Detail. Jewellery that speaks your style. A smiling model in black velvet wearing gold-tone crystal leaf earrings and a matching tassel pendant necklace against plum velvet.",
+    href: "/women/necklaces/",
+    cta: "Shop necklaces",
   },
   {
     src: "/images/hero/gift-her-sparkle-desktop.jpg",
@@ -41,5 +34,12 @@ export const HERO_SLIDES: readonly HeroSlide[] = [
     alt: "The Gift Edit — Gift her sparkle. Wrapped and ready to treasure. A gold-tone crystal pendant necklace draped over a black gift box.",
     href: "/occasion/gifting/",
     cta: "Shop gifts",
+  },
+  {
+    src: "/images/hero/midnight-in-bloom-desktop.jpg",
+    mobileSrc: "/images/hero/midnight-in-bloom-mobile.jpg",
+    alt: "New launch — Midnight in Bloom. Petal Sparkle. A gold-tone crystal pendant necklace on midnight-blue satin with a white orchid.",
+    href: "/collections/new-arrivals/",
+    cta: "Shop Petal Sparkle",
   },
 ];
