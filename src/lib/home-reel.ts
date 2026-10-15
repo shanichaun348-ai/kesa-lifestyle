@@ -49,7 +49,17 @@ export const homeReel: readonly HomeReelItem[] = [
     poster: "/videos/home/antique-mangalsutra.jpg",
     title: "Antique Mangalsutra",
     caption: "Black bead chains with an antique gold-tone square pendant set with stones, on green velvet.",
-    href: "/women/necklaces/",
+    href: "/women/mangalsutras/",
+    cta: "Shop Mangalsutras",
+  },
+  {
+    id: "filigree-mangalsutra",
+    // Shares the file the phone hero slide plays, so a visitor downloads it once.
+    src: "/videos/hero/mangalsutra-mobile.mp4",
+    poster: "/videos/hero/mangalsutra-mobile.jpg",
+    title: "Filigree Mangalsutra",
+    caption: "An antique gold-tone mangalsutra with a filigree pendant, green and ruby stones and black bead chains, on cream silk.",
+    href: "/women/mangalsutras/",
     cta: "Shop Mangalsutras",
   },
 ];

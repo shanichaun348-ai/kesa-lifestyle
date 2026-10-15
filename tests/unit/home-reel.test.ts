@@ -13,11 +13,11 @@ import { homeReel } from "@/lib/home-reel";
 const PUBLIC = join(process.cwd(), "public");
 
 describe("homeReel", () => {
-  it("has four films whose video and poster files exist", () => {
-    expect(homeReel).toHaveLength(4);
+  it("has five films whose video and poster files exist", () => {
+    expect(homeReel).toHaveLength(5);
     for (const item of homeReel) {
-      expect(item.src, item.id).toMatch(/^\/videos\/home\/[a-z0-9-]+\.mp4$/);
-      expect(item.poster, item.id).toMatch(/^\/videos\/home\/[a-z0-9-]+\.jpg$/);
+      expect(item.src, item.id).toMatch(/^\/videos\/(?:home|hero)\/[a-z0-9-]+\.mp4$/);
+      expect(item.poster, item.id).toMatch(/^\/videos\/(?:home|hero)\/[a-z0-9-]+\.jpg$/);
       expect(existsSync(join(PUBLIC, item.src)), `${item.src} missing`).toBe(true);
       expect(existsSync(join(PUBLIC, item.poster)), `${item.poster} missing`).toBe(true);
     }
