@@ -22,6 +22,13 @@ export const HERO_SLIDES: readonly HeroSlide[] = [
     cta: "Shop necklaces",
   },
   {
+    src: "/images/hero/timeless-elegance-desktop.jpg",
+    mobileSrc: "/images/hero/timeless-elegance-mobile.jpg",
+    alt: "Timeless Elegance for every you. A gold-tone crystal flower pendant necklace on a navy velvet display bust with a gilded tray and baby's breath.",
+    href: "/women/pendants/",
+    cta: "Shop pendants",
+  },
+  {
     src: "/images/hero/golden-showcase-desktop.jpg",
     mobileSrc: "/images/hero/golden-showcase-mobile.jpg",
     alt: "Kesa Lifestyle golden jewellery — a gold-tone crystal flower tassel necklace and a gem charm bracelet on cream satin with white daisies.",
