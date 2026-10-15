@@ -8,6 +8,13 @@ import type { HeroSlide } from "@/components/home/hero-carousel";
  */
 export const HERO_SLIDES: readonly HeroSlide[] = [
   {
+    src: "/images/hero/grace-in-every-moment-desktop.jpg",
+    mobileSrc: "/images/hero/grace-in-every-moment-mobile.jpg",
+    alt: "Grace in Every Moment. Timeless jewellery for your beautiful story. A smiling model in a pink embroidered saree wearing gold-tone crystal drop earrings, a crystal necklace and a gem charm bracelet.",
+    href: "/women/",
+    cta: "Shop women's jewellery",
+  },
+  {
     src: "/images/hero/golden-showcase-desktop.jpg",
     mobileSrc: "/images/hero/golden-showcase-mobile.jpg",
     alt: "Kesa Lifestyle golden jewellery — a gold-tone crystal flower tassel necklace and a gem charm bracelet on cream satin with white daisies.",
