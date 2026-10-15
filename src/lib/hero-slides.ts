@@ -22,6 +22,15 @@ export const HERO_SLIDES: readonly HeroSlide[] = [
     cta: "Shop pendants",
   },
   {
+    src: "/videos/hero/mangalsutra-desktop.jpg",
+    mobileSrc: "/videos/hero/mangalsutra-mobile.jpg",
+    video: { src: "/videos/hero/mangalsutra-desktop.mp4", mobileSrc: "/videos/hero/mangalsutra-mobile.mp4" },
+    holdMs: 10000,
+    alt: "An antique gold mangalsutra with a filigree pendant, green and ruby stones and black bead chains, resting on cream silk.",
+    href: "/women/mangalsutras/",
+    cta: "Shop mangalsutras",
+  },
+  {
     src: "/images/hero/elegance-in-every-detail-desktop-v2.jpg",
     mobileSrc: "/images/hero/elegance-in-every-detail-mobile.jpg",
     alt: "Elegance in Every Detail. Jewellery that speaks your style. A smiling model in black velvet wearing gold-tone crystal leaf earrings and a matching tassel pendant necklace against plum velvet.",

@@ -18,7 +18,71 @@ export type HeroSlide = {
   href: string;
   /** Accessible label for the whole-slide link, e.g. "Shop Pillars of Time". */
   cta: string;
+  /**
+   * A film for the slide. `src` and `mobileSrc` stay as the poster frames (shown while the film loads and
+   * for people who prefer reduced motion); the film plays muted and looped while the slide is in view.
+   */
+  video?: { src: string; mobileSrc: string } | undefined;
+  /** How long autoplay stays on this slide, in ms. Defaults to the carousel interval. */
+  holdMs?: number | undefined;
 };
+
+type VideoMode = "none" | "still" | "phone" | "wide";
+
+const subscribeMedia = (notify: () => void) => {
+  const queries = [window.matchMedia("(min-width: 640px)"), window.matchMedia("(prefers-reduced-motion: reduce)")];
+  queries.forEach((q) => q.addEventListener("change", notify));
+  return () => queries.forEach((q) => q.removeEventListener("change", notify));
+};
+const videoMode = (): VideoMode => {
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return "still";
+  return window.matchMedia("(min-width: 640px)").matches ? "wide" : "phone";
+};
+
+/**
+ * The film layer of a video slide. Rendered only in the browser (the poster is already underneath, so the
+ * server HTML is complete), plays from the start each time the slide scrolls into view, and pauses when it
+ * leaves. Only the file for the current screen shape is requested.
+ */
+function SlideVideo({ video, label }: { video: NonNullable<HeroSlide["video"]>; label: string }) {
+  const mode = React.useSyncExternalStore<VideoMode>(subscribeMedia, videoMode, () => "none");
+  const ref = React.useRef<HTMLVideoElement>(null);
+  const [ready, setReady] = React.useState(false);
+
+  React.useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry?.isIntersecting) {
+          el.currentTime = 0;
+          void el.play().catch(() => undefined);
+        } else {
+          el.pause();
+        }
+      },
+      { threshold: 0.6 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [mode]);
+
+  if (mode === "none" || mode === "still") return null;
+  return (
+    <video
+      ref={ref}
+      key={mode}
+      src={mode === "wide" ? video.src : video.mobileSrc}
+      muted
+      loop
+      playsInline
+      preload="metadata"
+      aria-label={label}
+      onPlaying={() => setReady(true)}
+      className={cn("absolute inset-0 size-full object-cover object-[50%_70%] transition-opacity duration-500 sm:object-[50%_100%]", ready ? "opacity-100" : "opacity-0")}
+    />
+  );
+}
 
 /**
  * The artwork is produced in the slide's exact shape, so it is drawn with
@@ -60,6 +124,7 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
   const trackRef = React.useRef<HTMLUListElement>(null);
   const [index, setIndex] = React.useState(0);
   const [paused, setPaused] = React.useState(false);
+  const [tick, setTick] = React.useState(0);
   const count = slides.length;
 
   const goTo = React.useCallback(
@@ -92,11 +157,12 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
   React.useEffect(() => {
     if (interval <= 0 || count < 2 || paused) return;
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const id = window.setInterval(() => {
+    const id = window.setTimeout(() => {
       if (document.visibilityState === "visible") goTo(index + 1);
-    }, interval);
-    return () => window.clearInterval(id);
-  }, [interval, count, paused, index, goTo]);
+      else setTick((t) => t + 1);
+    }, slides[index]?.holdMs ?? interval);
+    return () => window.clearTimeout(id);
+  }, [interval, count, paused, index, goTo, slides, tick]);
 
   if (count === 0) return null;
 
@@ -135,6 +201,7 @@ export function HeroCarousel({ slides, interval = 6000 }: HeroCarouselProps) {
                 ) : (
                   <SlideImage src={slide.src} alt={slide.alt} priority={i === 0} />
                 )}
+                {slide.video ? <SlideVideo video={slide.video} label={slide.alt} /> : null}
               </Parallax>
             </Link>
           </li>
