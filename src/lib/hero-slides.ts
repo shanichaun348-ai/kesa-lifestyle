@@ -15,6 +15,13 @@ export const HERO_SLIDES: readonly HeroSlide[] = [
     cta: "Shop women's jewellery",
   },
   {
+    src: "/images/hero/elegance-in-every-detail-desktop.jpg",
+    mobileSrc: "/images/hero/elegance-in-every-detail-mobile.jpg",
+    alt: "Elegance in Every Detail. Jewellery that speaks your style. A smiling model in black velvet wearing gold-tone crystal leaf earrings and a matching tassel pendant necklace against plum velvet.",
+    href: "/women/necklaces/",
+    cta: "Shop necklaces",
+  },
+  {
     src: "/images/hero/golden-showcase-desktop.jpg",
     mobileSrc: "/images/hero/golden-showcase-mobile.jpg",
     alt: "Kesa Lifestyle golden jewellery — a gold-tone crystal flower tassel necklace and a gem charm bracelet on cream satin with white daisies.",
