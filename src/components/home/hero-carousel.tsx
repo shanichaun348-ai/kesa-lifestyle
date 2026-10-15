@@ -79,7 +79,7 @@ function SlideVideo({ video, label }: { video: NonNullable<HeroSlide["video"]>; 
       preload="metadata"
       aria-label={label}
       onPlaying={() => setReady(true)}
-      className={cn("absolute inset-0 size-full object-cover object-[50%_70%] transition-opacity duration-500 sm:object-[50%_100%]", ready ? "opacity-100" : "opacity-0")}
+      className={cn("absolute inset-0 size-full object-cover object-[50%_70%] transition-opacity duration-500 sm:object-center", ready ? "opacity-100" : "opacity-0")}
     />
   );
 }
