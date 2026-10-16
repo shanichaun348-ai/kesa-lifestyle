@@ -34,24 +34,14 @@ function useAutoplayAllowed(): boolean {
 const SETS = 3;
 
 const ARROW =
-  "absolute top-1/2 z-10 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full border border-on-image-gold/70 bg-image-scrim/80 text-on-image-gold backdrop-blur transition-colors hover:bg-image-scrim focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-on-image-gold md:inline-flex";
+  "absolute top-1/2 z-10 hidden size-12 -translate-y-1/2 items-center justify-center rounded-full border border-highlight/60 bg-surface/80 text-highlight backdrop-blur transition-colors hover:bg-surface focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-highlight md:inline-flex";
 const BADGE =
   "inline-flex items-center justify-center rounded-full border border-on-image/60 bg-image-scrim/45 text-on-image backdrop-blur transition-colors hover:bg-image-scrim/70 focus-visible:ring-2 focus-visible:ring-on-image-gold focus-visible:outline-none";
 
-/** Small gold sparkles scattered over the stage. */
-const SPARKLES: ReadonlyArray<{ left: string; top: string; size: string; opacity: string }> = [
-  { left: "6%", top: "22%", size: "text-base", opacity: "opacity-50" },
-  { left: "15%", top: "70%", size: "text-xs", opacity: "opacity-40" },
-  { left: "30%", top: "12%", size: "text-sm", opacity: "opacity-60" },
-  { left: "68%", top: "9%", size: "text-xs", opacity: "opacity-50" },
-  { left: "84%", top: "28%", size: "text-base", opacity: "opacity-45" },
-  { left: "93%", top: "66%", size: "text-sm", opacity: "opacity-40" },
-];
-
 /**
- * "Kesa in motion": short vertical product films on a dark gold-lit stage.
+ * "Kesa in motion": short vertical product films on the plain page background.
  * Each film sits in an arch-topped gold frame with its name and a shop
- * button underneath; the middle frame is full size, glowing and playing,
+ * button underneath; the middle frame is full size and playing,
  * its neighbours smaller and dimmed. Native scroll-snap does the swiping,
  * so it works without JavaScript; the script scales cards by their
  * distance from the centre, drives the arrows, plays only the centre clip,
@@ -156,25 +146,17 @@ export function VideoReel({ items }: VideoReelProps) {
   };
 
   return (
-    <section aria-labelledby="reel-title" className="stage-dark relative isolate overflow-hidden py-12 text-on-image lg:py-16">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 text-on-image-gold">
-        {SPARKLES.map((s, i) => (
-          <span key={i} style={{ left: s.left, top: s.top }} className={cn("absolute select-none", s.size, s.opacity)}>
-            ✦
-          </span>
-        ))}
-      </div>
-
+    <section aria-labelledby="reel-title" className="relative isolate overflow-hidden py-12 lg:py-16">
       <div className="container-page reveal relative">
         <div className="mb-8 flex max-w-prose flex-col gap-2 lg:mb-10">
-          <p className="type-eyebrow text-on-image-gold">Kesa in motion</p>
-          <h2 id="reel-title" className="type-h2 flex items-center gap-3 text-on-image-gold">
+          <p className="type-eyebrow text-highlight">Kesa in motion</p>
+          <h2 id="reel-title" className="type-h2 flex items-center gap-3 text-highlight">
             See them sparkle
             <span aria-hidden="true" className="flex items-center gap-2 text-base">
-              ✦<span className="block h-px w-16 bg-on-image-gold/60" />
+              ✦<span className="block h-px w-16 bg-highlight/60" />
             </span>
           </h2>
-          <p className="type-body text-on-image/80">Ten seconds with each piece, the way it moves when you wear it.</p>
+          <p className="type-body text-ink-muted">Ten seconds with each piece, the way it moves when you wear it.</p>
         </div>
 
         <div className="relative" aria-roledescription="carousel" aria-label="Product films">
@@ -214,7 +196,7 @@ export function VideoReel({ items }: VideoReelProps) {
                     <article
                       className={cn(
                         "group/reel film-frame-inner relative overflow-hidden rounded-sm bg-image-scrim ring-1 transition-shadow duration-300",
-                        isActive ? "film-glow ring-on-image-gold" : "ring-on-image-gold/60",
+                        isActive ? "ring-on-image-gold" : "ring-on-image-gold/60",
                       )}
                     >
                       {/* Corner ornaments of the gold frame. */}
@@ -300,7 +282,7 @@ export function VideoReel({ items }: VideoReelProps) {
                 aria-selected={i === active}
                 aria-label={item.title}
                 onClick={() => goTo(count + i)}
-                className={cn("h-1.5 rounded-full transition-[width,background-color] duration-200", i === active ? "w-8 bg-on-image-gold" : "w-3 bg-on-image/30 hover:bg-on-image/60")}
+                className={cn("h-1.5 rounded-full transition-[width,background-color] duration-200", i === active ? "w-8 bg-highlight" : "w-3 bg-ink/25 hover:bg-ink/50")}
               />
             ))}
           </div>
