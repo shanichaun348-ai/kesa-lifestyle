@@ -49,7 +49,7 @@ export default async function HomepageEditorPage() {
         <section key={rail} className="space-y-3">
           <h2 className="text-sm font-medium text-ink">{HOME_RAILS[rail].label}</h2>
           <p className="text-sm text-ink-muted">
-            Choose exactly which published products appear in this row. Leave it empty and the row fills itself ({rail === "newArrivals" ? "newest pieces" : "best-selling pieces"}). A piece that is later unpublished drops out on its own.
+            Choose published products to always show first in this row. The rest of the row fills itself ({rail === "newArrivals" ? "newest pieces" : "best-selling pieces"}). A piece that is later unpublished drops out on its own.
           </p>
           <RailForm rail={rail} options={options} initialSlugs={pinnedFor(active, rail).map((p) => p.slug)} canWrite={canWrite} />
         </section>

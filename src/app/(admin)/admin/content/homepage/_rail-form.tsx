@@ -28,8 +28,8 @@ function Thumb({ src, name }: { src: string | null; name: string }) {
 }
 
 /**
- * Choose which published products a homepage row shows. Nothing chosen: the
- * row fills itself. Anything chosen: the row shows exactly those pieces.
+ * Choose which published products a homepage row always shows first. The
+ * rest of the row fills itself.
  */
 export function RailForm({ rail, options, initialSlugs, canWrite }: Props) {
   const [state, action, pending] = useActionState<HomeRailState, FormData>(updateHomeRail, null);
@@ -51,11 +51,11 @@ export function RailForm({ rail, options, initialSlugs, canWrite }: Props) {
 
       <section className="rounded-md border border-line bg-surface p-4">
         <div className="mb-2 flex items-baseline justify-between">
-          <h3 className="text-sm font-medium text-ink">Shown in this row</h3>
+          <h3 className="text-sm font-medium text-ink">Always shown first</h3>
           <span className="text-xs text-ink-subtle">{selected.length} chosen</span>
         </div>
         {chosen.length === 0 ? (
-          <p className="py-3 text-sm text-ink-muted">Nothing chosen. The row fills itself automatically.</p>
+          <p className="py-3 text-sm text-ink-muted">Nothing chosen. The whole row fills itself automatically.</p>
         ) : (
           <ul className="divide-y divide-line">
             {chosen.map((o) => (

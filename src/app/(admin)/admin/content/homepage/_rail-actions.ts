@@ -59,6 +59,6 @@ export async function updateHomeRail(_prev: HomeRailState, formData: FormData): 
     success:
       slugs.length === 0
         ? `Saved. ${HOME_RAILS[rail].label} fills itself automatically until you choose some.`
-        : `Saved. ${HOME_RAILS[rail].label} now shows only the ${slugs.length} ${slugs.length === 1 ? "piece" : "pieces"} you chose.`,
+        : `Saved. ${slugs.length === 1 ? "The piece you chose is" : `The ${slugs.length} pieces you chose are`} always shown first in ${HOME_RAILS[rail].label}; the rest of the row fills itself.`,
   };
 }

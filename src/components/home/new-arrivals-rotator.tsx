@@ -5,13 +5,15 @@ import * as React from "react";
 import { ProductCard, type ProductCardData } from "@/components/storefront/product-card";
 
 /** How often one tile is swapped for another product. */
-const SWAP_EVERY_MS = 2000;
+const SWAP_EVERY_MS = 10_000;
 
 type Props = {
   /** The tiles shown first (also what the server renders and what shows without JavaScript). */
   initial: ProductCardData[];
   /** Every product the row may pick from, including the ones already shown. */
   pool: ProductCardData[];
+  /** How many tiles at the start are the owner's chosen pieces; they stay put and only the others are swapped. */
+  fixedCount: number;
   label: string;
   priorityCount?: number;
 };
@@ -32,19 +34,21 @@ function useMotionAllowed(): boolean {
 }
 
 /**
- * The "New arrivals" row. Every two seconds one tile, going left to right
+ * The "New arrivals" row. Every ten seconds one tile, going left to right
  * and round again, is swapped for a random product from the pool that is
- * not on screen, with a short fade. Holds still while the pointer or
+ * not on screen, with a short fade. The owner's chosen pieces (the first
+ * `fixedCount` tiles) are never swapped. Holds still while the pointer or
  * keyboard focus is on the row, while the tab is hidden, and for people who
  * prefer reduced motion. With no more products than tiles nothing moves.
  */
-export function NewArrivalsRotator({ initial, pool, label, priorityCount = 0 }: Props) {
+export function NewArrivalsRotator({ initial, pool, fixedCount, label, priorityCount = 0 }: Props) {
   const [shown, setShown] = React.useState(initial);
   const [held, setHeld] = React.useState(false);
   const motion = useMotionAllowed();
   const slot = React.useRef(0);
 
-  const canRotate = motion && !held && pool.length > initial.length;
+  const movable = initial.length - fixedCount;
+  const canRotate = motion && !held && movable > 0 && pool.length > initial.length;
 
   React.useEffect(() => {
     if (!canRotate) return;
@@ -55,13 +59,13 @@ export function NewArrivalsRotator({ initial, pool, label, priorityCount = 0 }: 
         const candidates = pool.filter((p) => !onScreen.has(p.slug));
         const pick = candidates[Math.floor(Math.random() * candidates.length)];
         if (!pick) return current;
-        const at = slot.current % current.length;
+        const at = fixedCount + (slot.current % movable);
         slot.current += 1;
         return current.map((p, i) => (i === at ? pick : p));
       });
     }, SWAP_EVERY_MS);
     return () => window.clearInterval(id);
-  }, [canRotate, pool]);
+  }, [canRotate, pool, fixedCount, movable]);
 
   return (
     <ul
