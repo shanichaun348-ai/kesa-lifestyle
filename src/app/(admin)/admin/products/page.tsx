@@ -19,7 +19,22 @@ const FILTERS: Array<{ label: string; value?: Product["status"] }> = [
   { label: "Archived", value: "archived" },
 ];
 
-type Props = { searchParams: Promise<{ status?: string }> };
+type Props = { searchParams: Promise<{ status?: string; q?: string }> };
+
+/** The list address for a status filter and search text, e.g. /admin/products/?status=active&q=om. */
+function listHref(status: string | undefined, q: string): string {
+  const params = new URLSearchParams();
+  if (status) params.set("status", status);
+  if (q) params.set("q", q);
+  const query = params.toString();
+  return query ? `/admin/products/?${query}` : "/admin/products/";
+}
+
+/** Matches the name, the URL slug or any variant SKU, ignoring case. */
+function matchesSearch(product: Product, q: string): boolean {
+  const needle = q.toLowerCase();
+  return product.name.toLowerCase().includes(needle) || product.slug.toLowerCase().includes(needle) || product.variants.some((v) => v.sku.toLowerCase().includes(needle));
+}
 
 function toRow(product: Product, lookSlugs: readonly string[]): ProductRow {
   const { pricePaise } = effectivePrice(product);
@@ -40,10 +55,12 @@ function toRow(product: Product, lookSlugs: readonly string[]): ProductRow {
 }
 
 export default async function ProductsPage({ searchParams }: Props) {
-  const [session, { status }] = await Promise.all([requireAdmin("products:read"), searchParams]);
+  const [session, { status, q: rawQuery }] = await Promise.all([requireAdmin("products:read"), searchParams]);
+  const q = (rawQuery ?? "").trim().slice(0, 100);
   const [all, { config: look }] = await Promise.all([getCatalogRepository().getAllProducts(), getHomeLook()]);
   const active = FILTERS.find((f) => f.value === status)?.value;
   const products = (active ? all.filter((p) => p.status === active) : all.filter((p) => p.status !== "archived"))
+    .filter((p) => q === "" || matchesSearch(p, q))
     .sort((a, b) => b.publishedAt.localeCompare(a.publishedAt));
   const counts = { active: all.filter((p) => p.status === "active").length, draft: all.filter((p) => p.status === "draft").length };
   const canWrite = hasPermission(session.role, "products:write");
@@ -63,11 +80,36 @@ export default async function ProductsPage({ searchParams }: Props) {
         }
       />
 
+      <form action="/admin/products/" method="get" role="search" className="flex flex-wrap items-center gap-2">
+        {active ? <input type="hidden" name="status" value={active} /> : null}
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="Search by name or SKU"
+          aria-label="Search products by name, SKU or URL"
+          className="h-10 w-full max-w-md rounded-sm border border-line-strong bg-surface px-3 text-sm text-ink outline-none focus-visible:border-brand focus-visible:ring-2 focus-visible:ring-brand/20"
+        />
+        <button type="submit" className="inline-flex h-10 items-center rounded-md border border-ink bg-ink px-4 text-sm font-medium text-bg hover:border-brand-hover hover:bg-brand-hover">
+          Search
+        </button>
+        {q ? (
+          <Link href={listHref(active, "")} className="text-sm text-brand hover:underline">
+            Clear
+          </Link>
+        ) : null}
+      </form>
+      {q ? (
+        <p className="text-sm text-ink-muted" role="status">
+          {products.length === 0 ? "No products match" : `${products.length} ${products.length === 1 ? "product matches" : "products match"}`} “{q}”.
+        </p>
+      ) : null}
+
       <div className="flex flex-wrap gap-2">
         {FILTERS.map((f) => (
           <Link
             key={f.label}
-            href={f.value ? `/admin/products/?status=${f.value}` : "/admin/products/"}
+            href={listHref(f.value, q)}
             className={`rounded-sm border px-3 py-1.5 text-sm ${f.value === active ? "border-ink bg-ink text-bg" : "border-line bg-surface text-ink-muted hover:border-ink-muted"}`}
           >
             {f.label}
@@ -76,7 +118,7 @@ export default async function ProductsPage({ searchParams }: Props) {
       </div>
 
       {/* key resets the selection when the filter changes */}
-      <ProductTable key={active ?? "all"} rows={products.map((p) => toRow(p, look.productSlugs))} canWrite={canWrite} canDelete={canDelete} />
+      <ProductTable key={`${active ?? "all"}|${q}`} rows={products.map((p) => toRow(p, look.productSlugs))} canWrite={canWrite} canDelete={canDelete} />
     </div>
   );
 }
