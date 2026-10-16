@@ -1,3 +1,5 @@
+import type * as React from "react";
+
 import type { ProductCardData } from "@/components/storefront/product-card";
 import { ProductRail } from "@/components/storefront/product-rail";
 
@@ -9,12 +11,14 @@ type ProductSectionProps = {
   description?: string | undefined;
   viewAll: { label: string; href: string };
   products: ProductCardData[];
+  /** Replaces the standard row (the homepage's rotating New arrivals); `products` still decides whether the section shows. */
+  rail?: React.ReactNode;
   /** Eagerly load the first N product images (pass 4 for above-the-fold rails). */
   priorityCount?: number | undefined;
 };
 
 /** New Arrivals, Best Sellers and any merchandised product row. Renders nothing while the row is empty. */
-export function ProductSection({ id, eyebrow, title, description, viewAll, products, priorityCount }: ProductSectionProps) {
+export function ProductSection({ id, eyebrow, title, description, viewAll, products, rail, priorityCount }: ProductSectionProps) {
   if (products.length === 0) return null;
   return (
     <section aria-labelledby={`${id}-title`} className="container-page reveal">
@@ -33,7 +37,7 @@ export function ProductSection({ id, eyebrow, title, description, viewAll, produ
           {viewAll.label}
         </a>
       </div>
-      <ProductRail products={products} label={title} className="lg:grid-cols-5" {...(priorityCount !== undefined ? { priorityCount } : {})} />
+      {rail ?? <ProductRail products={products} label={title} className="lg:grid-cols-5" {...(priorityCount !== undefined ? { priorityCount } : {})} />}
     </section>
   );
 }

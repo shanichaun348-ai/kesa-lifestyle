@@ -8,6 +8,7 @@ import { BrandStatement } from "@/components/home/brand-statement";
 import { CategoryTiles } from "@/components/home/category-tiles";
 import { HeroCarousel } from "@/components/home/hero-carousel";
 import { NewsletterBand } from "@/components/home/newsletter-band";
+import { NewArrivalsRotator } from "@/components/home/new-arrivals-rotator";
 import { ProductSection } from "@/components/home/product-section";
 import { Reviews, type HomeReview } from "@/components/home/reviews";
 import { ShopTheLook } from "@/components/home/shop-the-look";
@@ -57,6 +58,8 @@ export const metadata: Metadata = {
  */
 
 const RAIL_SIZE = 5;
+/** Most products the rotating New arrivals row keeps ready to swap in. */
+const ROTATION_POOL_SIZE = 24;
 
 async function homeRails() {
   const repo = getCatalogRepository();
@@ -73,10 +76,12 @@ async function homeRails() {
   // "Shop the look": the owner's picks (admin → Content → Homepage), newest live pieces until then.
   const lookChosen = look.productSlugs.length > 0 ? await repo.getProductsBySlugs(look.productSlugs) : [];
   const lookProducts = pickLookProducts(look, lookChosen, newest);
-  const siblings = await siblingsFor([...newArrivals, ...bestSellers, ...lookProducts]);
+  // The New arrivals row swaps tiles for random products; it picks from the owner's chosen pieces when there are some, else from every live product.
+  const rotationPool = (pinnedFor(active, "newArrivals").length > 0 ? pinnedFor(active, "newArrivals") : active).slice(0, ROTATION_POOL_SIZE);
+  const siblings = await siblingsFor([...newArrivals, ...bestSellers, ...lookProducts, ...rotationPool]);
   const now = new Date();
   const card = (p: Product) => toCardData(p, { now, siblings: siblings.get(p.slug) });
-  return { newArrivals: newArrivals.map(card), bestSellers: bestSellers.map(card), look: { products: lookProducts.map(card), href: look.href } };
+  return { newArrivals: newArrivals.map(card), newArrivalsPool: rotationPool.map(card), bestSellers: bestSellers.map(card), look: { products: lookProducts.map(card), href: look.href } };
 }
 
 const MIN_REAL_REVIEWS = 3;
@@ -106,7 +111,7 @@ async function homeReviews(): Promise<{ reviews: readonly HomeReview[]; notice: 
 }
 
 export default async function HomePage() {
-  const [{ newArrivals, bestSellers, look }, reviews] = await Promise.all([homeRails(), homeReviews()]);
+  const [{ newArrivals, newArrivalsPool, bestSellers, look }, reviews] = await Promise.all([homeRails(), homeReviews()]);
   return (
     <>
       <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
@@ -123,7 +128,7 @@ export default async function HomePage() {
           title="New arrivals"
           viewAll={{ label: "View all new arrivals", href: "/collections/new-arrivals/" }}
           products={newArrivals}
-          priorityCount={5}
+          rail={<NewArrivalsRotator initial={newArrivals} pool={newArrivalsPool} label="New arrivals" priorityCount={5} />}
         />
 
         {look.products.length > 0 ? <ShopTheLook {...demoLook} products={look.products} href={look.href} /> : null}
