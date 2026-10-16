@@ -32,26 +32,28 @@ export default async function AdminDashboard() {
       <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         {canSeeOrders && stats ? (
           <>
-            <StatCard label="Revenue (paid)" value={formatPaise(stats.revenuePaise)} sub="All time" />
+            <StatCard label="Revenue (paid)" value={formatPaise(stats.revenuePaise)} sub="All time" href="/admin/orders/" />
             <StatCard
               label="Orders to fulfil"
               value={stats.needsAction}
               sub="Paid, not yet shipped"
+              href="/admin/orders/?status=PAID"
               {...(stats.needsAction > 0 ? { trend: { direction: "down" as const, label: "Needs action" } } : {})}
             />
           </>
         ) : null}
         {canSeeProducts && activeProducts ? (
-          <StatCard label="Active products" value={activeProducts.length} sub="Live in store" />
+          <StatCard label="Active products" value={activeProducts.length} sub="Live in store" href="/admin/products/?status=active" />
         ) : null}
         {canSeeCustomers && stats ? (
-          <StatCard label="Customers" value={stats.customers} sub="Have placed an order" />
+          <StatCard label="Customers" value={stats.customers} sub="Have placed an order" href="/admin/customers/" />
         ) : null}
         {canSeeOrders ? (
           <StatCard
             label="Open returns"
             value={openReturns}
             sub="Awaiting a decision"
+            href="/admin/returns/"
             {...(openReturns > 0 ? { trend: { direction: "down" as const, label: "Needs action" } } : {})}
           />
         ) : null}
