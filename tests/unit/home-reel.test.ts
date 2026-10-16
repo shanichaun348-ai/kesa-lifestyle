@@ -13,8 +13,8 @@ import { homeReel } from "@/lib/home-reel";
 const PUBLIC = join(process.cwd(), "public");
 
 describe("homeReel", () => {
-  it("has five films whose video and poster files exist", () => {
-    expect(homeReel).toHaveLength(5);
+  it("has six films whose video and poster files exist", () => {
+    expect(homeReel).toHaveLength(6);
     for (const item of homeReel) {
       expect(item.src, item.id).toMatch(/^\/videos\/(?:home|hero)\/[a-z0-9-]+\.mp4$/);
       expect(item.poster, item.id).toMatch(/^\/videos\/(?:home|hero)\/[a-z0-9-]+\.jpg$/);

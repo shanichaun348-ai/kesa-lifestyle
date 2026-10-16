@@ -62,4 +62,13 @@ export const homeReel: readonly HomeReelItem[] = [
     href: "/women/mangalsutras/",
     cta: "Shop Mangalsutras",
   },
+  {
+    id: "crystal-petal-necklace",
+    src: "/videos/home/crystal-petal-necklace.mp4",
+    poster: "/videos/home/crystal-petal-necklace.jpg",
+    title: "Crystal Petal Necklace",
+    caption: "A fine gold-tone box chain with a cluster of crystal petals and a round crystal drop, in a cream box among pink silk and baby's breath.",
+    href: "/women/pendants/",
+    cta: "Shop Pendants",
+  },
 ];
