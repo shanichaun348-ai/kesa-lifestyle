@@ -11,7 +11,7 @@ type ProductRailProps = {
 };
 
 /**
- * Horizontal scroll-snap rail on phones, 4-column grid from `md`.
+ * Horizontal scroll-snap rail on phones, 4-column grid from `md` (callers can widen it with `className`).
  * Pure CSS: no carousel JavaScript, no arrows. The scroll container is a
  * list, so screen readers announce item count and position.
  */

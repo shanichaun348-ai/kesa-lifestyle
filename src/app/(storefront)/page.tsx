@@ -56,7 +56,7 @@ export const metadata: Metadata = {
  * its content come from `homepage_sections`; today it is demo data.
  */
 
-const RAIL_SIZE = 4;
+const RAIL_SIZE = 5;
 
 async function homeRails() {
   const repo = getCatalogRepository();
@@ -123,7 +123,7 @@ export default async function HomePage() {
           title="New arrivals"
           viewAll={{ label: "View all new arrivals", href: "/collections/new-arrivals/" }}
           products={newArrivals}
-          priorityCount={4}
+          priorityCount={5}
         />
 
         {look.products.length > 0 ? <ShopTheLook {...demoLook} products={look.products} href={look.href} /> : null}

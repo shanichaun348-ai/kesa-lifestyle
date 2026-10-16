@@ -33,7 +33,7 @@ export function ProductSection({ id, eyebrow, title, description, viewAll, produ
           {viewAll.label}
         </a>
       </div>
-      <ProductRail products={products} label={title} {...(priorityCount !== undefined ? { priorityCount } : {})} />
+      <ProductRail products={products} label={title} className="lg:grid-cols-5" {...(priorityCount !== undefined ? { priorityCount } : {})} />
     </section>
   );
 }
