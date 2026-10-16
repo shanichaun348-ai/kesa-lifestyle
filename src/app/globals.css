@@ -47,7 +47,7 @@
   --shadow-overlay: 0 24px 48px -16px rgb(27 25 23 / 0.35);
 
   /* Layout ---------------------------------------------------------------- */
-  --container-page: 82.5rem; /* 1320px */
+  --container-page: 105rem; /* 1680px: fills wide desktop screens */
 
   /* Motion ---------------------------------------------------------------- */
   --ease-standard: cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -304,7 +304,7 @@ html[data-theme="dark"] {
   font-variant-numeric: tabular-nums;
 }
 
-/* Page container: 16px gutters on phones, 24px tablet, 40px desktop. */
+/* Page container: 16px gutters on phones, 24px tablet, 40px desktop, up to 1680px wide. */
 @utility container-page {
   width: 100%;
   max-width: var(--container-page);
