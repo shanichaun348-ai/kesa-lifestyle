@@ -24,7 +24,7 @@ type ShopTheLookProps = {
  */
 export function ShopTheLook({ eyebrow, title, description, showCopy = true, image, products, href }: ShopTheLookProps) {
   return (
-    <section aria-labelledby="look-title" className="container-page">
+    <section aria-labelledby="look-title" className="container-page [--container-page:82.5rem]">
       <div className="reveal grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-12">
         <figure className="relative min-w-0 aspect-[4/5] overflow-hidden rounded-sm bg-surface-muted lg:col-span-5">
           <Image
