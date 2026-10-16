@@ -118,7 +118,7 @@ export function PlacementsFields({ categories, gender, primaryPath, initialExtra
             </li>
           ))}
         </ul>
-        <p className={HINT}>Rows fill themselves with the newest and best-selling pieces; pinned pieces go first. The full New arrivals and Bestsellers pages are not affected.</p>
+        <p className={HINT}>A row fills itself with the newest or best-selling pieces until you choose some; once any piece is chosen, the row shows only the chosen pieces. You can also manage both rows together under Content → Homepage. The full New arrivals and Bestsellers pages are not affected.</p>
       </fieldset>
     </section>
   );

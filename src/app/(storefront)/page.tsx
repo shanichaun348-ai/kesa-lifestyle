@@ -67,7 +67,7 @@ async function homeRails() {
     getHomeLook(),
   ]);
   const newest = sortProducts(active, "newest");
-  // Each rail: pieces the owner pinned from the product form, then the rule's members, topped up while the catalogue is small.
+  // Each rail: exactly the pieces the owner chose (admin: Content > Homepage, or the product form); with none chosen, the rule's members, topped up while the catalogue is small.
   const newArrivals = buildRail(pinnedFor(active, "newArrivals"), sortProducts(arrivals, "newest"), newest, RAIL_SIZE);
   const bestSellers = buildRail(pinnedFor(active, "bestsellers"), bestsellers, sortProducts(active, "bestselling"), RAIL_SIZE);
   // "Shop the look": the owner's picks (admin → Content → Homepage), newest live pieces until then.

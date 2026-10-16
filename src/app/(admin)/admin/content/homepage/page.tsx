@@ -6,15 +6,17 @@ import { hasPermission } from "@/modules/admin/rbac";
 import { effectivePrice, sortProducts } from "@/modules/catalog/listing";
 import { getCatalogRepository } from "@/modules/catalog/queries";
 import { getHomeLook } from "@/modules/content/home-look-server";
+import { HOME_RAIL_KEYS, HOME_RAILS, pinnedFor } from "@/modules/content/home-placements";
 
 import { LookForm, type LookOption } from "./_look-form";
+import { RailForm } from "./_rail-form";
 
 const SECTIONS = [
   "Hero slides",
   "Category tiles",
-  "New arrivals (newest live products)",
+  "New arrivals (editable below)",
   "Shop the look (editable below)",
-  "Bestsellers (best-selling live products)",
+  "Bestsellers (editable below)",
   "Kesa in motion (four product films, part of the site design)",
   "Brand statement",
   "Why Kesa",
@@ -42,6 +44,16 @@ export default async function HomepageEditorPage() {
       {error && error.code !== "unconfigured" ? (
         <p role="alert" className="rounded-md border border-warning/30 bg-warning/5 px-4 py-3 text-sm text-ink">{error.message}</p>
       ) : null}
+
+      {HOME_RAIL_KEYS.map((rail) => (
+        <section key={rail} className="space-y-3">
+          <h2 className="text-sm font-medium text-ink">{HOME_RAILS[rail].label}</h2>
+          <p className="text-sm text-ink-muted">
+            Choose exactly which published products appear in this row. Leave it empty and the row fills itself ({rail === "newArrivals" ? "newest pieces" : "best-selling pieces"}). A piece that is later unpublished drops out on its own.
+          </p>
+          <RailForm rail={rail} options={options} initialSlugs={pinnedFor(active, rail).map((p) => p.slug)} canWrite={canWrite} />
+        </section>
+      ))}
 
       <section className="space-y-3">
         <h2 className="text-sm font-medium text-ink">Shop the look</h2>

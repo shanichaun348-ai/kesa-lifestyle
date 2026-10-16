@@ -45,15 +45,16 @@ describe("pinnedFor", () => {
 describe("buildRail", () => {
   const p = (s: string) => product(s);
 
-  it("puts pins first, then rule members, then tops up from the pool without repeats", () => {
-    const rail = buildRail([p("pin")], [p("rule-1"), p("pin"), p("rule-2")], [p("rule-1"), p("fill-1"), p("fill-2")], 4);
-    expect(rail.map((x) => x.slug)).toEqual(["pin", "rule-1", "rule-2", "fill-1"]);
-  });
-
-  it("stays at the rail size unless the owner pinned more than that", () => {
-    expect(buildRail([], [p("a"), p("b")], [p("c"), p("d"), p("e")], 4)).toHaveLength(4);
+  it("shows only the owner's picks when there are any", () => {
+    const rail = buildRail([p("pin")], [p("rule-1"), p("pin"), p("rule-2")], [p("fill-1")], 4);
+    expect(rail.map((x) => x.slug)).toEqual(["pin"]);
     const pins = [p("1"), p("2"), p("3"), p("4"), p("5")];
     expect(buildRail(pins, [p("rule")], [], 4).map((x) => x.slug)).toEqual(["1", "2", "3", "4", "5"]);
+  });
+
+  it("fills itself from the rule, then the pool, without repeats, when nothing is picked", () => {
+    const rail = buildRail([], [p("rule-1"), p("rule-2")], [p("rule-1"), p("fill-1"), p("fill-2"), p("fill-3")], 4);
+    expect(rail.map((x) => x.slug)).toEqual(["rule-1", "rule-2", "fill-1", "fill-2"]);
   });
 
   it("shows what there is while the catalogue is tiny", () => {

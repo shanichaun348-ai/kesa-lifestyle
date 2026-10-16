@@ -13,8 +13,8 @@ import { WARRANTY_TAG_PREFIX } from "@/modules/catalog/warranty";
 export const PLACEMENT_TAG_PREFIX = "home:";
 
 export const HOME_RAILS = {
-  newArrivals: { tag: "home:new-arrivals", label: "New arrivals", hint: "Pinned to the front of the New arrivals row." },
-  bestsellers: { tag: "home:bestsellers", label: "Bestsellers", hint: "Pinned to the front of the Bestsellers row." },
+  newArrivals: { tag: "home:new-arrivals", label: "New arrivals", hint: "Chosen for the New arrivals row." },
+  bestsellers: { tag: "home:bestsellers", label: "Bestsellers", hint: "Chosen for the Bestsellers row." },
 } as const;
 
 export type HomeRail = keyof typeof HOME_RAILS;
@@ -56,12 +56,13 @@ export function pinnedFor(products: readonly Product[], rail: HomeRail): Product
 }
 
 /**
- * A homepage rail: the owner's pins first, then the rule's members, topped
- * up from `pool` while the catalogue is small. Never shorter than `size`
- * when there is enough to show, and never longer than `size` unless the
- * owner pinned more than that.
+ * A homepage rail. When the owner has chosen any pieces the row shows
+ * exactly those, nothing else. With none chosen it fills itself: the rule's
+ * members, topped up from `pool` while the catalogue is small, never longer
+ * than `size`.
  */
 export function buildRail(pinned: readonly Product[], members: readonly Product[], pool: readonly Product[], size: number): Product[] {
+  if (pinned.length > 0) return [...pinned];
   const seen = new Set<string>();
   const out: Product[] = [];
   for (const p of [...pinned, ...members, ...pool]) {
@@ -69,5 +70,5 @@ export function buildRail(pinned: readonly Product[], members: readonly Product[
     seen.add(p.slug);
     out.push(p);
   }
-  return out.slice(0, Math.max(size, pinned.length));
+  return out.slice(0, size);
 }
