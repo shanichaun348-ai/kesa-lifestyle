@@ -91,13 +91,8 @@ export const sampleFooterColumns: FooterColumn[] = [
       { label: "Shipping", href: "/shipping-policy/" },
       { label: "Returns", href: "/returns-policy/" },
       { label: "Track order", href: "/track-order/" },
+      { label: "Contact us", href: "/contact/" },
       { label: "Grievance officer", href: "/grievance-officer/" },
-    ],
-  },
-  {
-    heading: "Kesa",
-    links: [
-      { label: "Style guides", href: "/style-guides/" },
     ],
   },
 ];

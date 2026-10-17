@@ -66,32 +66,6 @@ export const demoBrandStatement = {
   },
 };
 
-/**
- * Not rendered on the homepage (owner request 2026-10-09): the guide covers
- * were placeholders. Re-add `<StylingGuides guides={demoStylingGuides} />`
- * when real cover photography exists. The /style-guides/ pages still work.
- */
-export const demoStylingGuides = [
-  {
-    title: "What jewellery to wear with a saree",
-    excerpt: "Neckline first, then earrings. A styling guide for every drape.",
-    href: "/style-guides/jewellery-for-saree/",
-    image: placeholder("editorial-1.svg", "Placeholder: saree styling guide cover"),
-  },
-  {
-    title: "Earrings for your face shape",
-    excerpt: "Drops, hoops or studs: how to choose what flatters.",
-    href: "/style-guides/earrings-for-your-face-shape/",
-    image: placeholder("product-1.svg", "Placeholder: earrings guide cover"),
-  },
-  {
-    title: "Jewellery for office wear",
-    excerpt: "Minimal pieces that read polished on video calls and in person.",
-    href: "/style-guides/jewellery-for-office-wear/",
-    image: placeholder("editorial-2.svg", "Placeholder: office wear guide cover"),
-  },
-] as const;
-
 /** Store facts. Items marked `pending` depend on owner decisions and must be confirmed before launch. */
 export const demoWhyKesa = [
   { title: "Anti-tarnish plating", body: "Keeps its finish through daily wear with simple care.", icon: "shield" },

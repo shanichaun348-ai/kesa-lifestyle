@@ -21,7 +21,7 @@ const HIDDEN_ON = ["/checkout", "/admin"];
  * the shopper is on so the reply has context. Sits above the mobile sticky
  * add-to-bag bar; hidden during checkout so it never covers the pay button.
  */
-export function WhatsAppButton() {
+export function WhatsAppButton({ number }: { number?: string }) {
   const pathname = usePathname();
   if (HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
 
@@ -32,7 +32,7 @@ export function WhatsAppButton() {
 
   return (
     <a
-      href={whatsappHref(message)}
+      href={whatsappHref(message, number)}
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with us on WhatsApp"

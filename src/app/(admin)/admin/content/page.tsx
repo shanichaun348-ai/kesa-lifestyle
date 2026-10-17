@@ -8,7 +8,7 @@ const SECTIONS = [
   { title: "Journal posts", desc: "Articles, style stories and guides", href: "/admin/content/journal/" },
   { title: "FAQs", desc: "Frequently asked questions shown on product and category pages", href: "/admin/content/faqs/" },
   { title: "Gift guides", desc: "Curated gift-guide pages with product picks", href: "/admin/content/guides/?type=gift" },
-  { title: "Style guides", desc: "How-to-style and outfit inspiration pages", href: "/admin/content/guides/?type=style" },
+  { title: "Contact us page", desc: "Phone, WhatsApp, email, address and opening hours", href: "/admin/content/contact/" },
 ];
 
 export default async function ContentHubPage() {

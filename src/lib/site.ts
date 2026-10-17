@@ -39,6 +39,6 @@ export function absoluteUrl(path: string): string {
 export const WHATSAPP_NUMBER = legal.supportPhone.replace(/\D/g, "");
 
 /** A wa.me link that opens a chat with the store, with the message pre-filled. */
-export function whatsappHref(message: string): string {
-  return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(message)}`;
+export function whatsappHref(message: string, number: string = WHATSAPP_NUMBER): string {
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }

@@ -2,7 +2,6 @@ import type { MetadataRoute } from "next";
 
 import { countInScope, getCatalogRepository, getCollections } from "@/modules/catalog/queries";
 import { absoluteUrl } from "@/lib/site";
-import { seedStyleGuides } from "@/lib/demo/seed-style-guides";
 import { seedOccasionPages } from "@/lib/demo/seed-occasion";
 
 /**
@@ -22,7 +21,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   return [
     { url: absoluteUrl("/"), changeFrequency: "daily", priority: 1 },
     { url: absoluteUrl("/collections/"), changeFrequency: "weekly", priority: 0.6 },
-    { url: absoluteUrl("/style-guides/"), changeFrequency: "weekly", priority: 0.7 },
+    { url: absoluteUrl("/contact/"), changeFrequency: "monthly", priority: 0.5 },
     { url: absoluteUrl("/occasion/"), changeFrequency: "weekly", priority: 0.7 },
     { url: absoluteUrl("/returns-policy/"), changeFrequency: "monthly", priority: 0.3 },
     { url: absoluteUrl("/shipping-policy/"), changeFrequency: "monthly", priority: 0.3 },
@@ -44,12 +43,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: absoluteUrl(`/occasion/${p.slug}/`),
       changeFrequency: "weekly" as const,
       priority: 0.75,
-    })),
-    ...seedStyleGuides.map((g) => ({
-      url: absoluteUrl(`/style-guides/${g.slug}/`),
-      lastModified: new Date(g.publishedAt),
-      changeFrequency: "monthly" as const,
-      priority: 0.65,
     })),
     ...products.map((p) => ({
       url: absoluteUrl(`/products/${p.slug}/`),

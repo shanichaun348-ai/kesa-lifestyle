@@ -90,19 +90,10 @@ const nextConfig: NextConfig = {
       // Women-only at launch: send men's URLs to the women's range (temporary, not cached as permanent).
       { source: "/men", destination: "/women/", permanent: false },
       { source: "/men/:path*", destination: "/women/", permanent: false },
-      // /style/[slug]/ → /style-guides/[slug]/ (permanent; preserves link equity)
-      {
-        source: "/style/:slug/",
-        destination: "/style-guides/:slug/",
-        permanent: true,
-      },
-      // /style/[slug] (no trailing slash) also redirected; trailingSlash handles
-      // the final normalisation, so this catches any external links without slash.
-      {
-        source: "/style/:slug",
-        destination: "/style-guides/:slug/",
-        permanent: true,
-      },
+      // The style guides section was removed; old links land on the homepage.
+      { source: "/style-guides", destination: "/", permanent: true },
+      { source: "/style-guides/:path*", destination: "/", permanent: true },
+      { source: "/style/:path*", destination: "/", permanent: true },
     ];
   },
 };

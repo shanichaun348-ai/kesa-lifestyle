@@ -7,13 +7,15 @@ import { whatsappHref } from "@/lib/site";
 
 type SiteFooterProps = {
   columns: FooterColumn[];
+  /** Digits-only WhatsApp number for the footer link; the built-in number when omitted. */
+  whatsappNumber?: string;
 };
 
 /**
  * Footer. Columns collapse into native <details> accordions on phones
  * (no JavaScript, keyboard accessible by default).
  */
-export function SiteFooter({ columns }: SiteFooterProps) {
+export function SiteFooter({ columns, whatsappNumber }: SiteFooterProps) {
   const year = new Date().getFullYear();
 
   return (
@@ -54,7 +56,7 @@ export function SiteFooter({ columns }: SiteFooterProps) {
               ))}
               <li>
                 <a
-                  href={whatsappHref("Hi Kesa Lifestyle, I have a question about your jewellery.")}
+                  href={whatsappHref("Hi Kesa Lifestyle, I have a question about your jewellery.", whatsappNumber)}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline"
