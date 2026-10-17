@@ -44,7 +44,7 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
   }
 
   return (
-    <div className="flex flex-col lg:grid lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-4">
+    <div className={cn("flex flex-col", items.length > 1 && "lg:grid lg:grid-cols-[4.5rem_minmax(0,1fr)] lg:gap-4")}>
       {/* Thumbnails: a scrollable row under the stage on phones, a column beside it on desktop. */}
       {items.length > 1 ? (
       <ul className="no-scrollbar order-2 mt-3 flex gap-2 overflow-x-auto px-0.5 py-1 lg:order-none lg:mt-0 lg:flex-col lg:overflow-visible lg:py-0.5" aria-label="Choose image">
@@ -80,7 +80,8 @@ export function ProductGallery({ productName, items }: ProductGalleryProps) {
       ) : null}
 
       {/* Stage: soft deep shadow, faint highlight edge and a top-light; tilts a few degrees toward a mouse pointer. */}
-      <Tilt max={4} glare={false} className="relative">
+      {/* On desktop the photo is never taller than the window, so the whole piece is visible without scrolling. */}
+      <Tilt max={4} glare={false} className="relative lg:mx-auto lg:w-full lg:max-w-[calc((100dvh-12.5rem)*0.8)]">
         <ul
           ref={stageRef}
           onScroll={onStageScroll}

@@ -132,8 +132,10 @@ export async function ProductView({ product, requestedSku, preview = false, allR
   // The short description is the lead; the full description (in the accordion) only stands in when it is empty.
   const intro = product.shortDescription.trim() || product.description[0] || "";
 
+  // The product page keeps the narrower 1320px width: the photo and the details read best side by side at that size.
   return (
-    <Container className="relative isolate pt-5 pb-16 lg:pb-24">
+    <div className="overflow-x-clip">
+    <Container className="relative isolate pt-5 pb-16 lg:pb-24 [--container-page:82.5rem]">
       {heroImage ? <ProductBackdrop image={heroImage} /> : null}
       <JsonLd data={jsonLd} />
       {trackerVariant && !preview ? (
@@ -290,5 +292,6 @@ export async function ProductView({ product, requestedSku, preview = false, allR
         <RecentlyViewed currentSlug={product.slug} />
       </div>
     </Container>
+    </div>
   );
 }

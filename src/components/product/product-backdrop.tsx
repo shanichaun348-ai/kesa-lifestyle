@@ -5,12 +5,13 @@ import type { ImageRef } from "@/modules/catalog/types";
 /**
  * Immersive backdrop for the dark theme: the product's own photo, blurred and
  * darkened behind the page so the stage feels lit from the piece itself.
+ * Always as wide as the screen, even when the page content is narrower.
  * Hidden in the light theme, decorative only, and loaded lazily so it never
  * competes with the gallery for LCP. Render only with a real photograph.
  */
 export function ProductBackdrop({ image }: { image: ImageRef }) {
   return (
-    <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10 hidden overflow-hidden dark:block">
+    <div aria-hidden="true" className="pointer-events-none absolute inset-y-0 left-1/2 -z-10 hidden w-screen -translate-x-1/2 overflow-hidden dark:block">
       <Image
         src={image.src}
         alt=""
