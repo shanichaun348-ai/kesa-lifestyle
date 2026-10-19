@@ -8,20 +8,6 @@ import type { HeroSlide } from "@/components/home/hero-carousel";
  */
 export const HERO_SLIDES: readonly HeroSlide[] = [
   {
-    src: "/images/hero/grace-in-every-moment-desktop.jpg",
-    mobileSrc: "/images/hero/grace-in-every-moment-mobile.jpg",
-    alt: "Grace in Every Moment. Timeless jewellery for your beautiful story. A smiling model in a pink embroidered saree wearing gold-tone crystal drop earrings, a crystal necklace and a gem charm bracelet.",
-    href: "/women/",
-    cta: "Shop women's jewellery",
-  },
-  {
-    src: "/images/hero/timeless-elegance-desktop.jpg",
-    mobileSrc: "/images/hero/timeless-elegance-mobile.jpg",
-    alt: "Timeless Elegance for every you. A gold-tone crystal flower pendant necklace on a navy velvet display bust with a gilded tray and baby's breath.",
-    href: "/women/pendants/",
-    cta: "Shop pendants",
-  },
-  {
     src: "/videos/hero/mangalsutra-desktop-v2.jpg",
     mobileSrc: "/videos/hero/mangalsutra-mobile.jpg",
     video: { src: "/videos/hero/mangalsutra-desktop-v2.mp4", mobileSrc: "/videos/hero/mangalsutra-mobile.mp4" },
@@ -31,11 +17,25 @@ export const HERO_SLIDES: readonly HeroSlide[] = [
     cta: "Shop mangalsutras",
   },
   {
+    src: "/images/hero/timeless-elegance-desktop.jpg",
+    mobileSrc: "/images/hero/timeless-elegance-mobile.jpg",
+    alt: "Timeless Elegance for every you. A gold-tone crystal flower pendant necklace on a navy velvet display bust with a gilded tray and baby's breath.",
+    href: "/women/pendants/",
+    cta: "Shop pendants",
+  },
+  {
     src: "/images/hero/elegance-in-every-detail-desktop-v2.jpg",
     mobileSrc: "/images/hero/elegance-in-every-detail-mobile.jpg",
     alt: "Elegance in Every Detail. Jewellery that speaks your style. A smiling model in black velvet wearing gold-tone crystal leaf earrings and a matching tassel pendant necklace against plum velvet.",
     href: "/women/necklaces/",
     cta: "Shop necklaces",
+  },
+  {
+    src: "/images/hero/grace-in-every-moment-desktop.jpg",
+    mobileSrc: "/images/hero/grace-in-every-moment-mobile.jpg",
+    alt: "Grace in Every Moment. Timeless jewellery for your beautiful story. A smiling model in a pink embroidered saree wearing gold-tone crystal drop earrings, a crystal necklace and a gem charm bracelet.",
+    href: "/women/",
+    cta: "Shop women's jewellery",
   },
   {
     src: "/images/hero/gift-her-sparkle-desktop.jpg",

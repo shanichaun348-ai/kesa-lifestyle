@@ -47,9 +47,13 @@ export function SiteFooter({ columns, whatsappNumber }: SiteFooterProps) {
             <p className="type-eyebrow mb-4 text-ink">Stay in touch</p>
             <NewsletterForm />
             <ul className="mt-6 flex items-center gap-4" aria-label="Social">
-              {["Instagram", "Pinterest", "YouTube"].map((name) => (
+              {([
+                { name: "Instagram", href: "https://www.instagram.com/kesalifestyle/" },
+                { name: "Pinterest", href: "#" },
+                { name: "YouTube", href: "#" },
+              ] as const).map(({ name, href }) => (
                 <li key={name}>
-                  <a href="#" className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline">
+                  <a href={href} target={href !== "#" ? "_blank" : undefined} rel="noopener noreferrer" className="text-sm text-ink-muted underline-offset-4 hover:text-ink hover:underline">
                     {name}
                   </a>
                 </li>
