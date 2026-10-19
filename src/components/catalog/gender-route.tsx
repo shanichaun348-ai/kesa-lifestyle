@@ -3,7 +3,7 @@ import "server-only";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
-import { ListingPage, type ListingTile } from "@/components/catalog/listing-page";
+import { ListingPage } from "@/components/catalog/listing-page";
 import { parseForMetadata, resolveListing } from "@/components/catalog/listing-route";
 import type { RawSearchParams } from "@/modules/catalog/facets";
 import { getCategoryByPath, getCategoryTree } from "@/modules/catalog/queries";
@@ -56,9 +56,6 @@ export async function renderGenderRoute(gender: CategoryGender, segments: string
   const children = tree.childrenOf(gender).filter((c) => !UNLISTED_CATEGORIES.has(c.path));
 
   const isRoot = category.parentPath === null;
-  const tiles: ListingTile[] | undefined = isRoot
-    ? children.map((c) => ({ label: c.name, href: `/${c.path}/`, image: c.image }))
-    : undefined;
 
   const related = isRoot
     ? undefined
@@ -76,7 +73,7 @@ export async function renderGenderRoute(gender: CategoryGender, segments: string
       body={category.body}
       faq={category.faq}
       breadcrumbs={breadcrumbs}
-      tiles={tiles}
+      tiles={undefined}
       related={related}
       result={result}
       params={params}
