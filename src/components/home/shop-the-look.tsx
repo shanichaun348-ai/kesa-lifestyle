@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Price } from "@/components/storefront/price";
 import type { ProductCardData } from "@/components/storefront/product-card";
 import type { DemoImage } from "@/lib/demo/homepage";
+import { SHOP_THE_LOOK_PATH } from "@/modules/content/look-bag";
 
 type ShopTheLookProps = {
   eyebrow?: string | undefined;
@@ -15,14 +16,13 @@ type ShopTheLookProps = {
   showCopy?: boolean | undefined;
   image: DemoImage;
   products: ProductCardData[];
-  href: string;
 };
 
 /**
  * One editorial photograph with the pieces listed beside it. The list is
  * plain links with thumbnails: no hotspots, so it works on every input.
  */
-export function ShopTheLook({ eyebrow, title, description, showCopy = true, image, products, href }: ShopTheLookProps) {
+export function ShopTheLook({ eyebrow, title, description, showCopy = true, image, products }: ShopTheLookProps) {
   return (
     <section aria-labelledby="look-title" className="container-page [--container-page:82.5rem]">
       <div className="reveal grid grid-cols-1 gap-8 lg:grid-cols-12 lg:items-stretch lg:gap-12">
@@ -81,7 +81,7 @@ export function ShopTheLook({ eyebrow, title, description, showCopy = true, imag
           </ul>
 
           <Button variant="secondary" className="self-start" asChild>
-            <Link href={href}>Shop the full look</Link>
+            <Link href={SHOP_THE_LOOK_PATH}>Shop the full look</Link>
           </Button>
         </div>
       </div>

@@ -72,9 +72,11 @@ export function LookForm({ options, initialSlugs, initialHref, imageSrc, canWrit
         <p className="text-xs text-ink-subtle">The photo is part of the site design for now. Ask the developer to swap it.</p>
 
         <div>
-          <label htmlFor="look-href" className="mb-1 block text-xs font-medium text-ink-subtle">“Shop the full look” goes to</label>
+          <label htmlFor="look-href" className="mb-1 block text-xs font-medium text-ink-subtle">“Browse more pieces” link on the look page</label>
           <input id="look-href" name="href" value={href} onChange={(e) => setHref(e.target.value)} className={INPUT} disabled={disabled} placeholder="/collections/new-arrivals/" />
-          <p className="mt-1 text-xs text-ink-subtle">A page on this site, e.g. /collections/bestsellers/ or /women/necklaces/.</p>
+          <p className="mt-1 text-xs text-ink-subtle">
+            “Shop the full look” opens /shop-the-look/, where every chosen piece can be added to the bag in one tap. This link sits under those buttons, e.g. /collections/bestsellers/ or /women/necklaces/.
+          </p>
         </div>
 
         {state ? (

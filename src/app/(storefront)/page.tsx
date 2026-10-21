@@ -131,7 +131,7 @@ export default async function HomePage() {
           rail={<NewArrivalsRotator initial={newArrivals} pool={newArrivalsPool} fixedCount={newArrivalsFixed} label="New arrivals" priorityCount={5} />}
         />
 
-        {look.products.length > 0 ? <ShopTheLook {...demoLook} products={look.products} href={look.href} /> : null}
+        {look.products.length > 0 ? <ShopTheLook {...demoLook} products={look.products} /> : null}
 
         <ProductSection
           id="bestsellers"
