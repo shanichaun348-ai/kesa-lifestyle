@@ -54,8 +54,23 @@ export async function POST(request: NextRequest) {
   }
 
   const session = await getSessionUser();
-  const email = input.email ?? session?.email?.toLowerCase() ?? undefined;
-  const consent = input.consent ?? (session?.id && !input.email ? await profileConsent(session.id) : undefined);
+  // A signed-in shopper's bag can only ever be tied to their own address.
+  const sessionEmail = session?.email?.toLowerCase();
+  let email = sessionEmail ?? input.email ?? undefined;
+  let consent = input.consent ?? (session?.id && !input.email ? await profileConsent(session.id) : undefined);
+  if (sessionEmail && input.email && input.email !== sessionEmail) {
+    email = sessionEmail;
+    consent = undefined;
+  }
+  // Guests may attach an address only with consent from checkout, and only a few addresses per
+  // network per day, so a script cannot enrol strangers for store-branded reminders in bulk.
+  if (!sessionEmail && input.email) {
+    const enrol = consumeMemoryRateLimit(limiterKey("cart-enrol", clientKey(request)), 5, 24 * 60 * 60);
+    if (!enrol.allowed) {
+      email = undefined;
+      consent = undefined;
+    }
+  }
 
   const cartToken = token ?? newCartToken();
   await upsertCart({ token: cartToken, items: input.items, email, phone: input.phone, consent, profileId: session?.id ?? null });

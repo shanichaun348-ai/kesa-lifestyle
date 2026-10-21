@@ -13,7 +13,7 @@ const VALID_TRANSITIONS: Readonly<Record<OrderStatus, readonly OrderStatus[]>> =
   CREATED: ["PAYMENT_PENDING", "PROCESSING", "CANCELLED"],
   PAYMENT_PENDING: ["PAID", "PAYMENT_FAILED", "CANCELLED"],
   PAID: ["PROCESSING", "REFUNDED"],
-  PAYMENT_FAILED: ["PAYMENT_PENDING"], // retry allowed
+  PAYMENT_FAILED: ["PAYMENT_PENDING", "CANCELLED"], // retry allowed; the stale-order job cancels abandoned retries
   CANCELLED: [],
   PROCESSING: ["SHIPPED", "CANCELLED", "REFUNDED"],
   SHIPPED: ["DELIVERED", "REFUNDED"],

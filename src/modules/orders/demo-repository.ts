@@ -86,6 +86,14 @@ export class DemoOrderRepository implements OrderRepository {
     return this.orders.get(orderId) ?? null;
   }
 
+  async listStaleUnpaid(olderThan: Date, limit: number): Promise<Order[]> {
+    const cutoff = olderThan.toISOString();
+    return [...this.orders.values()]
+      .filter((o) => ["CREATED", "PAYMENT_PENDING", "PAYMENT_FAILED"].includes(o.status) && o.paymentMethod !== "cod" && o.createdAt < cutoff)
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+      .slice(0, limit);
+  }
+
   async update(order: Order): Promise<Order> {
     this.orders.set(order.id, order);
     if (order.razorpayOrderId) this.razorpayIndex.set(order.razorpayOrderId, order.id);

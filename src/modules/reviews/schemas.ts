@@ -1,11 +1,16 @@
 import { z } from "zod";
 
+import { isStoragePhotoUrl } from "@/modules/media/photo-url";
+
 export const MAX_REVIEW_PHOTOS = 3;
 export const MAX_REVIEW_PHOTO_BYTES = 5 * 1024 * 1024;
 export const REVIEW_PHOTO_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+/** Mirrors REVIEW_PHOTO_BUCKET in supabase-reviews.ts (kept here so the browser form needs no server import). */
+export const REVIEW_PHOTO_BUCKET_NAME = "review-photos";
 
 const photo = z.object({
-  src: z.string().url().max(600),
+  // Only photos uploaded through the review form (our own storage bucket) may be attached.
+  src: z.string().url().max(600).refine((src) => isStoragePhotoUrl(src, REVIEW_PHOTO_BUCKET_NAME), "Photo link is not allowed."),
   alt: z.string().max(200).default(""),
 });
 

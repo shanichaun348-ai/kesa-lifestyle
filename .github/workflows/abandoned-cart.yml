@@ -1,7 +1,9 @@
 name: Abandoned-cart reminders
 
-# Vercel Hobby only allows daily crons, so GitHub Actions runs the job hourly.
-# Requires the repository secret CRON_SECRET to match the Vercel env var.
+# The site runs on our own server with no scheduler of its own, so GitHub
+# Actions calls the job hourly. Requires the repository secret CRON_SECRET to
+# match the server's env var and the SITE_URL repository variable to name the
+# live site.
 on:
   schedule:
     - cron: "15 * * * *"
@@ -11,7 +13,7 @@ permissions:
   contents: read
 
 env:
-  SITE_URL: ${{ vars.SITE_URL || 'https://kesa-lifestyle.vercel.app' }}
+  SITE_URL: ${{ vars.SITE_URL || 'https://kesalifestyle.com' }}
 
 jobs:
   run:

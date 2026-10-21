@@ -52,6 +52,9 @@ export async function createRazorpayOrder(
     amount: amountPaise,
     currency: "INR",
     receipt,
+    // Capture automatically on authorisation, so a successful checkout never
+    // sits as "authorized" and the verify route can insist on "captured".
+    payment_capture: 1,
   };
   if (notes) body.notes = notes;
 
@@ -89,4 +92,47 @@ export async function fetchRazorpayOrder(razorpayOrderId: string): Promise<Razor
   }
 
   return (await res.json()) as RazorpayOrder;
+}
+
+export type RazorpayPayment = {
+  id: string;
+  order_id: string | null;
+  amount: number; // paise
+  currency: string;
+  /** created | authorized | captured | refunded | failed */
+  status: string;
+  captured: boolean;
+};
+
+/** Fetch one payment, used to confirm the money was actually captured before an order is marked paid. */
+export async function fetchRazorpayPayment(paymentId: string): Promise<RazorpayPayment> {
+  const { keyId, keySecret } = requireRazorpayConfig();
+  const res = await fetch(`${RAZORPAY_BASE}/payments/${encodeURIComponent(paymentId)}`, {
+    headers: { Authorization: buildAuthHeader(keyId, keySecret) },
+  });
+  if (!res.ok) throw new Error(`Razorpay payment fetch failed (HTTP ${res.status}).`);
+  return (await res.json()) as RazorpayPayment;
+}
+
+/** Every payment attempt made against a Razorpay order (the stale-order job uses this). */
+export async function fetchRazorpayOrderPayments(razorpayOrderId: string): Promise<RazorpayPayment[]> {
+  const { keyId, keySecret } = requireRazorpayConfig();
+  const res = await fetch(`${RAZORPAY_BASE}/orders/${encodeURIComponent(razorpayOrderId)}/payments`, {
+    headers: { Authorization: buildAuthHeader(keyId, keySecret) },
+  });
+  if (!res.ok) throw new Error(`Razorpay order payments fetch failed (HTTP ${res.status}).`);
+  const data = (await res.json()) as { items?: RazorpayPayment[] };
+  return data.items ?? [];
+}
+
+/** Capture an authorised payment for exactly `amountPaise`. Idempotent on Razorpay's side for already-captured payments. */
+export async function captureRazorpayPayment(paymentId: string, amountPaise: number): Promise<RazorpayPayment> {
+  const { keyId, keySecret } = requireRazorpayConfig();
+  const res = await fetch(`${RAZORPAY_BASE}/payments/${encodeURIComponent(paymentId)}/capture`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: buildAuthHeader(keyId, keySecret) },
+    body: JSON.stringify({ amount: amountPaise, currency: "INR" }),
+  });
+  if (!res.ok) throw new Error(`Razorpay capture failed (HTTP ${res.status}).`);
+  return (await res.json()) as RazorpayPayment;
 }

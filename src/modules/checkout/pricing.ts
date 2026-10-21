@@ -13,6 +13,17 @@ const FREE_SHIPPING_THRESHOLD_PAISE = 99900; // ₹999
 /** Max quantity per line — prevents inventory exhaustion attacks. */
 const MAX_QUANTITY_PER_LINE = 10;
 
+/** Collapse repeated SKUs into one line each, summing quantities; first occurrence keeps its position. */
+export function mergeDuplicateSkus<T extends { sku: string; quantity: number }>(lines: readonly T[]): T[] {
+  const bySku = new Map<string, T>();
+  for (const line of lines) {
+    const existing = bySku.get(line.sku);
+    if (existing) bySku.set(line.sku, { ...existing, quantity: existing.quantity + line.quantity });
+    else bySku.set(line.sku, { ...line });
+  }
+  return [...bySku.values()];
+}
+
 /**
  * Authoritative server-side price calculation.
  *
@@ -26,11 +37,15 @@ const MAX_QUANTITY_PER_LINE = 10;
  * @param repo   CatalogRepository — reads authoritative prices from the source.
  */
 export async function computeOrderPricing(input: CartInput, repo: CatalogRepository): Promise<PricingOutcome> {
-  const { lines: rawLines, couponCode, customerEmail } = input;
+  const { couponCode, customerEmail } = input;
 
-  if (!rawLines || rawLines.length === 0) {
+  if (!input.lines || input.lines.length === 0) {
     return { ok: false, error: { code: "EMPTY_CART", message: "Cart is empty." } };
   }
+
+  // The same SKU on several lines is one line: otherwise 6 + 6 of a piece would slip past the
+  // per-line cap and the reservation table, which has one row per (order, sku), would under-record it.
+  const rawLines = mergeDuplicateSkus(input.lines);
 
   // ── 1. Validate all quantities before any DB work ─────────────────────────
   for (const line of rawLines) {

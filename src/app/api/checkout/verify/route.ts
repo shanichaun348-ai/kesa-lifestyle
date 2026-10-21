@@ -1,5 +1,6 @@
 import { after, type NextRequest } from "next/server";
 
+import { captureRazorpayPayment, fetchRazorpayPayment, type RazorpayPayment } from "@/lib/razorpay";
 import { notifyOrderPaid } from "@/modules/notifications/order-paid";
 import { verifyPaymentSignature } from "@/modules/payments/razorpay-security";
 import { getOrderRepository } from "@/modules/orders/queries";
@@ -88,6 +89,40 @@ export async function POST(request: NextRequest): Promise<Response> {
   // Guard: order must be in PAYMENT_PENDING to transition to PAID.
   if (order.status !== "PAYMENT_PENDING") {
     return Response.json({ error: "Order is not in a payable state." }, { status: 409 });
+  }
+
+  // The signature proves the browser saw a Razorpay success screen; the money is confirmed
+  // with Razorpay itself: the payment must belong to this order, be for the full amount,
+  // and be captured (an authorised-only payment is captured here, since the order was
+  // created with payment_capture).
+  let payment: RazorpayPayment;
+  try {
+    payment = await fetchRazorpayPayment(razorpayPaymentId);
+    if (payment.order_id === razorpayOrderId && payment.amount === order.totalPaise && payment.status === "authorized") {
+      payment = await captureRazorpayPayment(razorpayPaymentId, order.totalPaise);
+    }
+  } catch (err) {
+    console.error(JSON.stringify({ level: "error", event: "checkout", action: "payment_lookup_failed", orderId, razorpayPaymentId, error: err instanceof Error ? err.message : "unknown", ts: new Date().toISOString() }));
+    // The webhook or the stale-order job will settle it; tell the browser to wait rather than fail the order.
+    return Response.json({ error: "Payment is being confirmed. Please check your order status in a moment." }, { status: 503 });
+  }
+  if (payment.order_id !== razorpayOrderId || payment.amount !== order.totalPaise || payment.status !== "captured") {
+    console.warn(
+      JSON.stringify({
+        level: "warn",
+        event: "checkout_security",
+        action: "payment_not_captured_for_order",
+        orderId,
+        razorpayOrderId,
+        razorpayPaymentId,
+        paymentOrderId: payment.order_id,
+        paymentAmount: payment.amount,
+        paymentStatus: payment.status,
+        expectedAmount: order.totalPaise,
+        ts: new Date().toISOString(),
+      }),
+    );
+    return Response.json({ error: "Payment could not be confirmed for this order." }, { status: 402 });
   }
 
   // Transition to PAID.

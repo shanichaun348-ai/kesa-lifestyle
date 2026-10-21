@@ -26,6 +26,8 @@ export interface OrderRepository {
 
   findById(id: string): Promise<Order | null>;
   findByRazorpayOrderId(razorpayOrderId: string): Promise<Order | null>;
+  /** Online-payment orders still unpaid (CREATED, PAYMENT_PENDING, PAYMENT_FAILED) created before `olderThan`, oldest first. */
+  listStaleUnpaid(olderThan: Date, limit: number): Promise<Order[]>;
   update(order: Order): Promise<Order>;
 
   /**

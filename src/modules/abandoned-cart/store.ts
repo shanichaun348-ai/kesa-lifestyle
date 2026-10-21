@@ -133,6 +133,17 @@ export async function listReminderCandidates(now: Date, limit = 100): Promise<Ab
   return ((data ?? []) as Row[]).map(toCart);
 }
 
+/** True when any bag for this address was reminded on or after `since`; one address gets one reminder a day however many bags carry it. */
+export async function emailRemindedSince(email: string, since: Date): Promise<boolean> {
+  const { count, error } = await getSupabaseServiceClient()
+    .from("carts")
+    .select("id", { count: "exact", head: true })
+    .eq("email", email.toLowerCase())
+    .gte("last_reminded_at", since.toISOString());
+  if (error) throw new Error(`carts: ${error.message}`);
+  return (count ?? 0) > 0;
+}
+
 export async function recordReminder(id: string, reminderCount: number, now: Date): Promise<void> {
   await getSupabaseServiceClient()
     .from("carts")

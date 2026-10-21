@@ -1,0 +1,30 @@
+name: Stale-order cleanup
+
+# Every 15 minutes: cancel online orders still unpaid after 30 minutes and
+# release their stock, or mark them paid when Razorpay shows a captured
+# payment. Requires the repository secret CRON_SECRET to match the server's
+# env var and the SITE_URL repository variable to name the live site.
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  SITE_URL: ${{ vars.SITE_URL || 'https://kesalifestyle.com' }}
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Call the job endpoint
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::warning::CRON_SECRET secret is not set; skipping."; exit 0
+          fi
+          curl -fsS --max-time 60 -H "Authorization: Bearer $CRON_SECRET" "$SITE_URL/api/jobs/release-stale-reservations/"

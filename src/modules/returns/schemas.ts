@@ -1,12 +1,20 @@
 import { z } from "zod";
 
+import { isStoragePhotoUrl } from "@/modules/media/photo-url";
+
 import { RETURN_REASONS } from "./types";
 
 export const MAX_RETURN_PHOTOS = 3;
 export const MAX_RETURN_PHOTO_BYTES = 5 * 1024 * 1024;
 export const RETURN_PHOTO_TYPES: Record<string, string> = { "image/jpeg": "jpg", "image/png": "png", "image/webp": "webp" };
+/** Mirrors RETURN_PHOTO_BUCKET in supabase-returns.ts (kept here so the browser form needs no server import). */
+export const RETURN_PHOTO_BUCKET_NAME = "return-photos";
 
-const photo = z.object({ src: z.string().url().max(600), alt: z.string().max(200).default("") });
+// Only photos uploaded through the return form (our own storage bucket) may be attached.
+const photo = z.object({
+  src: z.string().url().max(600).refine((src) => isStoragePhotoUrl(src, RETURN_PHOTO_BUCKET_NAME), "Photo link is not allowed."),
+  alt: z.string().max(200).default(""),
+});
 
 const item = z.object({
   sku: z.string().trim().min(1).max(60),

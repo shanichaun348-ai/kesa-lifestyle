@@ -134,6 +134,22 @@ export class SupabaseOrderRepository implements OrderRepository {
     return this.rowToOrder(row as Record<string, unknown>);
   }
 
+  async listStaleUnpaid(olderThan: Date, limit: number): Promise<Order[]> {
+    const { data, error } = await this.db
+      .from("orders")
+      .select("*, order_items(*)")
+      .in("status", ["CREATED", "PAYMENT_PENDING", "PAYMENT_FAILED"])
+      .or("payment_method.is.null,payment_method.neq.cod")
+      .lt("created_at", olderThan.toISOString())
+      .order("created_at", { ascending: true })
+      .limit(limit);
+    if (error) {
+      console.error(JSON.stringify({ level: "error", event: "db", action: "list_stale_unpaid", error: error.message, ts: new Date().toISOString() }));
+      return [];
+    }
+    return ((data ?? []) as Array<Record<string, unknown>>).map((row) => this.rowToOrder(row));
+  }
+
   async update(order: Order): Promise<Order> {
     const { error } = await this.db
       .from("orders")
