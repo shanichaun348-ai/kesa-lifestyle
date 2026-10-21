@@ -4,6 +4,8 @@ import * as React from "react";
 
 import { ProductCard, type ProductCardData } from "@/components/storefront/product-card";
 
+import { draw, newRound, type Deck } from "./rotation-deck";
+
 /** How often one tile is swapped for another product. */
 const SWAP_EVERY_MS = 10_000;
 
@@ -35,8 +37,9 @@ function useMotionAllowed(): boolean {
 
 /**
  * The "New arrivals" row. Every ten seconds one tile, going left to right
- * and round again, is swapped for a random product from the pool that is
- * not on screen, with a short fade. The owner's chosen pieces (the first
+ * and round again, is swapped for the next product in a shuffled run of the
+ * whole pool, with a short fade: no product comes back until every other
+ * product has had its turn on screen. The owner's chosen pieces (the first
  * `fixedCount` tiles) are never swapped. Holds still while the pointer or
  * keyboard focus is on the row, while the tab is hidden, and for people who
  * prefer reduced motion. With no more products than tiles nothing moves.
@@ -46,26 +49,38 @@ export function NewArrivalsRotator({ initial, pool, fixedCount, label, priorityC
   const [held, setHeld] = React.useState(false);
   const motion = useMotionAllowed();
   const slot = React.useRef(0);
+  /** What is still due this round; the first round skips the tiles that are already showing. */
+  const deck = React.useRef<Deck | null>(null);
+  const shownRef = React.useRef(shown);
+  React.useEffect(() => {
+    shownRef.current = shown;
+  }, [shown]);
 
   const movable = initial.length - fixedCount;
   const canRotate = motion && !held && movable > 0 && pool.length > initial.length;
 
   React.useEffect(() => {
     if (!canRotate) return;
+    const bySlug = new Map(pool.map((p) => [p.slug, p]));
+    const slugs = pool.map((p) => p.slug);
+    const fixed = new Set(initial.slice(0, fixedCount).map((p) => p.slug));
+    deck.current ??= newRound(
+      slugs.filter((slug) => !initial.some((p) => p.slug === slug)),
+      fixed,
+    );
     const id = window.setInterval(() => {
       if (document.visibilityState !== "visible") return;
-      setShown((current) => {
-        const onScreen = new Set(current.map((p) => p.slug));
-        const candidates = pool.filter((p) => !onScreen.has(p.slug));
-        const pick = candidates[Math.floor(Math.random() * candidates.length)];
-        if (!pick) return current;
-        const at = fixedCount + (slot.current % movable);
-        slot.current += 1;
-        return current.map((p, i) => (i === at ? pick : p));
-      });
+      const onScreen = new Set(shownRef.current.map((p) => p.slug));
+      const next = draw(deck.current ?? [], onScreen, slugs, fixed);
+      const pick = next ? bySlug.get(next.slug) : undefined;
+      if (!next || !pick) return;
+      deck.current = next.deck;
+      const at = fixedCount + (slot.current % movable);
+      slot.current += 1;
+      setShown((current) => current.map((p, i) => (i === at ? pick : p)));
     }, SWAP_EVERY_MS);
     return () => window.clearInterval(id);
-  }, [canRotate, pool, fixedCount, movable]);
+  }, [canRotate, pool, initial, fixedCount, movable]);
 
   return (
     <ul
