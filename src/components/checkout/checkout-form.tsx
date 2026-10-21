@@ -327,7 +327,7 @@ export function CheckoutForm({ initialCart, razorpayKeyId, codEnabled, retry }: 
             </Label>
             <Label className={`flex min-h-11 items-center gap-3 text-sm ${codEnabled && codAvailable !== false ? "" : "opacity-50"}`}>
               <RadioGroupItem value="cod" disabled={!codEnabled || codAvailable === false} />
-              Cash on delivery (+₹49){codAvailable === false ? " · not available for this pincode" : ""}
+              Cash on delivery (+₹25){codAvailable === false ? " · not available for this pincode" : ""}
             </Label>
           </RadioGroup>
           <p className="type-small flex items-center gap-1.5 text-ink-subtle">

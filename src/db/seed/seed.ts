@@ -413,7 +413,7 @@ export async function seed(db: SeedDb): Promise<SeedSummary> {
     await tx.insert(schema.settings).values([
       { key: "store", value: { name: "Kesa Lifestyle", currency: "INR", orderNumberPrefix: "KL-" } },
       { key: "shipping", value: { freeShippingThresholdPaise: 99900, flatRatePaise: 7900, expressSurchargePaise: 9900, originPincode: "400001", originStateCode: "MH", pendingDecision: "D4" } },
-      { key: "cod", value: { enabled: true, capPaise: 250000, feePaise: 4900, pendingDecision: "D4" } },
+      { key: "cod", value: { enabled: true, capPaise: 250000, feePaise: 2500, pendingDecision: "D4" } },
       { key: "returns", value: { windowDays: 7, pendingDecision: "D7" } },
       { key: "tax", value: { originStateCode: "MH" } },
       { key: "giftWrap", value: { enabled: true, feePaise: 4900 } },

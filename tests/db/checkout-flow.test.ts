@@ -213,7 +213,7 @@ describe("placing an order", () => {
     const after = await stock(SKU_CHAIN_20);
     expect(after.onHand).toBe(before.onHand - 1);
     expect(after.reserved).toBe(before.reserved);
-    expect((await order(result.orderId)).codFeePaise).toBe(4900);
+    expect((await order(result.orderId)).codFeePaise).toBe(2500);
   });
 });
 

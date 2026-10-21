@@ -8,7 +8,7 @@ import { formatPaise } from "@/lib/money";
 export type PaymentMethod = "razorpay" | "cod";
 
 /** Handling fee added to the order total when paying cash on delivery. */
-export const COD_FEE_PAISE = 4900; // ₹49
+export const COD_FEE_PAISE = 2500; // ₹25 (owner decision, 21 Oct 2026; was ₹49)
 /** Merchandise value (after discount) from which the COD fee is waived. */
 export const COD_FEE_WAIVER_PAISE = 199900; // ₹1,999
 /** Largest merchandise value (after discount) accepted for COD. */
