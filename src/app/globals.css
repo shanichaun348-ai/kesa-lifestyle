@@ -602,3 +602,59 @@ html[data-theme="dark"] {
     transform: none;
   }
 }
+
+/* ── Navigation progress bar ──────────────────────────────────────────────────
+   A hairline of gold across the top of the viewport while the next page loads
+   (see components/storefront/navigation-progress.tsx). While loading the bar
+   eases out towards ~90% so it keeps moving on a slow server without ever
+   finishing on its own; when the new URL renders it snaps to full width and
+   fades. Reduced motion: the bar still appears, it just does not travel. */
+@layer components {
+  .nav-progress {
+    opacity: 0;
+    transition: opacity 320ms var(--ease-standard);
+  }
+  .nav-progress-bar {
+    width: 0;
+    background: linear-gradient(90deg, var(--color-brand), var(--color-on-image-gold));
+    box-shadow: 0 0 10px color-mix(in oklab, var(--color-on-image-gold) 70%, transparent);
+    transform-origin: left center;
+  }
+  .nav-progress[data-phase="loading"] {
+    opacity: 1;
+    transition-delay: 120ms; /* skip the flash on navigations that resolve instantly */
+  }
+  .nav-progress[data-phase="loading"] .nav-progress-bar {
+    animation: nav-progress-grow 9s cubic-bezier(0.1, 0.7, 0.2, 1) forwards;
+  }
+  .nav-progress[data-phase="done"] {
+    /* Hold at full width for a beat, then fade. */
+    opacity: 0;
+    transition: opacity 320ms var(--ease-standard) 180ms;
+  }
+  .nav-progress[data-phase="done"] .nav-progress-bar {
+    width: 100%;
+    transition: width 160ms var(--ease-standard);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .nav-progress[data-phase="loading"] .nav-progress-bar {
+      animation: none;
+      width: 60%;
+    }
+  }
+}
+
+@keyframes nav-progress-grow {
+  0% {
+    width: 0;
+  }
+  15% {
+    width: 35%;
+  }
+  50% {
+    width: 70%;
+  }
+  100% {
+    width: 92%;
+  }
+}
