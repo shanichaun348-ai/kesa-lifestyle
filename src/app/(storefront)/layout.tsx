@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 
+import { VisitBeacon } from "@/components/analytics/visit-beacon";
 import { SessionProvider } from "@/components/auth/session-provider";
 import { AnnouncementBar } from "@/components/storefront/announcement-bar";
 import { CartSync } from "@/components/storefront/cart-sync";
@@ -53,6 +54,7 @@ export default async function StorefrontLayout({ children }: LayoutProps<"/">) {
       <SiteFooter columns={sampleFooterColumns} whatsappNumber={whatsappNumber} />
       <WhatsAppButton number={whatsappNumber} />
       <CartSync />
+      <VisitBeacon />
     </SessionProvider>
   );
 }

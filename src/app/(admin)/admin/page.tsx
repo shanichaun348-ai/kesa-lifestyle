@@ -4,6 +4,7 @@ import { StatCard } from "@/components/admin/stat-card";
 import { orderStatusBadge } from "@/components/admin/status-badge";
 import { requireAdmin } from "@/modules/admin/guard";
 import { dashboardStats, formatOrderNumber } from "@/modules/admin/orders-data";
+import { visitStats } from "@/modules/analytics/visits";
 import { hasPermission } from "@/modules/admin/rbac";
 import { getCatalogRepository } from "@/modules/catalog/queries";
 import { countOpenReturns } from "@/modules/returns/supabase-returns";
@@ -16,10 +17,11 @@ export default async function AdminDashboard() {
   const canSeeProducts = hasPermission(session.role, "products:read");
   const canSeeCustomers = hasPermission(session.role, "customers:read");
 
-  const [stats, activeProducts, openReturns] = await Promise.all([
+  const [stats, activeProducts, openReturns, visits] = await Promise.all([
     canSeeOrders || canSeeCustomers ? dashboardStats() : null,
     canSeeProducts ? getCatalogRepository().getAllActiveProducts() : null,
     canSeeOrders ? countOpenReturns().catch(() => 0) : 0,
+    visitStats(),
   ]);
 
   return (
@@ -57,6 +59,11 @@ export default async function AdminDashboard() {
             {...(openReturns > 0 ? { trend: { direction: "down" as const, label: "Needs action" } } : {})}
           />
         ) : null}
+        <StatCard
+          label="Visitors today"
+          value={visits.today.visitors}
+          sub={`${visits.today.pageViews} page views · ${visits.last7Days.visitors} this week · ${visits.allTime.visitors} all time`}
+        />
       </div>
 
       {canSeeOrders && stats ? (
