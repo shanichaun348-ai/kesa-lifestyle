@@ -57,21 +57,8 @@ export const sampleHeaderMenus: NavMenu[] = [
       },
     ],
   },
-  {
-    label: "Collections",
-    href: "/collections/",
-    columns: [
-      {
-        heading: "Featured",
-        links: [
-          { label: "New arrivals", href: "/collections/new-arrivals/" },
-          { label: "Bestsellers", href: "/collections/bestsellers/" },
-          { label: "Anti-tarnish", href: "/collections/anti-tarnish-jewellery/" },
-          { label: "Under ₹999", href: "/collections/under-999/" },
-        ],
-      },
-    ],
-  },
+  // The "Collections" menu was removed from the header at the owner's request (21 Oct 2026);
+  // /collections/ stays reachable from the footer and the Women menu's occasion links.
   { label: "New In", href: "/collections/new-arrivals/" },
 ];
 
