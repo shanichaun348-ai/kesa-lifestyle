@@ -74,8 +74,19 @@ const publicSchema = z.object({
 export type ServerEnv = z.infer<typeof serverSchema>;
 export type PublicEnv = z.infer<typeof publicSchema>;
 
+/**
+ * `KEY=""` in an env file means "not set", not "set to the empty string".
+ * Without this, a blank placeholder such as `RESEND_API_KEY=""` fails the
+ * `.min(n).optional()` rules and every server-env read throws.
+ */
+export function withoutBlanks(input: Record<string, string | undefined>): Record<string, string | undefined> {
+  const cleaned: Record<string, string | undefined> = {};
+  for (const [key, value] of Object.entries(input)) cleaned[key] = value === "" ? undefined : value;
+  return cleaned;
+}
+
 function parse<T>(schema: z.ZodType<T>, input: Record<string, string | undefined>, label: string): T {
-  const result = schema.safeParse(input);
+  const result = schema.safeParse(withoutBlanks(input));
   if (!result.success) {
     const issues = result.error.issues.map((i) => `  ${i.path.join(".")}: ${i.message}`).join("\n");
     throw new Error(`Invalid ${label} environment:\n${issues}`);
