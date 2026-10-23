@@ -15,6 +15,7 @@
  */
 
 import { gtagEvent } from "./gtag";
+import { pixelCommerceParams, pixelTrack } from "./pixel";
 import { CURRENCY } from "./types";
 
 const BRAND = "Kesa Lifestyle";
@@ -23,6 +24,11 @@ const BRAND = "Kesa Lifestyle";
 
 function inr(paise: number): number {
   return Math.round((paise / 100) * 100) / 100;
+}
+
+/** The Meta Pixel mirrors the GA4 commerce events; same SKUs, prices in INR. */
+function pixelLine(sku: string, unitPricePaise: number, quantity: number) {
+  return { id: sku, quantity, itemPrice: inr(unitPricePaise) };
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -36,6 +42,7 @@ export function trackPageView(params: { url: string; title?: string }): void {
     page_path: params.url,
     ...(params.title ? { page_title: params.title } : {}),
   });
+  pixelTrack("PageView");
 }
 
 // ─── Search ──────────────────────────────────────────────────────────────────
@@ -47,6 +54,7 @@ export function trackPageView(params: { url: string; title?: string }): void {
  */
 export function trackSearch(searchTerm: string): void {
   gtagEvent("search", { search_term: searchTerm });
+  pixelTrack("Search", { search_string: searchTerm });
 }
 
 // ─── Product ─────────────────────────────────────────────────────────────────
@@ -76,6 +84,11 @@ export function trackProductView(params: {
         ...(params.categoryPath ? { item_category: params.categoryPath } : {}),
       },
     ],
+  });
+  pixelTrack("ViewContent", {
+    content_name: params.productName,
+    ...(params.categoryPath ? { content_category: params.categoryPath } : {}),
+    ...pixelCommerceParams([pixelLine(params.sku, params.pricePaise, 1)], price),
   });
 }
 
@@ -128,6 +141,10 @@ export function trackAddToCart(params: {
         ...(params.optionLabel ? { item_variant: params.optionLabel } : {}),
       },
     ],
+  });
+  pixelTrack("AddToCart", {
+    content_name: params.productName,
+    ...pixelCommerceParams([pixelLine(params.sku, params.pricePaise, params.quantity)], price * params.quantity),
   });
 }
 
@@ -188,6 +205,13 @@ export function trackAddToWishlist(params: {
       },
     ],
   });
+  pixelTrack("AddToWishlist", {
+    content_name: params.productName,
+    content_ids: [params.productSlug],
+    content_type: "product",
+    currency: CURRENCY,
+    ...(price !== undefined ? { value: price } : {}),
+  });
 }
 
 // ─── Checkout ─────────────────────────────────────────────────────────────────
@@ -216,6 +240,10 @@ function linesValue(lines: readonly CheckoutLine[]): number {
   return lines.reduce((sum, l) => sum + inr(l.unitPricePaise) * l.quantity, 0);
 }
 
+function linesToPixel(lines: readonly CheckoutLine[]) {
+  return lines.map((l) => pixelLine(l.sku, l.unitPricePaise, l.quantity));
+}
+
 /**
  * begin_checkout — fires when the user clicks "Checkout" from the bag.
  * Wired: CartDrawer checkout button (src/components/storefront/cart-drawer.tsx)
@@ -231,6 +259,7 @@ export function trackBeginCheckout(
     ...(coupon ? { coupon } : {}),
     items: linesToItems(lines),
   });
+  pixelTrack("InitiateCheckout", pixelCommerceParams(linesToPixel(lines), linesValue(lines)));
 }
 
 /**
@@ -270,6 +299,7 @@ export function trackAddPaymentInfo(
     ...(coupon ? { coupon } : {}),
     items: linesToItems(lines),
   });
+  pixelTrack("AddPaymentInfo", pixelCommerceParams(linesToPixel(lines), linesValue(lines)));
 }
 
 /**
@@ -297,6 +327,9 @@ export function trackPurchase(params: {
     ...(params.coupon ? { coupon: params.coupon } : {}),
     items: linesToItems(params.lines),
   });
+  // eventID = order number, so a server-side Conversions API event for the
+  // same order would be de-duplicated by Meta rather than double counted.
+  pixelTrack("Purchase", pixelCommerceParams(linesToPixel(params.lines), inr(params.revenuePaise)), params.orderId);
 }
 
 /**

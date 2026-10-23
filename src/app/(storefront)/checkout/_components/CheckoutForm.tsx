@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Spinner } from "@/components/ui/spinner";
 import { formatPaise } from "@/lib/money";
 import { postCartSync } from "@/modules/abandoned-cart/client";
+import { trackPurchase } from "@/modules/analytics/events";
 import { allPurchasable, describeLineCheck, type LineCheck } from "@/modules/cart/availability";
 import { useCart } from "@/modules/cart/use-cart";
 import { useBagAvailability } from "@/modules/cart/use-bag-availability";
@@ -195,8 +196,16 @@ export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
       return;
     }
 
+    // Snapshot the bag for the purchase event: it is cleared on success.
+    const purchasedLines = cart.map((l) => ({ sku: l.sku, name: l.name, unitPricePaise: unitPrice(l), quantity: l.quantity, optionLabel: l.optionLabel }));
+    const coupon = couponCode.trim() || undefined;
+    const reportPurchase = (orderId: string, orderNumber: number | null, revenuePaise: number) => {
+      trackPurchase({ orderId: orderNumber ? `KL-${orderNumber}` : orderId, lines: purchasedLines, revenuePaise, coupon });
+    };
+
     // Cash on delivery: the order is confirmed as soon as it is placed.
     if (orderData.paymentMethod === "cod") {
+      reportPurchase(orderData.orderId, orderData.orderNumber, orderData.amount);
       bag.clear();
       setOrderSuccess({ orderId: orderData.orderId, orderNumber: orderData.orderNumber, paymentMethod: "cod", amountPaise: orderData.amount });
       setCheckoutState("success");
@@ -236,11 +245,13 @@ export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
           });
           const verifyJson = await verifyRes.json() as Record<string, unknown>;
           if (verifyRes.ok && verifyJson.success) {
+            const orderNumber = typeof verifyJson.orderNumber === "number" ? verifyJson.orderNumber : null;
+            reportPurchase(paid.orderId, orderNumber, paid.amount);
             // Clear cart after successful payment.
             bag.clear();
             setOrderSuccess({
               orderId: paid.orderId,
-              orderNumber: typeof verifyJson.orderNumber === "number" ? verifyJson.orderNumber : null,
+              orderNumber,
               paymentMethod: "razorpay",
               amountPaise: paid.amount,
             });

@@ -29,15 +29,16 @@ const securityHeaders = [
       "default-src 'self'",
       // unsafe-eval required by React/Turbopack in dev for callstack reconstruction.
       // Production stays strict (no unsafe-eval).
-      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://checkout.razorpay.com`,
+      // Tag scripts: GA4, Meta Pixel (connect.facebook.net), Microsoft Clarity, Razorpay checkout.
+      `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms https://*.clarity.ms https://checkout.razorpay.com`,
       // Google Fonts CSS + Next.js styled components.
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       // Google Fonts font files + self.
       "font-src 'self' https://fonts.gstatic.com",
       // Images: self, data URIs, and any HTTPS source for product images / OG.
       "img-src 'self' data: https:",
-      // XHR/fetch: self + GA + Razorpay + Supabase (direct photo uploads to Storage). Dev adds ws://* for Turbopack HMR.
-      `connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://api.razorpay.com https://lumberjack.razorpay.com https://*.supabase.co${isDev ? " ws://localhost:* wss://localhost:*" : ""}`,
+      // XHR/fetch: self + GA + Meta Pixel + Clarity + Razorpay + Supabase (direct photo uploads to Storage). Dev adds ws://* for Turbopack HMR.
+      `connect-src 'self' https://www.google-analytics.com https://analytics.google.com https://www.facebook.com https://*.clarity.ms https://api.razorpay.com https://lumberjack.razorpay.com https://*.supabase.co${isDev ? " ws://localhost:* wss://localhost:*" : ""}`,
       // Embedded media (audio/video).
       // Product clips stream from Supabase Storage; blob: covers in-browser previews.
       "media-src 'self' https://*.supabase.co blob:",

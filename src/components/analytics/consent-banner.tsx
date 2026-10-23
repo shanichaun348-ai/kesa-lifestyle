@@ -48,8 +48,8 @@ export function ConsentBanner() {
         Analytics cookies
       </p>
       <p id="consent-desc" className="mt-1 text-xs text-ink-muted">
-        We use Google Analytics to understand how people find and use this site.
-        No personal data is shared with advertising networks.
+        We use Google Analytics, Meta Pixel and Microsoft Clarity to understand how people find and use this site
+        and to measure our ads. We never share your name, email, address or payment details.
       </p>
       <div className="mt-3 flex gap-2">
         <button

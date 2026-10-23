@@ -2,10 +2,13 @@ import type { Metadata, Viewport } from "next";
 import { Fraunces, Inter } from "next/font/google";
 import { Suspense } from "react";
 
+import { MicrosoftClarity } from "@/components/analytics/clarity";
 import { ConsentBanner } from "@/components/analytics/consent-banner";
 import { GoogleAnalytics } from "@/components/analytics/google-analytics";
+import { MetaPixel } from "@/components/analytics/meta-pixel";
 import { PageViewTracker } from "@/components/analytics/page-view-tracker";
 import { Toaster } from "@/components/ui/sonner";
+import { publicEnv } from "@/lib/env";
 import { DEFAULT_THEME, THEME_INIT_SCRIPT } from "@/lib/theme";
 
 import "./globals.css";
@@ -53,6 +56,11 @@ export const viewport: Viewport = {
 };
 
 const GA4_ID = process.env.NEXT_PUBLIC_GA4_MEASUREMENT_ID;
+// Validated (digits / alphanumeric) in src/lib/env.ts before being interpolated into inline scripts.
+const PIXEL_ID = publicEnv.NEXT_PUBLIC_META_PIXEL_ID;
+const CLARITY_ID = publicEnv.NEXT_PUBLIC_CLARITY_PROJECT_ID;
+// The consent banner appears as soon as any tracking tag is configured.
+const TRACKING_ENABLED = Boolean(GA4_ID || PIXEL_ID || CLARITY_ID);
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
@@ -65,6 +73,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       </head>
       <body className="flex min-h-full flex-col">
         {GA4_ID ? <GoogleAnalytics measurementId={GA4_ID} /> : null}
+        {PIXEL_ID ? <MetaPixel pixelId={PIXEL_ID} /> : null}
+        {CLARITY_ID ? <MicrosoftClarity projectId={CLARITY_ID} /> : null}
         <a
           href="#main"
           className="sr-only z-50 rounded-md bg-ink px-4 py-2 text-bg focus:not-sr-only focus:fixed focus:top-3 focus:left-3"
@@ -78,7 +88,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <Suspense>
           <PageViewTracker />
         </Suspense>
-        {GA4_ID ? <ConsentBanner /> : null}
+        {TRACKING_ENABLED ? <ConsentBanner /> : null}
       </body>
     </html>
   );

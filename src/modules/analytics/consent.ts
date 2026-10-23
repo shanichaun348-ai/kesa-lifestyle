@@ -9,6 +9,8 @@
  * module handles post-hydration reads and updates.
  */
 
+import { clarityConsent } from "./clarity";
+import { pixelConsent } from "./pixel";
 import { CONSENT_STORAGE_KEY, type ConsentState } from "./types";
 
 function readStored(): ConsentState | null {
@@ -49,6 +51,9 @@ export function setConsentState(analytics: boolean): void {
   writeStored(state);
 
   if (typeof window === "undefined") return;
+  // One choice covers every tag: GA4, Meta Pixel and Microsoft Clarity.
+  pixelConsent(analytics);
+  clarityConsent(analytics);
   const win = window as Window & { gtag?: (...args: unknown[]) => void };
   if (typeof win.gtag !== "function") return;
 

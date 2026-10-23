@@ -184,3 +184,46 @@ After section 1 is done:
 - [ ] Admin password: strong, known to two people, stored in a password
       manager (reset with `node scripts/hash-password.mjs "new-password"` →
       `ADMIN_BOOTSTRAP_PASSWORD_HASH` in `.env.local`, deploy).
+
+---
+
+## 7. Tracking (Hardik's list, 23 Oct)
+
+All five are code-ready. Each needs one ID in `.env.local`, then `./scripts/deploy.sh`
+(they are `NEXT_PUBLIC_*`, so a rebuild is required). The cookie banner appears
+automatically once any of them is set; tags stay silent until the visitor accepts.
+
+| Item | Where to get the ID | Env line |
+|---|---|---|
+| Google Analytics | analytics.google.com → Admin → Create property "Kesa Lifestyle" (India, INR) → Web stream `https://kesalifestyle.com` → Measurement ID `G-…` | `NEXT_PUBLIC_GA4_MEASUREMENT_ID="G-XXXXXXXXXX"` |
+| Search Console + GA | search.google.com/search-console → Add property `kesalifestyle.com` (Domain) → DNS TXT via Rakesh. Then in GA4: Admin → Product links → Search Console links → Link. | none |
+| Sitemap | Already served at `/sitemap.xml`. After section 1, Search Console → Sitemaps → submit `https://kesalifestyle.com/sitemap.xml`. | none |
+| Meta Pixel | business.facebook.com → Events Manager → Connect data sources → Web → name "Kesa website" → copy the Dataset / Pixel ID (digits). No developer account needed. | `NEXT_PUBLIC_META_PIXEL_ID="123456789012345"` |
+| Microsoft Clarity | clarity.microsoft.com → sign in (Microsoft/Google) → Add new project "Kesa Lifestyle", site `kesalifestyle.com` → Settings → Overview → Project ID. | `NEXT_PUBLIC_CLARITY_PROJECT_ID="abcdefghij"` |
+
+Pixel events sent (SKU as content id): PageView, ViewContent, Search, AddToCart,
+AddToWishlist, InitiateCheckout, AddPaymentInfo, Purchase (eventID = order number).
+
+Verify after deploy: Events Manager → Test events, open the site, accept the
+banner, click a product → ViewContent appears. Clarity shows the first session
+within a few minutes. GA4 → Reports → Realtime shows the visit.
+
+---
+
+## 8. Meta Ads MCP (connect Claude to the ad account)
+
+Done once per machine. The ad account must exist first (adsmanager.facebook.com)
+and the Facebook user must have access to it (Business Settings → People).
+
+```
+claude mcp add --transport http --scope user meta-ads https://mcp.facebook.com/ads
+claude
+/mcp   → meta-ads → Authenticate → Facebook login → Edit settings → tick business + ad account → Continue
+```
+
+Leave the terminal on the Authenticate screen until the browser says
+"Authentication successful". Check with: "List my Meta ad accounts".
+
+Spend safety: Meta Business Suite → Settings → Integrations → Ads MCP server →
+set a budget cap and require approval for new campaigns. Anything Claude
+creates starts paused.

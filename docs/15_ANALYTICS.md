@@ -55,7 +55,12 @@ Value shape: `{ analytics: true | false, updatedAt: ISO string }`
 
 | Variable | Required | Description |
 |---|---|---|
-| `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | Yes | GA4 Measurement ID (e.g. `G-XXXXXXXXXX`) |
+| `NEXT_PUBLIC_GA4_MEASUREMENT_ID` | No | GA4 Measurement ID (e.g. `G-XXXXXXXXXX`) |
+| `NEXT_PUBLIC_META_PIXEL_ID` | No | Meta Pixel / dataset id (digits). Mirrors the commerce events as Meta standard events (`src/modules/analytics/pixel.ts`); consent starts revoked. |
+| `NEXT_PUBLIC_CLARITY_PROJECT_ID` | No | Microsoft Clarity project id. Session recordings; cookie consent granted only after the banner is accepted. |
+
+The consent banner is rendered when any of the three is set, and one Accept/Decline
+choice applies to all of them (`setConsentState`).
 
 ---
 
