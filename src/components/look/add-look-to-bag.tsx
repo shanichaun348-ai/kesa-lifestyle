@@ -27,21 +27,25 @@ export function AddLookToBag({ pieces, className }: Props) {
   const [busy, setBusy] = React.useState<"bag" | "checkout" | null>(null);
   const lines = pieces.flatMap((p) => (p.line ? [{ piece: p, line: p.line }] : []));
 
-  function addAll(): number {
+  /** "add" stacks (Add to bag); "ensure" is Buy now and never doubles a piece that is already in the bag. */
+  function addAll(mode: "add" | "ensure"): number {
     let added = 0;
     for (const { piece, line } of lines) {
       if (line.maxQuantity < 1) continue;
       const { maxQuantity, ...bagLine } = line;
-      cart.add(bagLine, 1, maxQuantity);
-      trackAddToCart({ sku: line.sku, productName: line.name, pricePaise: line.unitPricePaise, quantity: 1, categoryPath: piece.categoryPath, optionLabel: line.optionLabel });
+      const alreadyInBag = cart.lines.some((l) => l.sku === line.sku);
+      if (mode === "ensure") cart.ensure(bagLine, 1, maxQuantity);
+      else cart.add(bagLine, 1, maxQuantity);
       added += 1;
+      if (mode === "ensure" && alreadyInBag) continue;
+      trackAddToCart({ sku: line.sku, productName: line.name, pricePaise: line.unitPricePaise, quantity: 1, categoryPath: piece.categoryPath, optionLabel: line.optionLabel });
     }
     return added;
   }
 
   function onAddToBag() {
     setBusy("bag");
-    const added = addAll();
+    const added = addAll("add");
     setBusy(null);
     if (added === 0) {
       toast.error("These pieces are sold out right now.");
@@ -55,7 +59,7 @@ export function AddLookToBag({ pieces, className }: Props) {
 
   function onBuyNow() {
     setBusy("checkout");
-    const added = addAll();
+    const added = addAll("ensure");
     if (added === 0) {
       setBusy(null);
       toast.error("These pieces are sold out right now.");

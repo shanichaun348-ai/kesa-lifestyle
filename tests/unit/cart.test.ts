@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { addLine, cartTotals, removeLine, setLineQuantity, type CartLine } from "@/modules/cart/store";
+import { addLine, cartTotals, ensureLine, removeLine, setLineQuantity, type CartLine } from "@/modules/cart/store";
 
 const base: Omit<CartLine, "quantity"> = {
   sku: "KL-EAR-0001",
@@ -17,6 +17,22 @@ describe("cart reducers", () => {
     expect(lines[0]?.quantity).toBe(2);
     lines = addLine(lines, base, 9, 10);
     expect(lines[0]?.quantity).toBe(10);
+  });
+
+  it("ensureLine (Buy now) never stacks a second copy of a line that is already in the bag", () => {
+    // Add to bag, then Buy now: still one item at checkout.
+    let lines = ensureLine(addLine([], base, 1, 10), base, 1, 10);
+    expect(lines).toHaveLength(1);
+    expect(lines[0]?.quantity).toBe(1);
+    // Buy now with a larger chosen quantity raises the line to it.
+    lines = ensureLine(lines, base, 3, 10);
+    expect(lines[0]?.quantity).toBe(3);
+    // Buy now with a smaller quantity keeps what the shopper already had.
+    lines = ensureLine(lines, base, 1, 10);
+    expect(lines[0]?.quantity).toBe(3);
+    // Never above the cap; and a line not yet in the bag is added normally.
+    expect(ensureLine(lines, base, 50, 10)[0]?.quantity).toBe(10);
+    expect(ensureLine([], base, 2, 10)[0]?.quantity).toBe(2);
   });
 
   it("sets quantity and removes at zero", () => {

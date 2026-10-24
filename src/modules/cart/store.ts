@@ -27,6 +27,8 @@ export interface CartStore {
   subscribe(listener: () => void): () => void;
   getSnapshot(): CartSnapshot;
   add(line: Omit<CartLine, "quantity">, quantity: number, maxQuantity: number): void;
+  /** Buy now: make sure the line is in the bag at least at `quantity`, without stacking a repeat on top. */
+  ensure(line: Omit<CartLine, "quantity">, quantity: number, maxQuantity: number): void;
   setQuantity(sku: string, quantity: number, maxQuantity: number): void;
   remove(sku: string): void;
   clear(): void;
@@ -39,6 +41,18 @@ export function addLine(lines: CartSnapshot, line: Omit<CartLine, "quantity">, q
   const existing = lines.find((l) => l.sku === line.sku);
   if (!existing) return [...lines, { ...line, quantity: Math.min(qty, maxQuantity) }];
   return lines.map((l) => (l.sku === line.sku ? { ...l, quantity: Math.min(l.quantity + qty, maxQuantity) } : l));
+}
+
+/**
+ * Add to bag stacks: tapping it twice means two. Buy now does not: a shopper
+ * who added one, then tapped Buy now, expects to check out with one. If the
+ * line is already in the bag it keeps the larger of the two quantities.
+ */
+export function ensureLine(lines: CartSnapshot, line: Omit<CartLine, "quantity">, quantity: number, maxQuantity: number): CartSnapshot {
+  const existing = lines.find((l) => l.sku === line.sku);
+  if (!existing) return addLine(lines, line, quantity, maxQuantity);
+  const qty = Math.min(Math.max(existing.quantity, Math.max(1, Math.floor(quantity))), maxQuantity);
+  return lines.map((l) => (l.sku === line.sku ? { ...l, quantity: qty } : l));
 }
 
 export function setLineQuantity(lines: CartSnapshot, sku: string, quantity: number, maxQuantity: number): CartSnapshot {
@@ -114,6 +128,9 @@ export const localCartStore: CartStore = {
   },
   add(line, quantity, maxQuantity) {
     commit(addLine(localCartStore.getSnapshot(), line, quantity, maxQuantity));
+  },
+  ensure(line, quantity, maxQuantity) {
+    commit(ensureLine(localCartStore.getSnapshot(), line, quantity, maxQuantity));
   },
   setQuantity(sku, quantity, maxQuantity) {
     commit(setLineQuantity(localCartStore.getSnapshot(), sku, quantity, maxQuantity));

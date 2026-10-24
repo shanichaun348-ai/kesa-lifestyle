@@ -110,21 +110,28 @@ export function PurchasePanel(props: PurchasePanelProps) {
     return selected;
   }
 
-  function addToBag(): boolean {
+  /**
+   * "add" stacks on whatever is already in the bag (Add to bag). "ensure" is
+   * Buy now: the line must be in the bag at the chosen quantity, but a shopper
+   * who already added it must not end up with a second copy at checkout.
+   */
+  function addToBag(mode: "add" | "ensure"): boolean {
     const option = ensureSelection();
     if (!option) return false;
-    cart.add(
-      {
-        sku: option.sku,
-        productSlug: props.productSlug,
-        name: props.productName,
-        optionLabel: hasOptions ? `${props.optionName}: ${option.label}` : undefined,
-        unitPricePaise: option.pricePaise,
-        image: props.image,
-      },
-      quantity,
-      maxQuantity({ sku: option.sku, pricePaise: option.pricePaise, stock: option.stock }),
-    );
+    const alreadyInBag = cart.lines.some((l) => l.sku === option.sku);
+    const line = {
+      sku: option.sku,
+      productSlug: props.productSlug,
+      name: props.productName,
+      optionLabel: hasOptions ? `${props.optionName}: ${option.label}` : undefined,
+      unitPricePaise: option.pricePaise,
+      image: props.image,
+    };
+    const limit = maxQuantity({ sku: option.sku, pricePaise: option.pricePaise, stock: option.stock });
+    if (mode === "ensure") cart.ensure(line, quantity, limit);
+    else cart.add(line, quantity, limit);
+    // Nothing new went into the bag, so there is no add_to_cart to report.
+    if (mode === "ensure" && alreadyInBag) return true;
     trackAddToCart({
       sku: option.sku,
       productName: props.productName,
@@ -137,7 +144,7 @@ export function PurchasePanel(props: PurchasePanelProps) {
   }
 
   function onAdd() {
-    if (!addToBag()) return;
+    if (!addToBag("add")) return;
     setAdding(true);
     if (addingTimer.current) window.clearTimeout(addingTimer.current);
     addingTimer.current = window.setTimeout(() => setAdding(false), 500);
@@ -150,7 +157,7 @@ export function PurchasePanel(props: PurchasePanelProps) {
   const saving = display ? discountPercent(display.pricePaise, display.compareAtPaise) : null;
 
   function onBuyNow() {
-    if (!addToBag()) return;
+    if (!addToBag("ensure")) return;
     router.push("/checkout/");
   }
 

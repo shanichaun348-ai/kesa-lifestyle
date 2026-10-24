@@ -8,15 +8,6 @@ import type { HeroSlide } from "@/components/home/hero-carousel";
  */
 export const HERO_SLIDES: readonly HeroSlide[] = [
   {
-    src: "/videos/hero/mangalsutra-desktop-v2.jpg",
-    mobileSrc: "/videos/hero/mangalsutra-mobile.jpg",
-    video: { src: "/videos/hero/mangalsutra-desktop-v2.mp4", mobileSrc: "/videos/hero/mangalsutra-mobile.mp4" },
-    holdMs: 10000,
-    alt: "An antique gold mangalsutra with a filigree pendant and black bead chains, beside a gold gem charm bracelet on cream silk.",
-    href: "/women/mangalsutras/",
-    cta: "Shop mangalsutras",
-  },
-  {
     src: "/images/hero/timeless-elegance-desktop.jpg",
     mobileSrc: "/images/hero/timeless-elegance-mobile.jpg",
     alt: "Timeless Elegance for every you. A gold-tone crystal flower pendant necklace on a navy velvet display bust with a gilded tray and baby's breath.",
@@ -29,6 +20,17 @@ export const HERO_SLIDES: readonly HeroSlide[] = [
     alt: "Elegance in Every Detail. Jewellery that speaks your style. A smiling model in black velvet wearing gold-tone crystal leaf earrings and a matching tassel pendant necklace against plum velvet.",
     href: "/women/necklaces/",
     cta: "Shop necklaces",
+  },
+  {
+    // The film slide sits third so the first paint is a still image and the
+    // video only downloads once the carousel reaches it.
+    src: "/videos/hero/mangalsutra-desktop-v2.jpg",
+    mobileSrc: "/videos/hero/mangalsutra-mobile.jpg",
+    video: { src: "/videos/hero/mangalsutra-desktop-v2.mp4", mobileSrc: "/videos/hero/mangalsutra-mobile.mp4" },
+    holdMs: 10000,
+    alt: "An antique gold mangalsutra with a filigree pendant and black bead chains, beside a gold gem charm bracelet on cream silk.",
+    href: "/women/mangalsutras/",
+    cta: "Shop mangalsutras",
   },
   {
     src: "/images/hero/grace-in-every-moment-desktop.jpg",

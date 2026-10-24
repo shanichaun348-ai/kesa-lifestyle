@@ -13,6 +13,7 @@ export function useCart() {
     count: totals.count,
     subtotalPaise: totals.subtotalPaise,
     add: localCartStore.add,
+    ensure: localCartStore.ensure,
     setQuantity: localCartStore.setQuantity,
     remove: localCartStore.remove,
     clear: localCartStore.clear,
