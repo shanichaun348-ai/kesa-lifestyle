@@ -13,10 +13,11 @@ import { WhatsAppIcon } from "@/components/storefront/whatsapp-button";
 import { WishlistButton } from "@/components/storefront/wishlist-button";
 import { formatPaise } from "@/lib/money";
 import { site, whatsappHref } from "@/lib/site";
+import { localCartStore } from "@/modules/cart/store";
 import { useCart } from "@/modules/cart/use-cart";
 import { discountPercent } from "@/modules/catalog/pdp";
 import { availabilityOf, maxQuantity, type Availability } from "@/modules/catalog/variants";
-import { trackAddToCart } from "@/modules/analytics/events";
+import { trackAddToCart, trackBeginCheckout } from "@/modules/analytics/events";
 import { cn } from "@/lib/utils";
 
 export type PurchaseOption = {
@@ -158,6 +159,17 @@ export function PurchasePanel(props: PurchasePanelProps) {
 
   function onBuyNow() {
     if (!addToBag("ensure")) return;
+    // Buy now skips the bag, so report the checkout start here with the bag
+    // as it is right now (the store snapshot, not this render's stale lines).
+    trackBeginCheckout(
+      localCartStore.getSnapshot().map((l) => ({
+        sku: l.sku,
+        name: l.name,
+        unitPricePaise: l.unitPricePaise,
+        quantity: l.quantity,
+        ...(l.optionLabel ? { optionLabel: l.optionLabel } : {}),
+      })),
+    );
     router.push("/checkout/");
   }
 

@@ -6,8 +6,9 @@ import { ShoppingBagIcon } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { localCartStore } from "@/modules/cart/store";
 import { useCart } from "@/modules/cart/use-cart";
-import { trackAddToCart } from "@/modules/analytics/events";
+import { trackAddToCart, trackBeginCheckout } from "@/modules/analytics/events";
 import type { LookPiece } from "@/modules/content/look-bag";
 import { cn } from "@/lib/utils";
 
@@ -65,6 +66,16 @@ export function AddLookToBag({ pieces, className }: Props) {
       toast.error("These pieces are sold out right now.");
       return;
     }
+    // Straight to checkout, so the checkout start is reported here (bag snapshot after the adds).
+    trackBeginCheckout(
+      localCartStore.getSnapshot().map((l) => ({
+        sku: l.sku,
+        name: l.name,
+        unitPricePaise: l.unitPricePaise,
+        quantity: l.quantity,
+        ...(l.optionLabel ? { optionLabel: l.optionLabel } : {}),
+      })),
+    );
     router.push("/checkout/");
   }
 
