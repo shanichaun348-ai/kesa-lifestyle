@@ -43,13 +43,17 @@ const securityHeaders = [
       // Product clips stream from Supabase Storage; blob: covers in-browser previews.
       "media-src 'self' https://*.supabase.co blob:",
       // Razorpay payment modal opens in an iframe from api.razorpay.com.
-      "frame-src 'self' https://api.razorpay.com https://www.youtube-nocookie.com",
+      // Meta Pixel: events with product parameters are too long for an image
+      // request, so fbevents.js posts a form into a hidden www.facebook.com
+      // frame instead (see form-action). Without both, PageView arrives but
+      // ViewContent / AddToCart / Purchase are silently blocked.
+      "frame-src 'self' https://api.razorpay.com https://www.youtube-nocookie.com https://www.facebook.com",
       // Objects (Flash, plugins) — none.
       "object-src 'none'",
       // Base URI lockdown.
       "base-uri 'self'",
-      // Form submissions must go to same origin.
-      "form-action 'self'",
+      // Form submissions must go to same origin, plus the Meta Pixel fallback post (frame-src above).
+      "form-action 'self' https://www.facebook.com",
       // Block all framing (stronger than X-Frame-Options).
       "frame-ancestors 'self'",
     ].join("; "),
