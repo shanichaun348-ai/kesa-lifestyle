@@ -62,6 +62,14 @@ script and must be pointed at `scripts/deploy.sh` first.
 
 ## 2. Razorpay (ask the account owner)
 
+**Status 27 Oct:** Razorpay rejected adding kesalifestyle.com to the Openmalo
+account ("business model deviation"), so Kesa needs its own account in the
+name of the entity holding Kesa's GST (Hardik's decision). Until then the
+store runs **cash on delivery only**: with no `RAZORPAY_KEY_ID` on the server
+the checkout offers COD alone (orders above the COD cap are blocked with a
+message). Prince is learning the signup from Ravi. Steps below apply to the
+new account once it exists.
+
 1. Is KYC complete and the account activated for live payments? Live keys
    cannot be generated before that.
 2. Live **Key ID** and **Key Secret**: Settings → API Keys → Generate Live Key.

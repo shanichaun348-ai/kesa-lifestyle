@@ -80,6 +80,10 @@ export async function POST(request: NextRequest): Promise<Response> {
   const rawLines = b.lines as Array<{ sku: string; quantity: number }>;
   const couponCode = typeof b.couponCode === "string" ? b.couponCode : undefined;
   const paymentMethod: PaymentMethod = isPaymentMethod(b.paymentMethod) ? b.paymentMethod : "razorpay";
+  // No gateway configured: refuse before anything is reserved, so the form can steer to cash on delivery.
+  if (paymentMethod === "razorpay" && !process.env.RAZORPAY_KEY_ID) {
+    return Response.json({ error: "Online payment is not available right now. Please choose cash on delivery.", code: "ONLINE_UNAVAILABLE" }, { status: 422 });
+  }
   const customerRaw = b.customer as Record<string, string>;
   const addrRaw = b.shippingAddress as Record<string, string>;
 

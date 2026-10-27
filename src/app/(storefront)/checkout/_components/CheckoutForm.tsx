@@ -14,7 +14,7 @@ import { trackPurchase } from "@/modules/analytics/events";
 import { allPurchasable, describeLineCheck, type LineCheck } from "@/modules/cart/availability";
 import { useCart } from "@/modules/cart/use-cart";
 import { useBagAvailability } from "@/modules/cart/use-bag-availability";
-import { COD_FEE_PAISE, COD_FEE_WAIVER_PAISE, codAvailability, type PaymentMethod } from "@/modules/checkout/cod";
+import { COD_FEE_PAISE, COD_FEE_WAIVER_PAISE, COD_MAX_TOTAL_PAISE, codAvailability, type PaymentMethod } from "@/modules/checkout/cod";
 
 // ── Razorpay.js loader ────────────────────────────────────────────────────────
 
@@ -58,9 +58,11 @@ type OrderResponse =
 type CheckoutFormProps = {
   /** Code advertised in the announcement strip, offered as a one-tap hint. */
   suggestedCode?: string | undefined;
+  /** False while the store has no payment gateway: cash on delivery is the only method offered. */
+  onlineEnabled?: boolean | undefined;
 };
 
-export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
+export function CheckoutForm({ suggestedCode, onlineEnabled = true }: CheckoutFormProps = {}) {
   const bag = useCart();
   const cart = bag.lines;
   // What the catalogue says about each line today: price, stock, or gone.
@@ -78,7 +80,7 @@ export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
   const [state, setState] = React.useState("");
   const [pincode, setPincode] = React.useState("");
   const [couponCode, setCouponCode] = React.useState("");
-  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>("razorpay");
+  const [paymentMethod, setPaymentMethod] = React.useState<PaymentMethod>(onlineEnabled ? "razorpay" : "cod");
   const [fieldErrors, setFieldErrors] = React.useState<Record<string, string>>({});
   // Bag-reminder consent: unchecked by default; only a ticked box ever attaches the email to the saved bag.
   const [remindMe, setRemindMe] = React.useState(false);
@@ -122,7 +124,9 @@ export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
   // Preview only — the server re-derives eligibility and the fee from its own pricing.
   const cod = codAvailability(clientSubtotal);
   // If the bag changes and COD stops being available, fall back to online payment without a re-render loop.
-  const effectiveMethod: PaymentMethod = paymentMethod === "cod" && cod.allowed ? "cod" : "razorpay";
+  // Without a gateway there is nothing to fall back to: COD is the method, and a bag COD cannot cover is blocked.
+  const effectiveMethod: PaymentMethod = !onlineEnabled ? "cod" : paymentMethod === "cod" && cod.allowed ? "cod" : "razorpay";
+  const blocked = !onlineEnabled && !cod.allowed;
   const codSelected = effectiveMethod === "cod";
 
   function removeLine(sku: string) {
@@ -183,7 +187,7 @@ export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
           setRefused({ sku: line.sku, check });
           toast.error(`“${line.name}” ${check.kind === "sold_out" ? "just sold out" : "is no longer available"}. Remove it from your bag to continue.`);
         } else {
-          if (json.code === "COD_UNAVAILABLE") setPaymentMethod("razorpay");
+          if (json.code === "COD_UNAVAILABLE" && onlineEnabled) setPaymentMethod("razorpay");
           toast.error((json.error as string) || "Could not create order. Please try again.");
         }
         setCheckoutState("idle");
@@ -410,11 +414,11 @@ export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
             <h2 className="type-h3">Payment</h2>
             <fieldset className="space-y-3" disabled={busy}>
               <legend className="sr-only">Payment method</legend>
-              <label className={`flex cursor-pointer items-start gap-3 rounded-md border p-4 transition-colors ${!codSelected ? "border-ink bg-surface" : "border-line hover:border-ink-muted"}`}>
-                <input type="radio" name="paymentMethod" value="razorpay" checked={!codSelected} onChange={() => setPaymentMethod("razorpay")} className="mt-1 accent-ink" />
+              <label className={`flex items-start gap-3 rounded-md border p-4 transition-colors ${!onlineEnabled ? "cursor-not-allowed opacity-60" : !codSelected ? "cursor-pointer border-ink bg-surface" : "cursor-pointer border-line hover:border-ink-muted"}`}>
+                <input type="radio" name="paymentMethod" value="razorpay" checked={!codSelected} onChange={() => setPaymentMethod("razorpay")} disabled={!onlineEnabled} className="mt-1 accent-ink" />
                 <span className="flex flex-col gap-0.5">
                   <span className="text-sm font-medium text-ink">Pay online</span>
-                  <span className="type-small text-ink-muted">UPI, cards, netbanking and wallets via Razorpay.</span>
+                  <span className="type-small text-ink-muted">{onlineEnabled ? "UPI, cards, netbanking and wallets via Razorpay." : "Coming soon. For now, please choose cash on delivery."}</span>
                 </span>
               </label>
               <label className={`flex items-start gap-3 rounded-md border p-4 transition-colors ${!cod.allowed ? "cursor-not-allowed opacity-60" : codSelected ? "cursor-pointer border-ink bg-surface" : "cursor-pointer border-line hover:border-ink-muted"}`}>
@@ -424,11 +428,18 @@ export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
                   <span className="type-small text-ink-muted">
                     {cod.allowed
                       ? `Pay in cash when your order arrives. ${formatPaise(COD_FEE_PAISE)} handling fee, free on orders of ${formatPaise(COD_FEE_WAIVER_PAISE)} or more.`
-                      : cod.reason}
+                      : onlineEnabled
+                        ? cod.reason
+                        : `Cash on delivery is available on orders up to ${formatPaise(COD_MAX_TOTAL_PAISE)}.`}
                   </span>
                 </span>
               </label>
             </fieldset>
+            {blocked ? (
+              <p className="text-sm text-danger" role="alert">
+                Online payment is coming soon, so orders above {formatPaise(COD_MAX_TOTAL_PAISE)} cannot be placed yet. Please reduce your bag, or message us on WhatsApp and we will arrange it.
+              </p>
+            ) : null}
           </section>
         </div>
 
@@ -490,7 +501,7 @@ export function CheckoutForm({ suggestedCode }: CheckoutFormProps = {}) {
             <p className="text-xs text-ink-subtle">The discount is confirmed on the next step.</p>
           </section>
 
-          <Button type="submit" variant="primary" size="lg" className="w-full" disabled={busy || availability.checking || !purchasable} aria-busy={busy || availability.checking}>
+          <Button type="submit" variant="primary" size="lg" className="w-full" disabled={busy || availability.checking || !purchasable || blocked} aria-busy={busy || availability.checking}>
             {busy ? <><Spinner className="size-4" /> {codSelected ? "Placing order…" : "Processing…"}</> : availability.checking ? <><Spinner className="size-4" /> Checking your bag…</> : codSelected ? "Place order" : "Proceed to pay"}
           </Button>
 
