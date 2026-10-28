@@ -62,13 +62,20 @@ script and must be pointed at `scripts/deploy.sh` first.
 
 ## 2. Razorpay (ask the account owner)
 
-**Status 27 Oct:** Razorpay rejected adding kesalifestyle.com to the Openmalo
-account ("business model deviation"), so Kesa needs its own account in the
-name of the entity holding Kesa's GST (Hardik's decision). Until then the
-store runs **cash on delivery only**: with no `RAZORPAY_KEY_ID` on the server
-the checkout offers COD alone (orders above the COD cap are blocked with a
-message). Prince is learning the signup from Ravi. Steps below apply to the
-new account once it exists.
+**Status 28 Oct: DONE.** Kesa has its own Razorpay business account
+(signatory Parmar Krishnaben, activated instantly via Central KYC on 28 Oct).
+Live keys and the webhook (`payment.captured`, `payment.failed`) are on the
+server; a real ₹61 UPI order (KL-11) was captured, the confirmation email went
+out and Admin → Orders showed it paid. Refund it from the dashboard and cancel
+the order. Still open: disable both webhooks in the Openmalo account, add
+Kishan and Hardik under Manage team, fill Customer support details, point
+the webhook alert email at hello@kesalifestyle.com.
+
+Background, 27 Oct: Razorpay rejected adding kesalifestyle.com to the Openmalo
+account ("business model deviation"). Without `RAZORPAY_KEY_ID` on the server
+the checkout falls back to **cash on delivery only** (orders above the COD cap
+are blocked with a message); with the key present, online payment is on.
+Steps below are the reference for any future key rotation.
 
 1. Is KYC complete and the account activated for live payments? Live keys
    cannot be generated before that.
