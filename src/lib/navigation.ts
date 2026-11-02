@@ -45,20 +45,11 @@ export const sampleHeaderMenus: NavMenu[] = [
           { label: "Bracelets", href: "/women/bracelets/" },
         ],
       },
-      {
-        heading: "Shop by occasion",
-        links: [
-          { label: "Daily wear", href: "/collections/daily-wear-jewellery/" },
-          { label: "Office wear", href: "/collections/office-wear-jewellery/" },
-          { label: "Party wear", href: "/collections/party-wear-jewellery/" },
-          { label: "Wedding", href: "/collections/wedding-jewellery/" },
-          { label: "Gifting", href: "/collections/gifting-jewellery/" },
-        ],
-      },
     ],
   },
-  // The "Collections" menu was removed from the header at the owner's request (21 Oct 2026);
-  // /collections/ stays reachable from the footer and the Women menu's occasion links.
+  // The "Collections" menu was removed from the header at the owner's request (21 Oct 2026),
+  // and the Women menu's "Shop by occasion" column on 2 Nov 2026; /collections/ and the
+  // occasion collections stay reachable from the footer and the /occasion/ page.
   { label: "New In", href: "/collections/new-arrivals/" },
 ];
 
