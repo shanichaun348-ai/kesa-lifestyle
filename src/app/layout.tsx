@@ -49,8 +49,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  // Browser chrome colour matches the dark default; the in-page toggle cannot update this.
-  themeColor: "#0f0e0c",
+  // Browser chrome colour matches the light (blush) default; the in-page toggle cannot update this.
+  themeColor: "#f5e1dc",
   width: "device-width",
   initialScale: 1,
 };

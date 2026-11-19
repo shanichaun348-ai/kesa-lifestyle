@@ -9,24 +9,24 @@
 
 @theme {
   /* Brand palette --------------------------------------------------------- */
-  --color-bg: #fbfaf7;
-  --color-surface: #ffffff;
-  --color-surface-muted: #f3f0ea;
-  --color-ink: #1b1917;
-  --color-ink-muted: #5f5a54;
-  --color-ink-subtle: #8c867f;
-  --color-line: #e6e1d9;
-  --color-line-strong: #cfc8bd;
-  --color-brand: #5b3a2e;
-  --color-brand-hover: #472c23;
-  --color-highlight: #9a7b3c;
+  --color-bg: #f5e1dc;
+  --color-surface: #faebe7;
+  --color-surface-muted: #edd0c9;
+  --color-ink: #2e1a1d;
+  --color-ink-muted: #6b4a4f;
+  --color-ink-subtle: #94737a;
+  --color-line: #e3c3bc;
+  --color-line-strong: #cfa199;
+  --color-brand: #9c4a57;
+  --color-brand-hover: #7a3442;
+  --color-highlight: #a0525f;
   --color-success: #2f6b4f;
-  --color-warning: #8a6a1f;
+  --color-warning: #745610;
   --color-danger: #9b2c2c;
-  --color-overlay: rgb(27 25 23 / 0.5);
-  /* Primary call-to-action fill. Ink in light; gold in dark (see the dark block below). */
-  --color-cta: #1b1917;
-  --color-cta-foreground: #fbfaf7;
+  --color-overlay: rgb(46 26 29 / 0.5);
+  /* Primary call-to-action fill. Rose in light; soft rose in dark (see the dark block below). */
+  --color-cta: #9c4a57;
+  --color-cta-foreground: #ffffff;
   /* Fixed colours for controls drawn over photography (carousel dots, play
      icons). They do not change with the theme because the photo does not. */
   --color-on-image: #fbfaf7;
@@ -42,7 +42,7 @@
   --radius-2xl: 16px;
 
   /* Shadows (deliberately few; cards have none) --------------------------- */
-  --shadow-header: 0 1px 0 0 #e6e1d9;
+  --shadow-header: 0 1px 0 0 #e3c3bc;
   --shadow-float: 0 8px 24px -12px rgb(27 25 23 / 0.28);
   --shadow-overlay: 0 24px 48px -16px rgb(27 25 23 / 0.35);
 
@@ -112,31 +112,31 @@
    inline script in `src/app/layout.tsx` sets before first paint from the
    stored choice or `prefers-color-scheme`. Every utility reads the token
    variables at runtime, so overriding them here re-skins the whole site:
-   near-black warm surfaces, warm-ivory body text and gold for everything
+   deep rose-brown surfaces, blush body text and soft rose for everything
    that carries the brand (headings, links, focus rings, primary buttons).
    ------------------------------------------------------------------------ */
 html[data-theme="dark"] {
   color-scheme: dark;
 
-  --color-bg: #0f0e0c;
-  --color-surface: #171512;
-  --color-surface-muted: #201d19;
-  --color-ink: #f1e8d6;
-  --color-ink-muted: #bfb39d;
-  --color-ink-subtle: #8f8676;
-  --color-line: #2b2824;
-  --color-line-strong: #403a33;
-  --color-brand: #d4b36a;
-  --color-brand-hover: #e6c884;
-  --color-highlight: #e0c27c;
+  --color-bg: #1e1416;
+  --color-surface: #2a1c1f;
+  --color-surface-muted: #342327;
+  --color-ink: #f5e1dc;
+  --color-ink-muted: #c9a6ac;
+  --color-ink-subtle: #9a7a80;
+  --color-line: #3e2a2e;
+  --color-line-strong: #5a3e44;
+  --color-brand: #e3a0ab;
+  --color-brand-hover: #f0b8c1;
+  --color-highlight: #e8b4bc;
   --color-success: #7cbf9a;
   --color-warning: #e0b85a;
   --color-danger: #e58787;
   --color-overlay: rgb(0 0 0 / 0.65);
-  --color-cta: #d4b36a;
-  --color-cta-foreground: #0f0e0c;
+  --color-cta: #d48a96;
+  --color-cta-foreground: #1e1416;
 
-  --shadow-header: 0 1px 0 0 #2b2824;
+  --shadow-header: 0 1px 0 0 #3e2a2e;
   --shadow-float: 0 8px 24px -12px rgb(0 0 0 / 0.7);
   --shadow-overlay: 0 24px 48px -16px rgb(0 0 0 / 0.8);
 }
