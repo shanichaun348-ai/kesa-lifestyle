@@ -4,6 +4,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import * as schema from "@/db/schema";
 import { seed, type SeedSummary } from "@/db/seed/seed";
 import { seedProducts } from "@/lib/demo/seed-catalog";
+import { sampleFooterColumns, sampleHeaderMenus } from "@/lib/navigation";
 
 import { createMigratedDb, type TestDb } from "./harness";
 
@@ -29,7 +30,11 @@ describe("development seed", () => {
     expect(summary.images).toBe(seedProducts.reduce((n, p) => n + p.images.length, 0));
     expect(summary.categories).toBe(14);
     expect(summary.collections).toBe(7);
-    expect(summary.navigationItems).toBeGreaterThan(20);
+    // Header: one row per top-level menu, per column heading, per link; footer: one per link (mirrors seed.ts).
+    const expectedNav =
+      sampleHeaderMenus.reduce((n, m) => n + 1 + (m.columns ?? []).reduce((c, col) => c + 1 + col.links.length, 0), 0) +
+      sampleFooterColumns.reduce((n, col) => n + col.links.length, 0);
+    expect(summary.navigationItems).toBe(expectedNav);
   });
 
   it("every active product has a primary image, a category membership and stock rows", async () => {
