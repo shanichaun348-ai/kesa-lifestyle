@@ -28,7 +28,6 @@ import {
   demoBrandStatement,
   demoCategories,
   demoLook,
-  demoReviews,
   demoWhyKesa,
 } from "@/lib/demo/homepage";
 import { HERO_SLIDES } from "@/lib/hero-slides";
@@ -86,12 +85,10 @@ async function homeRails() {
 
 const MIN_REAL_REVIEWS = 3;
 
-/** Real customer reviews once there are enough; the sample set (with its notice) until then. */
-async function homeReviews(): Promise<{ reviews: readonly HomeReview[]; notice: string | undefined }> {
+/** Real customer reviews once there are enough; until then the section is left out (no sample reviews on the live site). */
+async function homeReviews(): Promise<{ reviews: readonly HomeReview[]; notice: string | undefined } | null> {
   const showcase = await getReviewShowcase(6);
-  if (showcase.total < MIN_REAL_REVIEWS || showcase.reviews.length === 0) {
-    return { reviews: demoReviews, notice: "Sample reviews shown for layout. Verified customer reviews appear here after launch." };
-  }
+  if (showcase.total < MIN_REAL_REVIEWS || showcase.reviews.length === 0) return null;
   const products = await getCatalogRepository().getProductsBySlugs([...new Set(showcase.reviews.map((r) => r.productSlug))]);
   const nameOf = new Map(products.map((p) => [p.slug, p.name]));
   return {
@@ -147,7 +144,7 @@ export default async function HomePage() {
 
         <WhyKesa facts={demoWhyKesa} />
 
-        <Reviews reviews={reviews.reviews} notice={reviews.notice} />
+        {reviews ? <Reviews reviews={reviews.reviews} notice={reviews.notice} /> : null}
 
         <NewsletterBand />
       </div>

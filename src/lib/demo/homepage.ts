@@ -4,8 +4,9 @@
  *
  * Mirrors the shapes the `homepage_sections`, `guides`, `journal_posts`,
  * `reviews` and UGC tables will provide (docs/05 §8). All copy, names and
- * imagery are placeholders for layout review. Facts that depend on owner
- * decisions (shipping threshold D4, return window D7) are marked `pending`.
+ * imagery are placeholders for layout review. Store facts (`demoWhyKesa`)
+ * are live policy: shipping ₹59 / free over ₹999, 7-day returns, COD up to
+ * ₹5,000 (owner decisions, Oct–Nov 2026).
  * ─────────────────────────────────────────────────────────────────────────
  */
 
@@ -66,12 +67,12 @@ export const demoBrandStatement = {
   },
 };
 
-/** Store facts. Items marked `pending` depend on owner decisions and must be confirmed before launch. */
+/** Store promises on the homepage (trust strip titles + "The Kesa promise" band). Mirror the policy pages and checkout rules. */
 export const demoWhyKesa = [
-  { title: "Anti-tarnish plating", body: "Keeps its finish through daily wear with simple care.", icon: "shield" },
-  { title: "Skin-friendly", body: "Nickel-safe, hypoallergenic base metals.", icon: "leaf" },
-  { title: "Free shipping over ₹999", body: "Across India. Pending decision D4.", icon: "truck", pending: true },
-  { title: "7-day easy returns", body: "Unworn pieces, no questions. Pending decision D7.", icon: "refresh", pending: true },
+  { title: "Anti-tarnish & skin-friendly", body: "Nickel-safe, hypoallergenic base metals that keep their finish with simple care.", icon: "shield" },
+  { title: "Free shipping over ₹999", body: "Across India. Flat ₹59 on smaller orders.", icon: "truck" },
+  { title: "7-day easy returns", body: "Unworn pieces, within 7 days of delivery.", icon: "refresh" },
+  { title: "Cash on delivery available", body: "Pay at your door on orders up to ₹5,000, or pay online.", icon: "banknote" },
 ] as const;
 
 export const demoReviews = [

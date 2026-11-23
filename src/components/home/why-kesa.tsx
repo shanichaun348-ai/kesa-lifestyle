@@ -1,18 +1,17 @@
-import { LeafIcon, RefreshCwIcon, ShieldCheckIcon, TruckIcon } from "lucide-react";
+import { BanknoteIcon, LeafIcon, RefreshCwIcon, ShieldCheckIcon, TruckIcon } from "lucide-react";
 
 const icons = {
   shield: ShieldCheckIcon,
   leaf: LeafIcon,
   truck: TruckIcon,
   refresh: RefreshCwIcon,
+  banknote: BanknoteIcon,
 } as const;
 
 type Fact = {
   title: string;
   body: string;
   icon: keyof typeof icons;
-  /** True while the underlying policy awaits an owner decision. */
-  pending?: boolean;
 };
 
 /** Why Kesa: four promises on a dark band, icons in soft rings. On the dark theme the band is a muted surface with gold titles. */
