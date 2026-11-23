@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Inter } from "next/font/google";
+import localFont from "next/font/local";
 import { Suspense } from "react";
 
 import { MicrosoftClarity } from "@/components/analytics/clarity";
@@ -13,19 +13,24 @@ import { DEFAULT_THEME, THEME_INIT_SCRIPT } from "@/lib/theme";
 
 import "./globals.css";
 
-const inter = Inter({
-  subsets: ["latin"],
+/*
+ * Both families are served from files in the repo (src/fonts), not fetched
+ * from Google at build time: the server build broke when Google Fonts
+ * returned an unexpected URL shape, and a build must not depend on a third
+ * party being reachable. Latin subset only; Fraunces is one variable file
+ * covering the two weights we use (400/500), within the 120 KB font budget
+ * (docs/09 §3, docs/12 §6).
+ */
+const inter = localFont({
+  src: "../fonts/inter-latin.woff2",
+  weight: "100 900",
   variable: "--font-inter",
   display: "swap",
 });
 
-/*
- * Fraunces is a large variable family. We request two static weights so the
- * font payload stays inside the 120 KB budget (docs/09 §3, docs/12 §6).
- */
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  weight: ["400", "500"],
+const fraunces = localFont({
+  src: "../fonts/fraunces-latin.woff2",
+  weight: "400 500",
   variable: "--font-fraunces",
   display: "swap",
 });
